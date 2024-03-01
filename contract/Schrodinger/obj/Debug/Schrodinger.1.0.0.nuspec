@@ -12,6 +12,6 @@
     </dependencies>
   </metadata>
   <files>
-    <file src="/Users/yanfeng/Desktop/Code/schrodinger/schrodinger-contract/contract/Schrodinger/bin/Debug/net6.0/Schrodinger.dll" target="lib/net6.0/Schrodinger.dll" />
+    <file src="/Users/yanfeng/Desktop/Code/schrodinger/schrodinger/schrodinger-contract/contract/Schrodinger/bin/Debug/net6.0/Schrodinger.dll" target="lib/net6.0/Schrodinger.dll" />
   </files>
 </package>

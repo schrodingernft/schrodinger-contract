@@ -19,8 +19,9 @@ service SchrodingerContract {
   rpc GetAdmin (google.protobuf.Empty) returns (aelf.Address){option (aelf.is_view) = true;}
   
   // set method
+  rpc JoinRecord(google.protobuf.Empty) returns (google.protobuf.Empty) {}
   // view method
-  
+  rpc GetJoinRecord (aelf.Address) returns (google.protobuf.BoolValue){  option (aelf.is_view) = true; }
 
 }
 

@@ -5,6 +5,10 @@ namespace Schrodinger;
 
 public partial class SchrodingerContract
 {
-   // public override Address GetAdmin(Empty input) => State.Admin.Value;
-    
+    public override Address GetAdmin(Empty input) => State.Admin.Value;
+
+    public override BoolValue GetJoinRecord(Address address)
+    {
+        return new BoolValue{ Value = State.JoinRecord[address] };
+    }
 }
