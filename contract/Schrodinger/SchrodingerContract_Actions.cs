@@ -24,6 +24,7 @@ public partial class SchrodingerContract : SchrodingerContractContainer.Schrodin
         AssertAdmin();
         Assert(input != null && !input.Value.IsNullOrEmpty(), "Invalid input.");
         State.Admin.Value = input;
+        
         return new Empty();
     }
 
