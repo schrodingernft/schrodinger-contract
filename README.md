@@ -1,1 +1,2 @@
-# Points Contract
+# schrodinger-contract
+schrodinger-contract
