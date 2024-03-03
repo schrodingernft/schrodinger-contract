@@ -1,151 +1,57 @@
 using System.Threading.Tasks;
+using AElf;
 using AElf.Types;
+using Google.Protobuf.WellKnownTypes;
+using Points.Contracts.Point;
 using Shouldly;
 using Xunit;
 
 namespace Schrodinger;
 
-public partial class SchrodingerContractTests
+public partial class SchrodingerContractTests :SchrodingerContractTestBase
 {
-    /*[Fact]
-    public async Task SetServicesEarningRulesTests()
+    private const string DAPP_ID = "Schrodinger";
+    private const string DOMAIN = "www.schrodinger.123.com";
+    
+    [Fact]
+    public async Task Join_Test()
     {
-        await Initialize();
-        await CreatePoint();
-
-        var result = await PointsContractStub.SetServicesEarningRules.SendAsync(new SetServicesEarningRulesInput
+        /*
+         await ApplyDomain();
+        //join
+        await SchrodingerContractStub.Join.SendAsync(new JoinInput()
         {
-            Service = "abc",
-            ServicesEarningRules = new EarningRuleList
-            {
-                EarningRules =
-                {
-                    new EarningRule
-                    {
-                        ActionName = "join",
-                        PointName = "ABC-1",
-                        UserPoints = 100,
-                        KolPoints = 10,
-                        InviterPoints = 1
-                    }
-                }
-            }
+            Domain = DOMAIN
         });
-        result.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
+        
+        //get join
+        var joinRecord = await SchrodingerContractStub.GetJoinRecord.CallAsync(DefaultAddress);
+        joinRecord.Value.ShouldBe(true);
+        
+        //join twice
+        var result = await SchrodingerContractStub.Join.SendWithExceptionAsync(new JoinInput()
+        {
+            Domain = DOMAIN
+        });
+        result.TransactionResult.Error.ShouldContain("you have joined");
+        */
     }
 
-
-    [Fact]
-    public async Task SetServicesEarningRulesTests_Fail()
+    private async Task ApplyDomain()
     {
-        var input = new SetServicesEarningRulesInput
+        await PointsContractStub.ApplyToOperator.SendAsync(new ApplyToOperatorInput()
         {
-            Service = "abc",
-            ServicesEarningRules = new EarningRuleList
-            {
-                EarningRules =
-                {
-                    new EarningRule
-                    {
-                        ActionName = "join",
-                        PointName = "ABC-1",
-                        UserPoints = 100,
-                        KolPoints = 10,
-                        InviterPoints = 1
-                    }
-                }
-            }
-        };
+            Domain = DOMAIN,
+            DappId = HashHelper.ComputeFrom(DAPP_ID),
+            Invitee = DefaultAddress
+        });
 
-        var result = await PointsContractStub.SetServicesEarningRules.SendWithExceptionAsync(input);
-        result.TransactionResult.Error.ShouldContain("Not initialized.");
-        await Initialize();
-
-        result = await PointsContractStub.SetServicesEarningRules.SendWithExceptionAsync(input);
-        result.TransactionResult.Error.ShouldContain("Wrong points information.");
-        await CreatePoint();
+        var result = await PointsContractStub.GetDomainApplyInfo.CallAsync(new StringValue()
+        {
+            Value = DOMAIN
+        });
+        result.ShouldNotBe(null);
+        result.Domain.ShouldBeUnique(DOMAIN);
         
-        result = await PointsContractUserStub.SetServicesEarningRules.SendWithExceptionAsync(input);
-        result.TransactionResult.Error.ShouldContain("No permission.");
-
-        result = await PointsContractStub.SetServicesEarningRules.SendWithExceptionAsync(
-            new SetServicesEarningRulesInput
-            {
-                Service = "abc",
-                ServicesEarningRules = new EarningRuleList
-                {
-                    EarningRules =
-                    {
-                        new EarningRule
-                        {
-                            PointName = "ABC-1",
-                            UserPoints = 100,
-                            KolPoints = 10,
-                            InviterPoints = 1
-                        }
-                    }
-                }
-            });
-        result.TransactionResult.Error.ShouldContain("ActionName cannot be empty.");
-
-        result = await PointsContractStub.SetServicesEarningRules.SendWithExceptionAsync(
-            new SetServicesEarningRulesInput
-            {
-                Service = "abc",
-                ServicesEarningRules = new EarningRuleList
-                {
-                    EarningRules =
-                    {
-                        new EarningRule
-                        {
-                            ActionName = "join",
-                            PointName = "ABC-1",
-                            KolPoints = 10,
-                            InviterPoints = 1
-                        }
-                    }
-                }
-            });
-        result.TransactionResult.Error.ShouldContain("Points must large than 0.");
-
-        result = await PointsContractStub.SetServicesEarningRules.SendWithExceptionAsync(
-            new SetServicesEarningRulesInput
-            {
-                Service = "abc",
-                ServicesEarningRules = new EarningRuleList
-                {
-                    EarningRules =
-                    {
-                        new EarningRule
-                        {
-                            ActionName = "join",
-                            PointName = "ABC-1",
-                            UserPoints = 100,
-                            InviterPoints = 1
-                        }
-                    }
-                }
-            });
-        result.TransactionResult.Error.ShouldContain("Points must large than 0.");
-        
-        result = await PointsContractStub.SetServicesEarningRules.SendWithExceptionAsync(
-            new SetServicesEarningRulesInput
-            {
-                Service = "abc",
-                ServicesEarningRules = new EarningRuleList
-                {
-                    EarningRules =
-                    {
-                        new EarningRule
-                        {
-                            ActionName = "join",
-                            PointName = "ABC-1",
-                            KolPoints = 10,
-                            InviterPoints = 1
-                        }
-                    }
-                }
-            });
-        result.TransactionResult.Error.ShouldContain("Points must large than 0.");
-    }*/
+    }
 }

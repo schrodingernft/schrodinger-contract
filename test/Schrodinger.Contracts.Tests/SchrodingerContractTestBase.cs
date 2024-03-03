@@ -1,14 +1,30 @@
+using System.IO;
 using AElf.Boilerplate.TestBase;
+using AElf.Boilerplate.TestBase.SmartContractNameProviders;
+using AElf.Contracts.MultiToken;
+using AElf.ContractTestBase.ContractTestKit;
+using AElf.Cryptography.ECDSA;
+using AElf.Kernel;
+using AElf.Standards.ACS0;
+using AElf.Types;
+using Google.Protobuf;
+using Points.Contracts.Point;
+using Volo.Abp.Threading;
 
 namespace Schrodinger;
 
 public class SchrodingerContractTestBase : DAppContractTestBase<SchrodingerContractTestModule>
 {
-    /*internal ACS0Container.ACS0Stub ZeroContractStub { get; set; }
-    internal Address PointsContractAddress { get; set; }
+    internal ACS0Container.ACS0Stub ZeroContractStub { get; set; }
+    internal Address SchrodingerContractAddress { get; set; }
+    
+    internal Address PointsContractAddress => GetAddress(PointsSmartContractAddressNameProvider.StringName);
+
+    internal SchrodingerContractContainer.SchrodingerContractStub SchrodingerContractStub { get; set; }
+    internal SchrodingerContractContainer.SchrodingerContractStub SchrodingerContractUserStub { get; set; }
+    internal SchrodingerContractContainer.SchrodingerContractStub SchrodingerContractUser2Stub { get; set; }
+    
     internal PointsContractContainer.PointsContractStub PointsContractStub { get; set; }
-    internal PointsContractContainer.PointsContractStub PointsContractUserStub { get; set; }
-    internal PointsContractContainer.PointsContractStub PointsContractUser2Stub { get; set; }
 
     protected ECKeyPair DefaultKeyPair => Accounts[0].KeyPair;
     protected Address DefaultAddress => Accounts[0].Address;
@@ -21,7 +37,7 @@ public class SchrodingerContractTestBase : DAppContractTestBase<SchrodingerContr
 
     protected readonly IBlockTimeProvider BlockTimeProvider;
 
-    protected PointsContractTestBase()
+    protected SchrodingerContractTestBase()
     {
         BlockTimeProvider = GetRequiredService<IBlockTimeProvider>();
 
@@ -32,19 +48,26 @@ public class SchrodingerContractTestBase : DAppContractTestBase<SchrodingerContr
             {
                 Category = KernelConstants.CodeCoverageRunnerCategory,
                 Code = ByteString.CopyFrom(
-                    File.ReadAllBytes(typeof(PointsContract).Assembly.Location))
+                    File.ReadAllBytes(typeof(SchrodingerContract).Assembly.Location))
             }));
 
-        PointsContractAddress = Address.Parser.ParseFrom(result.TransactionResult.ReturnValue);
+        SchrodingerContractAddress = Address.Parser.ParseFrom(result.TransactionResult.ReturnValue);
 
-        PointsContractStub = GetPointsContractContainerStub(DefaultKeyPair);
-        PointsContractUserStub = GetPointsContractContainerStub(UserKeyPair);
-        PointsContractUser2Stub = GetPointsContractContainerStub(User2KeyPair);
+        SchrodingerContractStub = GetSchrodingerContractContainerStub(DefaultKeyPair);
+        SchrodingerContractUserStub = GetSchrodingerContractContainerStub(UserKeyPair);
+        SchrodingerContractUser2Stub = GetSchrodingerContractContainerStub(User2KeyPair);
+
+        //PointsContractStub = GetPointsContractStub(DefaultKeyPair);
     }
 
-    internal PointsContractContainer.PointsContractStub GetPointsContractContainerStub(ECKeyPair senderKeyPair)
-        => GetTester<PointsContractContainer.PointsContractStub>(PointsContractAddress, senderKeyPair);
+    internal SchrodingerContractContainer.SchrodingerContractStub GetSchrodingerContractContainerStub(ECKeyPair senderKeyPair)
+        => GetTester<SchrodingerContractContainer.SchrodingerContractStub>(SchrodingerContractAddress, senderKeyPair);
+    
+    internal PointsContractContainer.PointsContractStub GetPointsContractStub(ECKeyPair senderKeyPair)
+    {
+        return GetTester<PointsContractContainer.PointsContractStub>(PointsContractAddress, senderKeyPair);
+    }
 
     private ACS0Container.ACS0Stub GetContractZeroTester(ECKeyPair senderKeyPair)
-        => GetTester<ACS0Container.ACS0Stub>(BasicContractZeroAddress, senderKeyPair);*/
+        => GetTester<ACS0Container.ACS0Stub>(BasicContractZeroAddress, senderKeyPair);
 }
