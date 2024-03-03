@@ -19,7 +19,7 @@ service SchrodingerContract {
   rpc GetAdmin (google.protobuf.Empty) returns (aelf.Address){option (aelf.is_view) = true;}
   
   // set method
-  rpc JoinRecord(google.protobuf.Empty) returns (google.protobuf.Empty) {}
+  rpc Join(JoinInput) returns (google.protobuf.Empty) {}
   // view method
   rpc GetJoinRecord (aelf.Address) returns (google.protobuf.BoolValue){  option (aelf.is_view) = true; }
 
@@ -29,11 +29,13 @@ message InitializeInput {
     aelf.Address admin = 1;
 }
 
+message JoinInput {
+  string domain = 1; 
+}
+
 // Log Event
-message InviterApplied {
-    option (aelf.is_event) = true;
-    string domain = 1;
-    string service = 2;
-    aelf.Address invitee = 3;
-    aelf.Address inviter = 4;
+message Joined {
+  option (aelf.is_event) = true;
+  string domain = 2;
+  aelf.Address registrant = 3;
 }
