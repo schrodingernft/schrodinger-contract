@@ -224,7 +224,7 @@ FakesAssemblies/
 
 # GhostDoc plugin setting file
 *.GhostDoc.xml
-.idea/.idea.Schrodinger/.idea/protoeditor.xml
+.idea/.idea.Forest/.idea/protoeditor.xml
 
 # Node.js Tools for Visual Studio
 .ntvs_analysis.dat
@@ -304,12 +304,7 @@ coverage*.xml
 scripts/patcher/*
 test/patched/*
 
-src/AElf.Boilerplate.SchrodingerContract.Launcher
+src/AElf.Boilerplate.ForestContract.Launcher
 
 tools
 .dotnet
-
-*.dll
-*.pdb
-*.nuspec
-/contract/Schrodinger/obj/Debug/*
