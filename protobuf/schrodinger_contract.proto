@@ -20,8 +20,13 @@ service SchrodingerContract {
   
   // set method
   rpc Join(JoinInput) returns (google.protobuf.Empty) {}
+  rpc SetDAppId(aelf.Hash) returns (google.protobuf.Empty) {}
+  rpc SetPointContract(aelf.Address) returns (google.protobuf.Empty) {}
+
   // view method
   rpc GetJoinRecord (aelf.Address) returns (google.protobuf.BoolValue){  option (aelf.is_view) = true; }
+  rpc GetDAppId (google.protobuf.Empty) returns (aelf.Hash){  option (aelf.is_view) = true; }
+  rpc GetPointContract(google.protobuf.Empty) returns (aelf.Address) {}
 
 }
 
