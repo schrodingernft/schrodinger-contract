@@ -1,0 +1,41 @@
+// the version of the language, use proto3 for contracts
+syntax = "proto3";
+
+import "aelf/core.proto";
+import "aelf/options.proto";
+import "acs12.proto";
+import "google/protobuf/empty.proto";
+import "google/protobuf/timestamp.proto";
+
+option csharp_namespace = "Schrodinger";
+
+service SchrodingerContract {
+  option (aelf.base) = "acs12.proto";
+  option (aelf.csharp_state) = "Schrodinger.SchrodingerContractState";
+
+  // Initialize.
+  rpc Initialize(InitializeInput) returns (google.protobuf.Empty) {}
+  rpc SetAdmin(aelf.Address) returns (google.protobuf.Empty) {}
+  rpc GetAdmin (google.protobuf.Empty) returns (aelf.Address){option (aelf.is_view) = true;}
+  
+  // set method
+  rpc Join(JoinInput) returns (google.protobuf.Empty) {}
+  // view method
+  rpc GetJoinRecord (aelf.Address) returns (google.protobuf.BoolValue){  option (aelf.is_view) = true; }
+
+}
+
+message InitializeInput {
+    aelf.Address admin = 1;
+}
+
+message JoinInput {
+  string domain = 1; 
+}
+
+// Log Event
+message Joined {
+  option (aelf.is_event) = true;
+  string domain = 2;
+  aelf.Address registrant = 3;
+}
