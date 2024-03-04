@@ -308,3 +308,6 @@ src/AElf.Boilerplate.ForestContract.Launcher
 
 tools
 .dotnet
+*.dll
+*.pdb
+*.cache
