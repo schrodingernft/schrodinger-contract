@@ -14,7 +14,7 @@ public partial class SchrodingerContract : SchrodingerContractContainer.Schrodin
         State.GenesisContract.Value = Context.GetZeroSmartContractAddress();
         Assert(State.GenesisContract.GetContractAuthor.Call(Context.Self) == Context.Sender, "No permission.");
         Assert(input.Admin == null || !input.Admin.Value.IsNullOrEmpty(), "Invalid input admin.");
-        if (input != null && input.PointsContract.Value != null)
+        if (input != null && input.PointsContract != null)
         {
             State.PointsContract.Value = input.PointsContract;
         }
