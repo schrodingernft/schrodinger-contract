@@ -311,10 +311,10 @@
           "lib/net6.0/AElf.CrossChain.Grpc.dll": {}
         }
       },
-      "AElf.Cryptography/1.5.0": {
+      "AElf.Cryptography/1.6.0": {
         "type": "package",
         "dependencies": {
-          "AElf.Types": "1.5.0",
+          "AElf.Types": "1.6.0",
           "Portable.BouncyCastle": "1.9.0",
           "Secp256k1.Native": "0.1.24-alpha",
           "Secp256k1.Net": "1.2.0",
@@ -342,10 +342,10 @@
           "lib/net6.0/AElf.CSharp.CodeOps.dll": {}
         }
       },
-      "AElf.CSharp.Core/1.5.0": {
+      "AElf.CSharp.Core/1.6.0": {
         "type": "package",
         "dependencies": {
-          "AElf.Types": "1.5.0",
+          "AElf.Types": "1.6.0",
           "Microsoft.CSharp": "4.7.0"
         },
         "compile": {
@@ -614,10 +614,10 @@
           "lib/net6.0/AElf.Kernel.SmartContract.Parallel.dll": {}
         }
       },
-      "AElf.Kernel.SmartContract.Shared/1.5.0": {
+      "AElf.Kernel.SmartContract.Shared/1.6.0": {
         "type": "package",
         "dependencies": {
-          "AElf.Types": "1.5.0"
+          "AElf.Types": "1.6.0"
         },
         "compile": {
           "lib/net6.0/AElf.Kernel.SmartContract.Shared.dll": {}
@@ -762,12 +762,12 @@
           "lib/net6.0/AElf.RuntimeSetup.dll": {}
         }
       },
-      "AElf.Sdk.CSharp/1.5.0": {
+      "AElf.Sdk.CSharp/1.6.0": {
         "type": "package",
         "dependencies": {
-          "AElf.CSharp.Core": "1.5.0",
-          "AElf.Cryptography": "1.5.0",
-          "AElf.Kernel.SmartContract.Shared": "1.5.0"
+          "AElf.CSharp.Core": "1.6.0",
+          "AElf.Cryptography": "1.6.0",
+          "AElf.Kernel.SmartContract.Shared": "1.6.0"
         },
         "compile": {
           "lib/net6.0/AElf.Sdk.CSharp.dll": {}
@@ -776,7 +776,7 @@
           "lib/net6.0/AElf.Sdk.CSharp.dll": {}
         }
       },
-      "AElf.Types/1.5.0": {
+      "AElf.Types/1.6.0": {
         "type": "package",
         "dependencies": {
           "Google.Protobuf": "3.19.4"
@@ -6827,7 +6827,7 @@
         "type": "project",
         "framework": ".NETCoreApp,Version=v6.0",
         "dependencies": {
-          "AElf.Sdk.CSharp": "1.5.0"
+          "AElf.Sdk.CSharp": "1.6.0"
         },
         "compile": {
           "bin/placeholder/Schrodinger.dll": {}
@@ -7126,17 +7126,18 @@
         "lib/net6.0/AElf.CrossChain.Grpc.dll"
       ]
     },
-    "AElf.Cryptography/1.5.0": {
-      "sha512": "78Ql0d/6MIncjo7yR4yEHNC/usMVAORnMwddn5fqJkhcfOKGPfdxm3HHiFrSl7Bt7XbH0WjHiK9QNf+vux/g3Q==",
+    "AElf.Cryptography/1.6.0": {
+      "sha512": "6hxElmj3LzSbadH6rz3/OG1oz35f+leSdJqnF8yrI0X4Kn/WT0YSGhXQ5Dqm+DDd+sCK6JH6je17m2bsA6oOjw==",
       "type": "package",
-      "path": "aelf.cryptography/1.5.0",
+      "path": "aelf.cryptography/1.6.0",
       "files": [
         ".nupkg.metadata",
         ".signature.p7s",
         "LICENSE",
-        "aelf.cryptography.1.5.0.nupkg.sha512",
+        "aelf.cryptography.1.6.0.nupkg.sha512",
         "aelf.cryptography.nuspec",
-        "lib/net6.0/AElf.Cryptography.dll"
+        "lib/net6.0/AElf.Cryptography.dll",
+        "lib/netstandard2.1/AElf.Cryptography.dll"
       ]
     },
     "AElf.CSharp.CodeOps/1.5.0": {
@@ -7152,15 +7153,15 @@
         "lib/net6.0/AElf.CSharp.CodeOps.dll"
       ]
     },
-    "AElf.CSharp.Core/1.5.0": {
-      "sha512": "2onzgon0TAUki2NbhX/ID97aTaQStGuegC74V2OpZBBd0q3lfhHOLuAq1jx4ZyJXzxBzR0Z04G3HQJ7ivJli1w==",
+    "AElf.CSharp.Core/1.6.0": {
+      "sha512": "hMQ6G4Zwgcpm8TAWj6Di9r040gSEcUrPkmMtlXxrBW9M23+jGjgNqbShp1qQGCik8qW89kaC8TugEAGO17RAbA==",
       "type": "package",
-      "path": "aelf.csharp.core/1.5.0",
+      "path": "aelf.csharp.core/1.6.0",
       "files": [
         ".nupkg.metadata",
         ".signature.p7s",
         "LICENSE",
-        "aelf.csharp.core.1.5.0.nupkg.sha512",
+        "aelf.csharp.core.1.6.0.nupkg.sha512",
         "aelf.csharp.core.nuspec",
         "lib/net6.0/AElf.CSharp.Core.dll"
       ]
@@ -7409,15 +7410,15 @@
         "lib/net6.0/AElf.Kernel.SmartContract.Parallel.dll"
       ]
     },
-    "AElf.Kernel.SmartContract.Shared/1.5.0": {
-      "sha512": "CWuJT86tgmQJAPxLuQp5YQthJ77MbJYGfFe9q6wTz9Gm9pTXA845rpDaws1pebkZOK1fBz7M//JrjeUki/cqEQ==",
+    "AElf.Kernel.SmartContract.Shared/1.6.0": {
+      "sha512": "kTlrxsDB40IIq4AzSeh+lHxxQ9LvQGEm4FSYNIG6ztCcAnb6W3Qjsb+AawDKjO8udb02LX4HUeG3z4cgCLgDJw==",
       "type": "package",
-      "path": "aelf.kernel.smartcontract.shared/1.5.0",
+      "path": "aelf.kernel.smartcontract.shared/1.6.0",
       "files": [
         ".nupkg.metadata",
         ".signature.p7s",
         "LICENSE",
-        "aelf.kernel.smartcontract.shared.1.5.0.nupkg.sha512",
+        "aelf.kernel.smartcontract.shared.1.6.0.nupkg.sha512",
         "aelf.kernel.smartcontract.shared.nuspec",
         "lib/net6.0/AElf.Kernel.SmartContract.Shared.dll"
       ]
@@ -7552,30 +7553,31 @@
         "lib/net6.0/AElf.RuntimeSetup.dll"
       ]
     },
-    "AElf.Sdk.CSharp/1.5.0": {
-      "sha512": "qgk3JZgF/NG61YXAJRESN+uLVpiYKGeh0xliUIkGz49NQqUpzhskkfHWa0+3X4D8TjK0u7gISnHoetqHgKwU9A==",
+    "AElf.Sdk.CSharp/1.6.0": {
+      "sha512": "RabEjqSr7MRzwEfYM/sRUOBmObVnqwhMrCK0xvOaReHdFIVhw6QHzR+MYOB4wm5RrtH2xMK/zzEgyxjLrlqTcg==",
       "type": "package",
-      "path": "aelf.sdk.csharp/1.5.0",
+      "path": "aelf.sdk.csharp/1.6.0",
       "files": [
         ".nupkg.metadata",
         ".signature.p7s",
         "LICENSE",
-        "aelf.sdk.csharp.1.5.0.nupkg.sha512",
+        "aelf.sdk.csharp.1.6.0.nupkg.sha512",
         "aelf.sdk.csharp.nuspec",
         "lib/net6.0/AElf.Sdk.CSharp.dll"
       ]
     },
-    "AElf.Types/1.5.0": {
-      "sha512": "A77lwKAY3Pt5atMyZ4ilf2BgRJW6kw+ZeJK5zWJZPehs8lUFyK3iTteyLuAU4wFfwxv7ziwr1+wAzgO+K6qM7w==",
+    "AElf.Types/1.6.0": {
+      "sha512": "xDMGT5fVLI/jp+RarB5i3woLuIwC5dcOUqEYeRFj7Uvl683Jlw5vatqw2qI5HxCeUSx5wc04rezMcdTSdNYZ1g==",
       "type": "package",
-      "path": "aelf.types/1.5.0",
+      "path": "aelf.types/1.6.0",
       "files": [
         ".nupkg.metadata",
         ".signature.p7s",
         "LICENSE",
-        "aelf.types.1.5.0.nupkg.sha512",
+        "aelf.types.1.6.0.nupkg.sha512",
         "aelf.types.nuspec",
-        "lib/net6.0/AElf.Types.dll"
+        "lib/net6.0/AElf.Types.dll",
+        "lib/netstandard2.1/AElf.Types.dll"
       ]
     },
     "AElf.WebApp.Application.Chain/1.5.0": {

@@ -36,6 +36,7 @@
     </ItemGroup>
 
     <ItemGroup>
+      <Folder Include="obj" />
       <Folder Include="obj\Debug\net6.0" />
     </ItemGroup>
 </Project>
