@@ -32,8 +32,8 @@ service SchrodingerContract {
 
 message InitializeInput {
     aelf.Address admin = 1;
-    aelf.Address pointsContract = 2;
-    aelf.Hash pointsContractDAppId = 3;
+    aelf.Address points_contract = 2;
+    aelf.Hash points_contract_dapp_id = 3;
     
 }
 

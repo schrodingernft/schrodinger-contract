@@ -19,9 +19,9 @@ public partial class SchrodingerContract : SchrodingerContractContainer.Schrodin
             State.PointsContract.Value = input.PointsContract;
         }
         
-        if (input != null && input.PointsContractDAppId != null)
+        if (input != null && input.PointsContractDappId != null)
         {
-            State.PointsContractDAppId.Value = input.PointsContractDAppId;
+            State.PointsContractDAppId.Value = input.PointsContractDappId;
         }
         State.Admin.Value = input.Admin ?? Context.Sender;
         State.Initialized.Value = true;
@@ -63,6 +63,16 @@ public partial class SchrodingerContract : SchrodingerContractContainer.Schrodin
         var joinRecord = State.JoinRecord[Context.Sender];
         Assert(!joinRecord, "you have joined");
         State.JoinRecord[Context.Sender] = true;
+
+        Context.Fire(new Joined()
+        {
+            Domain = input.Domain,
+            Registrant = Context.Sender
+        });
+        
+        var pointsContractDAppId = State.PointsContractDAppId;
+        var pointsContractAddress = State.PointsContract;
+        if(pointsContractDAppId == null || pointsContractAddress == null) return new Empty();
         
         State.PointsContract.Join.Send(new Points.Contracts.Point.JoinInput()
         {
@@ -70,11 +80,7 @@ public partial class SchrodingerContract : SchrodingerContractContainer.Schrodin
             Domain = input.Domain,
             Registrant = Context.Sender
         });
-        Context.Fire(new Joined()
-        {
-            Domain = input.Domain,
-            Registrant = Context.Sender
-        });
+        
         return new Empty();
     }
 }
