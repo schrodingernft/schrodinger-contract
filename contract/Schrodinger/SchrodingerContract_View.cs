@@ -12,12 +12,12 @@ public partial class SchrodingerContract
         return new BoolValue{ Value = State.JoinRecord[address] };
     }
     
-    public override Hash GetDAppId(Empty input)
+    public override Hash GetPointsContractDAppId(Empty input)
     {
-        return State.DAppId.Value;
+        return State.PointsContractDAppId.Value;
     }
     
-    public override Address GetPointContract(Empty input)
+    public override Address GetPointsContract(Empty input)
     {
         return  State.PointsContract.Value;
     }

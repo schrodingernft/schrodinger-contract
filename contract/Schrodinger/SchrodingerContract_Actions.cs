@@ -14,6 +14,15 @@ public partial class SchrodingerContract : SchrodingerContractContainer.Schrodin
         State.GenesisContract.Value = Context.GetZeroSmartContractAddress();
         Assert(State.GenesisContract.GetContractAuthor.Call(Context.Self) == Context.Sender, "No permission.");
         Assert(input.Admin == null || !input.Admin.Value.IsNullOrEmpty(), "Invalid input admin.");
+        if (input != null && input.PointsContract.Value != null)
+        {
+            State.PointsContract.Value = input.PointsContract;
+        }
+        
+        if (input != null && input.PointsContractDAppId != null)
+        {
+            State.PointsContractDAppId.Value = input.PointsContractDAppId;
+        }
         State.Admin.Value = input.Admin ?? Context.Sender;
         State.Initialized.Value = true;
         return new Empty();
@@ -29,23 +38,23 @@ public partial class SchrodingerContract : SchrodingerContractContainer.Schrodin
         return new Empty();
     }
     
-    public override Empty SetDAppId(Hash input)
+    public override Empty SetPointsContractDAppId(Hash input)
     {
         AssertInitialized();
         AssertAdmin();
         Assert(input != null && !input.Value.IsNullOrEmpty(), "Invalid input.");
-        State.DAppId.Value = input;
-        
+        Assert(State.PointsContractDAppId == null, "has Configured");
+        State.PointsContractDAppId.Value = input;
         return new Empty();
     }
     
-    public override Empty SetPointContract(Address address)
+    public override Empty SetPointsContract(Address address)
     {
         AssertInitialized();
         AssertAdmin();
         Assert(address != null && !address.Value.IsNullOrEmpty(), "Invalid input.");
+        Assert(State.PointsContract == null, "has Configured");
         State.PointsContract.Value = address;
-        
         return new Empty();
     }
 
@@ -57,7 +66,7 @@ public partial class SchrodingerContract : SchrodingerContractContainer.Schrodin
         
         State.PointsContract.Join.Send(new Points.Contracts.Point.JoinInput()
         {
-            DappId = State.DAppId.Value,
+            DappId = State.PointsContractDAppId.Value,
             Domain = input.Domain,
             Registrant = Context.Sender
         });
