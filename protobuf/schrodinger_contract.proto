@@ -1,0 +1,457 @@
+// the version of the language, use proto3 for contracts
+syntax = "proto3";
+
+import "aelf/core.proto";
+import "aelf/options.proto";
+import "acs12.proto";
+import "google/protobuf/empty.proto";
+import "google/protobuf/timestamp.proto";
+
+option csharp_namespace = "Schrodinger";
+
+service SchrodingerContract {
+  option (aelf.base) = "acs12.proto";
+  option (aelf.csharp_state) = "Schrodinger.SchrodingerContractState";
+
+  // core
+  rpc Initialize(InitializeInput) returns (google.protobuf.Empty) {}
+  rpc Deploy (DeployInput) returns (google.protobuf.Empty) {}
+  rpc Adopt (AdoptInput) returns (google.protobuf.Empty) {}
+  rpc HandleOracleFulfillment(HandleOracleFulfillmentInput) returns (google.protobuf.Empty);
+  rpc Retry (aelf.Hash) returns (google.protobuf.Empty) {}
+  rpc Confirm (ConfirmInput) returns (google.protobuf.Empty) {}
+  rpc Reset (ResetInput) returns (google.protobuf.Empty) {}
+
+  // token
+  rpc SetAttributes (SetAttributesInput) returns (google.protobuf.Empty) {}
+  rpc SetRecommendRule (SetRecommendRuleInput) returns (google.protobuf.Empty) {}
+  rpc SetMaxGeneration (SetMaxGenerationInput) returns (google.protobuf.Empty) {}
+  rpc SetRates (SetRatesInput) returns (google.protobuf.Empty) {}
+  rpc SetRecipient (SetRecipientInput) returns (google.protobuf.Empty) {}
+  rpc SetInscriptionAdmin (SetInscriptionAdminInput) returns (google.protobuf.Empty) {}
+  rpc SetCrossGenerationConfig (SetCrossGenerationConfigInput) returns (google.protobuf.Empty) {}
+  rpc GetInscriptionInfo (google.protobuf.StringValue) returns (InscriptionInfo) {option (aelf.is_view) = true;}
+  rpc GetTick (google.protobuf.StringValue) returns (google.protobuf.StringValue) {option (aelf.is_view) = true;}
+  rpc GetParent (google.protobuf.StringValue) returns (google.protobuf.StringValue) {option (aelf.is_view) = true;}
+  rpc GetAttributes (google.protobuf.StringValue) returns (AttributeSets) {option (aelf.is_view) = true;}
+  rpc GetAttributeTypes (google.protobuf.StringValue) returns (AttributeInfos) {option (aelf.is_view) = true;}
+  rpc GetAttributeValues (google.protobuf.StringValue) returns (AttributeInfos) {option (aelf.is_view) = true;}
+  rpc GetRecommendImageCount (google.protobuf.Int64Value) returns (google.protobuf.Int64Value) {option (aelf.is_view) = true;}
+  rpc GetRecommendRule (google.protobuf.StringValue) returns (RecommendRule) {option (aelf.is_view) = true;}
+  rpc GetAdoptInfo (aelf.Hash) returns (AdoptInfo) {option (aelf.is_view) = true;}
+  rpc GetTokenInfo (google.protobuf.StringValue) returns (GetTokenInfoOutput) {option (aelf.is_view) = true;}
+
+  // contract
+  rpc SetConfig (Config) returns (google.protobuf.Empty) {}
+  rpc SetAdmin(aelf.Address) returns (google.protobuf.Empty) {}
+  rpc GetAdmin (google.protobuf.Empty) returns (aelf.Address){option (aelf.is_view) = true;}
+  rpc SetGenerationConfig (SetGenerationConfigInput) returns (google.protobuf.Empty) {}
+  rpc SetImageMaxSize (google.protobuf.Int64Value) returns (google.protobuf.Empty) {}
+  rpc SetImageMaxCount (google.protobuf.Int64Value) returns (google.protobuf.Empty) {}
+  rpc SetAttributeConfig (SetAttributeConfigInput) returns (google.protobuf.Empty) {}
+  rpc SetRecommendRuleMaxCount (google.protobuf.Int32Value) returns (google.protobuf.Empty) {}
+  rpc SetSignatoryConfig (aelf.Address) returns (google.protobuf.Empty) {}
+  rpc SetOracleContractAddress (aelf.Address) returns (google.protobuf.Empty) {}
+  rpc SetRetryCooldownInterval (google.protobuf.Int64Value) returns (google.protobuf.Empty) {}
+  rpc GetConfig (google.protobuf.Empty) returns (Config) {option (aelf.is_view) = true;}
+
+  // point contract
+  rpc SetPointsContractDAppId(aelf.Hash) returns (google.protobuf.Empty) {}
+  rpc SetPointsContract(aelf.Address) returns (google.protobuf.Empty) {}
+  rpc GetPointsContractDAppId (google.protobuf.Empty) returns (aelf.Hash){option (aelf.is_view) = true;}
+  rpc GetPointsContract(google.protobuf.Empty) returns (aelf.Address) {}
+}
+
+message InitializeInput {
+  aelf.Address admin = 1;
+  aelf.Address points_contract = 2;
+  aelf.Hash points_contract_dapp_id = 3;
+  int32 min_gen = 4;
+  int32 max_gen = 5;
+  int64 image_max_size = 6;
+  int64 image_max_count = 7;
+  int64 trait_value_max_count = 8;
+  int64 attribute_max_length = 9;
+  int32 recommend_rule_max_count = 10;
+  aelf.Address signatory = 11;                // eoa address of server
+  aelf.Address oracle_contract_address = 12;  // AetherLink oracle contract address
+  int64 retry_cooldown_interval = 13;
+}
+
+message DeployInput {
+  string tick = 1;
+  int32 max_generation = 2;
+  int64 total_supply = 3;
+  int32 decimals = 4;
+  int64 loss_rate = 5;
+  int64 commission_rate = 6;
+  AttributeSets attribute_sets = 7;
+  RecommendRuleInfos rules = 8;
+  aelf.Address recipient = 9;
+  aelf.Address issuer = 10;
+  aelf.Address owner = 11;
+  string image = 12;
+  CrossGenerationConfig cross_generation_config = 13;
+  bool is_weight_enabled = 14;
+}
+
+message AttributeSets {
+  repeated AttributeSet data = 1;
+}
+
+message AttributeSet {
+  AttributeInfo trait_type = 1;
+  AttributeInfos values = 2;
+}
+
+message AttributeInfos {
+  repeated AttributeInfo data = 1;
+}
+
+message AttributeInfo {
+  string name = 1;
+  int64 weight = 2;
+}
+
+message RecommendRuleInfo {
+  int64 interval = 1;
+  int64 amount = 2;
+}
+
+message RecommendRuleInfos {
+  repeated RecommendRuleInfo data = 1;
+}
+
+message CrossGenerationConfig {
+  int32 gen = 1;                               // cross generation limit, 0 means no cross generation mechanism
+  bool cross_generation_fixed = 2;             // whether the cross generation quantity is fixed
+  int64 cross_generation_probability = 3;
+  repeated int64 weights = 4;                  // determine the cross generation quantity
+  bool is_weight_enabled = 5;
+}
+
+message RecommendRule {
+  map<int64, int64> data = 1;
+}
+
+message ExternalInfos {
+  map<string, string> value = 1;
+}
+
+message AdoptInput {
+  string parent = 1;  // parent symbol
+  int64 amount = 2;
+  string domain = 3;   // for point contract
+}
+
+message AdoptInfo {
+  aelf.Hash adopt_id = 1;
+  string parent = 2;
+  int32 parent_gen = 3;
+  int64 input_amount = 4;
+  int64 output_amount = 5;
+  Attributes parent_attributes = 6;
+  int64 image_amount = 7;
+  aelf.Hash key_hash = 8;             // latest oracle key hash
+  int64 block_height = 9;             // latest adopt/retry block height
+  string symbol = 10;                 // generated symbol   
+  Attributes attributes = 11;         // generated attributes, will be filled in after confirmed
+  int32 gen = 12;                     // generated gen, will be filled in after confirmed
+  aelf.Address adopter = 13;          // sender
+}
+
+message Attributes {
+  repeated Attribute data = 1;
+}
+
+message Attribute {
+  string trait_type = 1;
+  string value = 2;
+}
+
+message HashList {
+  repeated aelf.Hash data = 1;
+}
+
+message HandleOracleFulfillmentInput {
+  aelf.Hash request_id = 1;
+  bytes response = 2;
+  bytes err = 3;
+  int32 request_type_index = 4;
+  aelf.Hash trace_id = 5;
+}
+
+message ConfirmInput {
+  aelf.Hash adopt_id = 1;
+  string image = 2;           // base64
+  bytes signature = 10000;    // signed by server
+}
+
+message ResetInput {
+  string symbol = 1;
+  int64 amount = 2;
+  string domain = 3;          // for point contract
+}
+
+message SetAttributesInput {
+  string tick = 1;
+  repeated string trait_types = 2;              // trait types need to be replaced
+  repeated AttributeSet attribute_sets = 3;     // new attribute sets
+}
+
+message StringList {
+  repeated string data = 1;
+}
+
+message SetRecommendRuleInput {
+  string tick = 1;
+  RecommendRuleInfos recommend_rules = 2;
+}
+
+message SetMaxGenerationInput {
+  string tick = 1;
+  int32 gen = 2;
+}
+
+message SetRatesInput {
+  string tick = 1;
+  int64 loss_rate = 2;
+  int64 commission_rate = 3;
+}
+
+message SetRecipientInput {
+  string tick = 1;
+  aelf.Address recipient = 2;
+}
+
+message SetInscriptionAdminInput {
+  string tick = 1;
+  aelf.Address admin = 2;
+}
+
+message SetCrossGenerationConfigInput {
+  string tick = 1;
+  int32 gen = 2;
+  bool cross_generation_fixed = 3;
+  int64 cross_generation_probability = 4;
+  repeated int64 weights = 5;
+  bool is_weight_enabled = 6;
+}
+
+message InscriptionInfo {
+  string ancestor = 1;             // gen0
+  int32 decimals = 2;
+  int32 max_gen = 3;
+  int64 loss_rate = 4;
+  int64 commission_rate = 5;
+  aelf.Address recipient = 6;      // receive commission address
+  aelf.Address admin = 7;
+  CrossGenerationConfig cross_generation_config = 8;
+  bool is_weight_enabled = 9;
+}
+
+message GetTokenInfoOutput {
+  aelf.Hash adopt_id = 1;
+  string parent = 2;
+  int32 parent_gen = 3;
+  Attributes parent_attributes = 6;
+  Attributes attributes = 9;
+  int32 gen = 10;
+}
+
+message SetGenerationConfigInput {
+  int32 min_gen = 1;
+  int32 max_gen = 2;
+}
+
+message SetAttributeConfigInput {
+  int64 trait_value_max_count = 1;
+  int64 attribute_max_length = 2;
+}
+
+message Config {
+  int32 min_gen = 1;
+  int32 max_gen = 2;
+  int64 image_max_size = 3;
+  int64 image_max_count = 4;
+  int64 trait_value_max_count = 5;
+  int64 attribute_max_length = 6;
+  int32 recommend_rule_max_count = 7;
+  aelf.Address signatory = 8;
+  int64 retry_cooldown_interval = 9;
+}
+
+// log event
+message Deployed {
+  option (aelf.is_event) = true;
+  string tick = 1;
+  string ancestor = 2;
+  int32 max_generation = 3;
+  int64 total_supply = 4;
+  int32 decimals = 5;
+  AttributeSets attribute_sets = 6;
+  RecommendRule rule = 7;
+  aelf.Address issuer = 8;
+  aelf.Address owner = 9;
+  int32 issue_chain_id = 10;
+  ExternalInfos external_infos = 11;
+  aelf.Address deployer = 12;
+  CrossGenerationConfig cross_generation_config = 13;
+  bool is_weight_enabled = 14;
+}
+
+message Adopted {
+  option (aelf.is_event) = true;
+  aelf.Hash adopt_id = 1;
+  string parent = 2;
+  int32 parent_gen = 3;
+  int64 input_amount = 4;
+  int64 loss_amount = 5;
+  int64 commission_amount = 6;
+  int64 output_amount = 7;
+  int64 image_amount = 8;
+  aelf.Address adopter = 9;
+  int64 block_height = 10;         // latest adopt/retry block height
+}
+
+message AttributesSelected {
+  option (aelf.is_event) = true;
+  aelf.Hash adopt_id = 1;
+  string ancestors = 2;
+  Attributes attributes = 3;
+}
+
+message Retried {
+  option (aelf.is_event) = true;
+  aelf.Hash adopt_id = 1;
+  aelf.Address adopter = 2;
+  int64 block_height = 3;          // latest adopt/retry block height
+}
+
+message Confirmed {
+  option (aelf.is_event) = true;
+  aelf.Hash adopt_id = 1;
+  string parent = 2;
+  string symbol = 3;
+  int64 total_supply = 4;
+  int32 decimals = 5;
+  int32 gen = 6;
+  Attributes attributes = 7;
+  aelf.Address issuer = 8;
+  aelf.Address owner = 9;
+  int32 issue_chain_id = 10;
+  ExternalInfos external_infos = 11;
+  string token_name = 12;
+  aelf.Address deployer = 13;
+}
+
+message TokenReset {
+  option (aelf.is_event) = true;
+  string symbol = 1;
+  string ancestor = 2;
+  int64 amount = 3;
+  aelf.Address recipient = 4;          // sender
+}
+
+message AttributesSet {
+  option (aelf.is_event) = true;
+  string tick = 1;
+  StringList trait_types = 2;         // trait types need to be replaced
+  AttributeSets attribute_sets = 3;   // new attribute sets
+}
+
+message RecommendRuleSet {
+  option (aelf.is_event) = true;
+  string tick = 1;
+  RecommendRule old_recommend_rule = 2;
+  RecommendRule new_recommend_rule = 3;
+}
+
+message MaxGenerationSet {
+  option (aelf.is_event) = true;
+  string tick = 1;
+  int32 old_gen = 2;
+  int32 new_gen = 3;
+}
+
+message RatesSet {
+  option (aelf.is_event) = true;
+  string tick = 1;
+  int64 old_loss_rate = 2;
+  int64 new_loss_rate = 3;
+  int64 old_commission_rate = 4;
+  int64 new_commission_rate = 5;
+}
+
+message RecipientSet {
+  option (aelf.is_event) = true;
+  string tick = 1;
+  aelf.Address old_recipient = 2;
+  aelf.Address new_recipient = 3;
+}
+
+message InscriptionAdminSet {
+  option (aelf.is_event) = true;
+  string tick = 1;
+  aelf.Address old_admin = 2;
+  aelf.Address new_admin = 3;
+}
+
+message CrossGenerationConfigSet {
+  option (aelf.is_event) = true;
+  string tick = 1;
+  CrossGenerationConfig cross_generation_config = 2;
+}
+
+message ConfigSet {
+  option (aelf.is_event) = true;
+  Config config = 1;
+}
+
+message GenerationConfigSet {
+  option (aelf.is_event) = true;
+  int32 min_gen = 1;
+  int32 max_gen = 2;
+}
+
+message ImageMaxSizeSet {
+  option (aelf.is_event) = true;
+  int64 image_max_size = 1;
+}
+
+message ImageMaxCountSet {
+  option (aelf.is_event) = true;
+  int64 image_max_count = 1;
+}
+
+message AttributeConfigSet {
+  option (aelf.is_event) = true;
+  int64 trait_value_max_count = 1;
+  int64 attribute_max_length = 2;
+}
+
+message RecommendRuleMaxCountSet {
+  option (aelf.is_event) = true;
+  int32 recommend_rule_max_count = 1;
+}
+
+message SignatoryConfigSet {
+  option (aelf.is_event) = true;
+  aelf.Address signatory = 1;
+}
+
+message OracleContractAddressSet {
+  option (aelf.is_event) = true;
+  aelf.Address oracle_contract_address = 1;
+}
+
+message AdminSet {
+  option (aelf.is_event) = true;
+  aelf.Address old_admin = 1;
+  aelf.Address new_admin = 2;
+}
+
+message RetryCooldownIntervalSet {
+  option (aelf.is_event) = true;
+  int64 retry_cooldown_interval = 1;
+}
