@@ -49,7 +49,6 @@ service SchrodingerContract {
   rpc SetAttributeConfig (SetAttributeConfigInput) returns (google.protobuf.Empty) {}
   rpc SetRecommendRuleMaxCount (google.protobuf.Int32Value) returns (google.protobuf.Empty) {}
   rpc SetSignatoryConfig (aelf.Address) returns (google.protobuf.Empty) {}
-  rpc SetRetryCooldownInterval (google.protobuf.Int64Value) returns (google.protobuf.Empty) {}
   rpc GetConfig (google.protobuf.Empty) returns (Config) {option (aelf.is_view) = true;}
 
   // point contract
@@ -63,15 +62,13 @@ message InitializeInput {
   aelf.Address admin = 1;
   aelf.Address points_contract = 2;
   aelf.Hash points_contract_dapp_id = 3;
-  int32 min_gen = 4;
-  int32 max_gen = 5;
-  int64 image_max_size = 6;
-  int64 image_max_count = 7;
-  int64 trait_value_max_count = 8;
-  int64 attribute_max_length = 9;
-  int32 recommend_rule_max_count = 10;
-  aelf.Address signatory = 11;                // eoa address of server
-  int64 retry_cooldown_interval = 12;
+  int32 max_gen = 4;
+  int64 image_max_size = 5;
+  int64 image_max_count = 6;
+  int64 trait_value_max_count = 7;
+  int64 attribute_max_length = 8;
+  int32 recommend_rule_max_count = 9;
+  aelf.Address signatory = 10;                // eoa address of server
 }
 
 message DeployInput {
@@ -148,8 +145,7 @@ message AdoptInfo {
   int64 output_amount = 5;
   Attributes parent_attributes = 6;
   int64 image_count = 7;
-  aelf.Hash key_hash = 8;             // latest oracle key hash
-  int64 block_height = 9;             // latest adopt/retry block height
+  int64 block_height = 9;             // adopt block height
   string symbol = 10;                 // generated symbol   
   Attributes attributes = 11;         // generated attributes
   int32 gen = 12;                     // generated gen
@@ -244,31 +240,19 @@ message GetTokenInfoOutput {
   int32 gen = 10;
 }
 
-message SetGenerationConfigInput {
-  int32 min_gen = 1;
-  int32 max_gen = 2;
-}
-
 message SetAttributeConfigInput {
   int64 trait_value_max_count = 1;
   int64 attribute_max_length = 2;
 }
 
 message Config {
-  int32 min_gen = 1;
-  int32 max_gen = 2;
-  int64 image_max_size = 3;
-  int64 image_max_count = 4;
-  int64 trait_value_max_count = 5;
-  int64 attribute_max_length = 6;
-  int32 recommend_rule_max_count = 7;
-  aelf.Address signatory = 8;
-  int64 retry_cooldown_interval = 9;
-}
-
-message SetOracleConfigInput {
-  int64 subscription_id = 1;
-  int64 request_type_index = 2;
+  int32 max_gen = 1;
+  int64 image_max_size = 2;
+  int64 image_max_count = 3;
+  int64 trait_value_max_count = 4;
+  int64 attribute_max_length = 5;
+  int32 recommend_rule_max_count = 6;
+  aelf.Address signatory = 7;
 }
 
 // log event
@@ -303,7 +287,7 @@ message Adopted {
   int64 output_amount = 7;
   int64 image_count = 8;
   aelf.Address adopter = 9;
-  int64 block_height = 10;                 // latest adopt/retry block height
+  int64 block_height = 10;                 // adopt block height
   Attributes attributes = 11;              // generated attributes
   int32 gen = 12;                          // generated generation
 }
@@ -424,9 +408,4 @@ message AdminSet {
   option (aelf.is_event) = true;
   aelf.Address old_admin = 1;
   aelf.Address new_admin = 2;
-}
-
-message RetryCooldownIntervalSet {
-  option (aelf.is_event) = true;
-  int64 retry_cooldown_interval = 1;
 }
