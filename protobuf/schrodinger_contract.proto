@@ -151,7 +151,7 @@ message AdoptInfo {
   int64 input_amount = 4;
   int64 output_amount = 5;
   Attributes parent_attributes = 6;
-  int64 image_amount = 7;
+  int64 image_count = 7;
   aelf.Hash key_hash = 8;             // latest oracle key hash
   int64 block_height = 9;             // latest adopt/retry block height
   string symbol = 10;                 // generated symbol   
@@ -309,7 +309,7 @@ message Adopted {
   int64 loss_amount = 5;
   int64 commission_amount = 6;
   int64 output_amount = 7;
-  int64 image_amount = 8;
+  int64 image_count = 8;
   aelf.Address adopter = 9;
   int64 block_height = 10;         // latest adopt/retry block height
 }
