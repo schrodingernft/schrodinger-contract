@@ -17,8 +17,6 @@ service SchrodingerContract {
   rpc Initialize(InitializeInput) returns (google.protobuf.Empty) {}
   rpc Deploy (DeployInput) returns (google.protobuf.Empty) {}
   rpc Adopt (AdoptInput) returns (google.protobuf.Empty) {}
-  rpc HandleOracleFulfillment(HandleOracleFulfillmentInput) returns (google.protobuf.Empty) {}
-  rpc Retry (aelf.Hash) returns (google.protobuf.Empty) {}
   rpc Confirm (ConfirmInput) returns (google.protobuf.Empty) {}
   rpc Reset (ResetInput) returns (google.protobuf.Empty) {}
 
@@ -45,15 +43,13 @@ service SchrodingerContract {
   rpc SetConfig (Config) returns (google.protobuf.Empty) {}
   rpc SetAdmin(aelf.Address) returns (google.protobuf.Empty) {}
   rpc GetAdmin (google.protobuf.Empty) returns (aelf.Address){option (aelf.is_view) = true;}
-  rpc SetGenerationConfig (SetGenerationConfigInput) returns (google.protobuf.Empty) {}
+  rpc SetMaxGenerationConfig (google.protobuf.Int32Value) returns (google.protobuf.Empty) {}
   rpc SetImageMaxSize (google.protobuf.Int64Value) returns (google.protobuf.Empty) {}
   rpc SetImageMaxCount (google.protobuf.Int64Value) returns (google.protobuf.Empty) {}
   rpc SetAttributeConfig (SetAttributeConfigInput) returns (google.protobuf.Empty) {}
   rpc SetRecommendRuleMaxCount (google.protobuf.Int32Value) returns (google.protobuf.Empty) {}
   rpc SetSignatoryConfig (aelf.Address) returns (google.protobuf.Empty) {}
-  rpc SetOracleContractAddress (aelf.Address) returns (google.protobuf.Empty) {}
   rpc SetRetryCooldownInterval (google.protobuf.Int64Value) returns (google.protobuf.Empty) {}
-  rpc SetOracleConfig (SetOracleConfigInput) returns (google.protobuf.Empty) {}
   rpc GetConfig (google.protobuf.Empty) returns (Config) {option (aelf.is_view) = true;}
 
   // point contract
@@ -75,10 +71,7 @@ message InitializeInput {
   int64 attribute_max_length = 9;
   int32 recommend_rule_max_count = 10;
   aelf.Address signatory = 11;                // eoa address of server
-  aelf.Address oracle_contract_address = 12;  // AetherLink oracle contract address
-  int64 retry_cooldown_interval = 13;
-  int64 subscription_id = 14;                 // AetherLink subscription id
-  int64 request_type_index = 15;              // AetherLink vrf request type index, "2"
+  int64 retry_cooldown_interval = 12;
 }
 
 message DeployInput {
@@ -158,8 +151,8 @@ message AdoptInfo {
   aelf.Hash key_hash = 8;             // latest oracle key hash
   int64 block_height = 9;             // latest adopt/retry block height
   string symbol = 10;                 // generated symbol   
-  Attributes attributes = 11;         // generated attributes, will be filled in after confirmed
-  int32 gen = 12;                     // generated gen, will be filled in after confirmed
+  Attributes attributes = 11;         // generated attributes
+  int32 gen = 12;                     // generated gen
   aelf.Address adopter = 13;          // sender
 }
 
@@ -170,18 +163,6 @@ message Attributes {
 message Attribute {
   string trait_type = 1;
   string value = 2;
-}
-
-message HashList {
-  repeated aelf.Hash data = 1;
-}
-
-message HandleOracleFulfillmentInput {
-  aelf.Hash request_id = 1;
-  bytes response = 2;
-  bytes err = 3;
-  int32 request_type_index = 4;
-  aelf.Hash trace_id = 5;
 }
 
 message ConfirmInput {
@@ -214,6 +195,7 @@ message SetRecommendRuleInput {
 message SetMaxGenerationInput {
   string tick = 1;
   int32 gen = 2;
+  repeated AttributeSet attribute_sets = 3;
 }
 
 message SetRatesInput {
@@ -282,8 +264,6 @@ message Config {
   int32 recommend_rule_max_count = 7;
   aelf.Address signatory = 8;
   int64 retry_cooldown_interval = 9;
-  int64 subscription_id = 10;              
-  int64 request_type_index = 11;
 }
 
 message SetOracleConfigInput {
@@ -305,9 +285,11 @@ message Deployed {
   aelf.Address owner = 9;
   int32 issue_chain_id = 10;
   ExternalInfos external_infos = 11;
-  aelf.Address deployer = 12;
-  CrossGenerationConfig cross_generation_config = 13;
-  bool is_weight_enabled = 14;
+  string token_name = 12;
+  aelf.Address deployer = 13;
+  CrossGenerationConfig cross_generation_config = 14;
+  bool is_weight_enabled = 15;
+  aelf.Address admin = 16;
 }
 
 message Adopted {
@@ -321,21 +303,9 @@ message Adopted {
   int64 output_amount = 7;
   int64 image_count = 8;
   aelf.Address adopter = 9;
-  int64 block_height = 10;         // latest adopt/retry block height
-}
-
-message AttributesSelected {
-  option (aelf.is_event) = true;
-  aelf.Hash adopt_id = 1;
-  string ancestors = 2;
-  Attributes attributes = 3;
-}
-
-message Retried {
-  option (aelf.is_event) = true;
-  aelf.Hash adopt_id = 1;
-  aelf.Address adopter = 2;
-  int64 block_height = 3;          // latest adopt/retry block height
+  int64 block_height = 10;                 // latest adopt/retry block height
+  Attributes attributes = 11;              // generated attributes
+  int32 gen = 12;                          // generated generation
 }
 
 message Confirmed {
@@ -382,6 +352,7 @@ message MaxGenerationSet {
   string tick = 1;
   int32 old_gen = 2;
   int32 new_gen = 3;
+  AttributeSets attributes = 4;
 }
 
 message RatesSet {
@@ -418,10 +389,9 @@ message ConfigSet {
   Config config = 1;
 }
 
-message GenerationConfigSet {
+message MaxGenerationConfigSet {
   option (aelf.is_event) = true;
-  int32 min_gen = 1;
-  int32 max_gen = 2;
+  int32 max_gen = 1;
 }
 
 message ImageMaxSizeSet {
@@ -450,11 +420,6 @@ message SignatoryConfigSet {
   aelf.Address signatory = 1;
 }
 
-message OracleContractAddressSet {
-  option (aelf.is_event) = true;
-  aelf.Address oracle_contract_address = 1;
-}
-
 message AdminSet {
   option (aelf.is_event) = true;
   aelf.Address old_admin = 1;
@@ -464,10 +429,4 @@ message AdminSet {
 message RetryCooldownIntervalSet {
   option (aelf.is_event) = true;
   int64 retry_cooldown_interval = 1;
-}
-
-message OracleConfigSet {
-  option (aelf.is_event) = true;
-  int64 subscription_id = 1;
-  int64 request_type_index = 2;
 }
