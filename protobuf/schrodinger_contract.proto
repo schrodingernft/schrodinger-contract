@@ -17,7 +17,7 @@ service SchrodingerContract {
   rpc Initialize(InitializeInput) returns (google.protobuf.Empty) {}
   rpc Deploy (DeployInput) returns (google.protobuf.Empty) {}
   rpc Adopt (AdoptInput) returns (google.protobuf.Empty) {}
-  rpc HandleOracleFulfillment(HandleOracleFulfillmentInput) returns (google.protobuf.Empty);
+  rpc HandleOracleFulfillment(HandleOracleFulfillmentInput) returns (google.protobuf.Empty) {}
   rpc Retry (aelf.Hash) returns (google.protobuf.Empty) {}
   rpc Confirm (ConfirmInput) returns (google.protobuf.Empty) {}
   rpc Reset (ResetInput) returns (google.protobuf.Empty) {}

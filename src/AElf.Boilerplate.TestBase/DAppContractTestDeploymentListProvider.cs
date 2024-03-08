@@ -11,7 +11,6 @@ namespace AElf.Boilerplate.TestBase
         public List<Hash> GetDeployContractNameList()
         {
             var list = base.GetDeployContractNameList();
-            // list.Add(PointsSmartContractAddressNameProvider.Name);
             return list;
         }
     }
@@ -21,7 +20,6 @@ namespace AElf.Boilerplate.TestBase
         public List<Hash> GetDeployContractNameList()
         {
             var list = base.GetDeployContractNameList();
-            // list.Add(PointsSmartContractAddressNameProvider.Name);
             return list;
         }
     }

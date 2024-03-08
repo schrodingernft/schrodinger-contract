@@ -1,14 +1,14 @@
 using System.IO;
+using AElf;
 using AElf.Boilerplate.TestBase;
-using AElf.Boilerplate.TestBase.SmartContractNameProviders;
-using AElf.Contracts.MultiToken;
 using AElf.ContractTestBase.ContractTestKit;
+using AElf.Cryptography;
 using AElf.Cryptography.ECDSA;
+using AElf.CSharp.Core;
 using AElf.Kernel;
 using AElf.Standards.ACS0;
 using AElf.Types;
 using Google.Protobuf;
-using Points.Contracts.Point;
 using Volo.Abp.Threading;
 
 namespace Schrodinger;
@@ -17,14 +17,10 @@ public class SchrodingerContractTestBase : DAppContractTestBase<SchrodingerContr
 {
     internal ACS0Container.ACS0Stub ZeroContractStub { get; set; }
     internal Address SchrodingerContractAddress { get; set; }
-    
-    internal Address PointsContractAddress => GetAddress(PointsSmartContractAddressNameProvider.StringName);
 
     internal SchrodingerContractContainer.SchrodingerContractStub SchrodingerContractStub { get; set; }
-    internal SchrodingerContractContainer.SchrodingerContractStub SchrodingerContractUserStub { get; set; }
-    internal SchrodingerContractContainer.SchrodingerContractStub SchrodingerContractUser2Stub { get; set; }
-    
-    internal PointsContractContainer.PointsContractStub PointsContractStub { get; set; }
+    internal SchrodingerContractContainer.SchrodingerContractStub UserSchrodingerContractStub { get; set; }
+    internal SchrodingerContractContainer.SchrodingerContractStub User2SchrodingerContractStub { get; set; }
 
     protected ECKeyPair DefaultKeyPair => Accounts[0].KeyPair;
     protected Address DefaultAddress => Accounts[0].Address;
@@ -32,16 +28,13 @@ public class SchrodingerContractTestBase : DAppContractTestBase<SchrodingerContr
     protected Address UserAddress => Accounts[1].Address;
     protected ECKeyPair User2KeyPair => Accounts[2].KeyPair;
     protected Address User2Address => Accounts[2].Address;
-    protected ECKeyPair User3KeyPair => Accounts[3].KeyPair;
-    protected Address User3Address => Accounts[3].Address;
-
     protected readonly IBlockTimeProvider BlockTimeProvider;
 
     protected SchrodingerContractTestBase()
     {
         BlockTimeProvider = GetRequiredService<IBlockTimeProvider>();
 
-        ZeroContractStub = GetContractZeroTester(DefaultKeyPair);
+        ZeroContractStub = GetContractStub<ACS0Container.ACS0Stub>(BasicContractZeroAddress, DefaultKeyPair);
 
         var result = AsyncHelper.RunSync(async () => await ZeroContractStub.DeploySmartContract.SendAsync(
             new ContractDeploymentInput
@@ -53,21 +46,27 @@ public class SchrodingerContractTestBase : DAppContractTestBase<SchrodingerContr
 
         SchrodingerContractAddress = Address.Parser.ParseFrom(result.TransactionResult.ReturnValue);
 
-        SchrodingerContractStub = GetSchrodingerContractContainerStub(DefaultKeyPair);
-        SchrodingerContractUserStub = GetSchrodingerContractContainerStub(UserKeyPair);
-        SchrodingerContractUser2Stub = GetSchrodingerContractContainerStub(User2KeyPair);
-
-        //PointsContractStub = GetPointsContractStub(DefaultKeyPair);
+        SchrodingerContractStub =
+            GetContractStub<SchrodingerContractContainer.SchrodingerContractStub>(SchrodingerContractAddress,
+                DefaultKeyPair);
+        UserSchrodingerContractStub =
+            GetContractStub<SchrodingerContractContainer.SchrodingerContractStub>(SchrodingerContractAddress,
+                UserKeyPair);
+        User2SchrodingerContractStub =
+            GetContractStub<SchrodingerContractContainer.SchrodingerContractStub>(SchrodingerContractAddress,
+                User2KeyPair);
     }
 
-    internal SchrodingerContractContainer.SchrodingerContractStub GetSchrodingerContractContainerStub(ECKeyPair senderKeyPair)
-        => GetTester<SchrodingerContractContainer.SchrodingerContractStub>(SchrodingerContractAddress, senderKeyPair);
-    
-    internal PointsContractContainer.PointsContractStub GetPointsContractStub(ECKeyPair senderKeyPair)
+    private T GetContractStub<T>(Address contractAddress, ECKeyPair senderKeyPair)
+        where T : ContractStubBase, new()
     {
-        return GetTester<PointsContractContainer.PointsContractStub>(PointsContractAddress, senderKeyPair);
+        return GetTester<T>(contractAddress, senderKeyPair);
     }
 
-    private ACS0Container.ACS0Stub GetContractZeroTester(ECKeyPair senderKeyPair)
-        => GetTester<ACS0Container.ACS0Stub>(BasicContractZeroAddress, senderKeyPair);
+    private ByteString GenerateContractSignature(byte[] privateKey, ContractOperation contractOperation)
+    {
+        var dataHash = HashHelper.ComputeFrom(contractOperation);
+        var signature = CryptoHelper.SignWithPrivateKey(privateKey, dataHash.ToByteArray());
+        return ByteStringHelper.FromHexString(signature.ToHex());
+    }
 }

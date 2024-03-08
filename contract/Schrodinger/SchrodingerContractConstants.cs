@@ -17,19 +17,19 @@ public static class SchrodingerContractConstants
     public const int InscriptionAmt = 1;
     public const string DeployOp = "deploy";
     public const string AdoptOp = "adopt";
-    
+
     // config
     public const int DefaultMinGen = 1;
     public const int DefaultMaxGen = 10;
-    public const long DefaultImageMaxSize = 10240;  // 10kb
+    public const long DefaultImageMaxSize = 10240; // 10kb
     public const long DefaultImageMaxCount = 10;
     public const long DefaultTraitValueMaxCount = 100;
     public const long DefaultAttributeMaxLength = 80;
     public const int DefaultRecommendRuleMaxCount = 10;
-    public const long DefaultRetryCooldownInterval = 100;  // TODO
-    
+    public const long DefaultRetryCooldownInterval = 100; // TODO
+
     public const string ELFSymbol = "ELF";
-    
+
     // math
-    public const long Hundred = 100; 
+    public const long Hundred = 100;
 }

@@ -13,7 +13,6 @@ public class MainChainDAppContractTestDeploymentListProvider : MainChainContract
     {
         var list = base.GetDeployContractNameList();
         list.Add(SchrodingerSmartContractAddressNameProvider.Name);
-        list.Add(PointsSmartContractAddressNameProvider.Name);
         return list;
     }
 }

@@ -9,18 +9,19 @@ public partial class SchrodingerContract : SchrodingerContractContainer.Schrodin
     public override Empty Initialize(InitializeInput input)
     {
         Assert(!State.Initialized.Value, "Already initialized.");
+        Assert(input != null, "Invalid input.");
+
         State.GenesisContract.Value = Context.GetZeroSmartContractAddress();
         Assert(State.GenesisContract.GetContractAuthor.Call(Context.Self) == Context.Sender, "No permission.");
-        Assert(input.Admin == null || !input.Admin.Value.IsNullOrEmpty(), "Invalid input admin.");
-        if (input != null && input.PointsContract != null)
-        {
-            State.PointsContract.Value = input.PointsContract;
-        }
 
-        if (input != null && input.PointsContractDappId != null)
-        {
-            State.PointsContractDAppId.Value = input.PointsContractDappId;
-        }
+        Assert(input.Admin == null || !input.Admin.Value.IsNullOrEmpty(), "Invalid input admin.");
+
+        Assert(input.PointsContract == null || IsAddressValid(input.PointsContract), "Invalid input points contract.");
+        State.PointsContract.Value = input.PointsContract;
+
+        Assert(input.PointsContractDappId == null || IsHashValid(input.PointsContractDappId),
+            "Invalid input points contract dapp id");
+        State.PointsContractDAppId.Value = input.PointsContractDappId;
 
         State.Admin.Value = input.Admin ?? Context.Sender;
         State.Initialized.Value = true;
@@ -29,9 +30,9 @@ public partial class SchrodingerContract : SchrodingerContractContainer.Schrodin
 
     public override Empty SetAdmin(Address input)
     {
-        AssertInitialized();
         AssertAdmin();
-        Assert(input != null && !input.Value.IsNullOrEmpty(), "Invalid input.");
+        Assert(IsAddressValid(input), "Invalid input.");
+
         State.Admin.Value = input;
 
         return new Empty();
@@ -39,21 +40,25 @@ public partial class SchrodingerContract : SchrodingerContractContainer.Schrodin
 
     public override Empty SetPointsContractDAppId(Hash input)
     {
-        AssertInitialized();
         AssertAdmin();
-        Assert(input != null && !input.Value.IsNullOrEmpty(), "Invalid input.");
-        Assert(State.PointsContractDAppId == null, "has Configured");
+        Assert(!IsHashValid(State.PointsContractDAppId.Value), "Already set.");
+
+        Assert(IsHashValid(input), "Invalid input.");
+
         State.PointsContractDAppId.Value = input;
+
         return new Empty();
     }
 
-    public override Empty SetPointsContract(Address address)
+    public override Empty SetPointsContract(Address input)
     {
-        AssertInitialized();
         AssertAdmin();
-        Assert(address != null && !address.Value.IsNullOrEmpty(), "Invalid input.");
-        Assert(State.PointsContract == null, "has Configured");
-        State.PointsContract.Value = address;
+        Assert(!IsAddressValid(State.PointsContract.Value), "Already set.");
+
+        Assert(IsAddressValid(input), "Invalid input.");
+
+        State.PointsContract.Value = input;
+
         return new Empty();
     }
 
