@@ -17,9 +17,6 @@
         <CommonMessage Include="..\..\protobuf\authority_info.proto">
             <Link>Protobuf\Proto\authority_info.proto</Link>
         </CommonMessage>
-        <CommonMessage Include="..\..\protobuf\oracle_common_message.proto">
-            <Link>Protobuf\Proto\oracle_common_message.proto</Link>
-        </CommonMessage>
     </ItemGroup>
     <ItemGroup>
         <ContractReference Include="..\..\protobuf\acs0.proto">
@@ -35,9 +32,6 @@
     <ItemGroup>
         <ContractReference Include="..\..\protobuf\points_contract.proto">
             <Link>Protobuf\Proto\points_contract.proto</Link>
-        </ContractReference>
-        <ContractReference Include="..\..\protobuf\oracle_contract.proto">
-            <Link>Protobuf\Proto\oracle_contract.proto</Link>
         </ContractReference>
     </ItemGroup>
     <ItemGroup>
