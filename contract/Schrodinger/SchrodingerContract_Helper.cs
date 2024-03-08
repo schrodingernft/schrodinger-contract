@@ -5,12 +5,12 @@ namespace Schrodinger;
 
 public partial class SchrodingerContract
 {
-    private void AssertAdmin()
+    private void CheckAdminPermission()
     {
         Assert(Context.Sender == State.Admin.Value, "No permission.");
     }
 
-    private void AssertInitialized()
+    private void CheckInitialized()
     {
         Assert(State.Initialized.Value, "Not initialized.");
     }

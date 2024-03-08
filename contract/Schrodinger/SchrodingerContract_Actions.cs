@@ -30,7 +30,7 @@ public partial class SchrodingerContract : SchrodingerContractContainer.Schrodin
 
     public override Empty SetAdmin(Address input)
     {
-        AssertAdmin();
+        CheckAdminPermission();
         Assert(IsAddressValid(input), "Invalid input.");
 
         State.Admin.Value = input;
@@ -40,7 +40,7 @@ public partial class SchrodingerContract : SchrodingerContractContainer.Schrodin
 
     public override Empty SetPointsContractDAppId(Hash input)
     {
-        AssertAdmin();
+        CheckAdminPermission();
         Assert(!IsHashValid(State.PointsContractDAppId.Value), "Already set.");
 
         Assert(IsHashValid(input), "Invalid input.");
@@ -52,7 +52,7 @@ public partial class SchrodingerContract : SchrodingerContractContainer.Schrodin
 
     public override Empty SetPointsContract(Address input)
     {
-        AssertAdmin();
+        CheckAdminPermission();
         Assert(!IsAddressValid(State.PointsContract.Value), "Already set.");
 
         Assert(IsAddressValid(input), "Invalid input.");
