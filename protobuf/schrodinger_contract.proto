@@ -53,6 +53,7 @@ service SchrodingerContract {
   rpc SetSignatoryConfig (aelf.Address) returns (google.protobuf.Empty) {}
   rpc SetOracleContractAddress (aelf.Address) returns (google.protobuf.Empty) {}
   rpc SetRetryCooldownInterval (google.protobuf.Int64Value) returns (google.protobuf.Empty) {}
+  rpc SetOracleConfig (SetOracleConfigInput) returns (google.protobuf.Empty) {}
   rpc GetConfig (google.protobuf.Empty) returns (Config) {option (aelf.is_view) = true;}
 
   // point contract
@@ -76,6 +77,8 @@ message InitializeInput {
   aelf.Address signatory = 11;                // eoa address of server
   aelf.Address oracle_contract_address = 12;  // AetherLink oracle contract address
   int64 retry_cooldown_interval = 13;
+  int64 subscription_id = 14;                 // AetherLink subscription id
+  int64 request_type_index = 15;              // AetherLink vrf request type index, "2"
 }
 
 message DeployInput {
@@ -279,6 +282,13 @@ message Config {
   int32 recommend_rule_max_count = 7;
   aelf.Address signatory = 8;
   int64 retry_cooldown_interval = 9;
+  int64 subscription_id = 10;              
+  int64 request_type_index = 11;
+}
+
+message SetOracleConfigInput {
+  int64 subscription_id = 1;
+  int64 request_type_index = 2;
 }
 
 // log event
@@ -454,4 +464,10 @@ message AdminSet {
 message RetryCooldownIntervalSet {
   option (aelf.is_event) = true;
   int64 retry_cooldown_interval = 1;
+}
+
+message OracleConfigSet {
+  option (aelf.is_event) = true;
+  int64 subscription_id = 1;
+  int64 request_type_index = 2;
 }
