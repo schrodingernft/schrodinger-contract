@@ -98,15 +98,15 @@ public partial class SchrodingerContract
 
     #region Attribute
 
-    private AttributeLists SetAttributeList(string tick, long maxGen, AttributeLists attributeList,
+    private AttributeLists SetAttributeList(string tick, long maxGen, AttributeLists toUpdateAttributeList,
         int attributesPerGen, out List<AttributeSet> toRemoveFixed, out List<AttributeSet> toRemoveRandom)
     {
-        CheckAttributeList(attributeList);
-        var fixedAttributes = attributeList?.FixedAttributes?.DistinctBy(f => f.TraitType.Name).ToList();
-        var randomAttributes = attributeList?.RandomAttributes?.DistinctBy(f => f.TraitType.Name).ToList();
+        CheckAttributeList(toUpdateAttributeList);
+        var fixedAttributes = toUpdateAttributeList?.FixedAttributes?.DistinctBy(f => f.TraitType.Name).ToList();
+        var randomAttributes = toUpdateAttributeList?.RandomAttributes?.DistinctBy(f => f.TraitType.Name).ToList();
         CheckRandomAttributeList(randomAttributes, maxGen, attributesPerGen);
         CheckForDuplicateTraitTypes(fixedAttributes, randomAttributes);
-        var fixedAttributeSet = SetFixedAttributeSet(tick, fixedAttributes, out toRemoveFixed);
+        var fixedAttributeSet =  SetFixedAttributeSet(tick, fixedAttributes, out toRemoveFixed);
         var randomAttributeSet =
             SetRandomAttributeSet(tick, randomAttributes, maxGen, attributesPerGen, out toRemoveRandom);
         var result = new AttributeLists
