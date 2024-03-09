@@ -16,26 +16,27 @@ service SchrodingerContract {
   // core
   rpc Initialize(InitializeInput) returns (google.protobuf.Empty) {}
   rpc Deploy (DeployInput) returns (google.protobuf.Empty) {}
+//  rpc Deploy (DeployInput) returns (google.protobuf.Empty) {}
   rpc Adopt (AdoptInput) returns (google.protobuf.Empty) {}
   rpc Confirm (ConfirmInput) returns (google.protobuf.Empty) {}
   rpc Reset (ResetInput) returns (google.protobuf.Empty) {}
 
   // token
   rpc SetAttributes (SetAttributesInput) returns (google.protobuf.Empty) {}
-  rpc SetRecommendRule (SetRecommendRuleInput) returns (google.protobuf.Empty) {}
+  rpc SetAttributesPerGen (SetAttributesPerGenInput) returns (google.protobuf.Empty) {}
   rpc SetMaxGeneration (SetMaxGenerationInput) returns (google.protobuf.Empty) {}
   rpc SetRates (SetRatesInput) returns (google.protobuf.Empty) {}
   rpc SetRecipient (SetRecipientInput) returns (google.protobuf.Empty) {}
+  rpc SetImageCount (SetImageCountInput) returns (google.protobuf.Empty) {}
   rpc SetInscriptionAdmin (SetInscriptionAdminInput) returns (google.protobuf.Empty) {}
   rpc SetCrossGenerationConfig (SetCrossGenerationConfigInput) returns (google.protobuf.Empty) {}
   rpc GetInscriptionInfo (google.protobuf.StringValue) returns (InscriptionInfo) {option (aelf.is_view) = true;}
   rpc GetTick (google.protobuf.StringValue) returns (google.protobuf.StringValue) {option (aelf.is_view) = true;}
   rpc GetParent (google.protobuf.StringValue) returns (google.protobuf.StringValue) {option (aelf.is_view) = true;}
-  rpc GetAttributes (google.protobuf.StringValue) returns (AttributeSets) {option (aelf.is_view) = true;}
+  rpc GetAttributes (google.protobuf.StringValue) returns (AttributeLists) {option (aelf.is_view) = true;}
   rpc GetAttributeTypes (google.protobuf.StringValue) returns (AttributeInfos) {option (aelf.is_view) = true;}
-  rpc GetAttributeValues (google.protobuf.StringValue) returns (AttributeInfos) {option (aelf.is_view) = true;}
+  rpc GetAttributeValues (GetAttributeValuesInput) returns (AttributeInfos) {option (aelf.is_view) = true;}
   rpc GetRecommendImageCount (google.protobuf.Int64Value) returns (google.protobuf.Int64Value) {option (aelf.is_view) = true;}
-  rpc GetRecommendRule (google.protobuf.StringValue) returns (RecommendRule) {option (aelf.is_view) = true;}
   rpc GetAdoptInfo (aelf.Hash) returns (AdoptInfo) {option (aelf.is_view) = true;}
   rpc GetTokenInfo (google.protobuf.StringValue) returns (GetTokenInfoOutput) {option (aelf.is_view) = true;}
 
@@ -71,6 +72,22 @@ message InitializeInput {
   aelf.Address signatory = 10;                // eoa address of server
 }
 
+//message DeployInput {
+//  string tick = 1;    
+//  string image = 2;  
+//}
+//
+//message Deployed {
+//  option (aelf.is_event) = true;
+//  string symbol = 1;
+//  int64 total_supply = 2;
+//  aelf.Address issuer = 3;
+//  aelf.Address owner = 4;
+//  int32 issue_chain_id = 5;
+//  ExternalInfos collection_external_infos = 6;
+//  aelf.Address deployer = 7;
+//}
+
 message DeployInput {
   string tick = 1;
   int32 max_generation = 2;
@@ -78,14 +95,37 @@ message DeployInput {
   int32 decimals = 4;
   int64 loss_rate = 5;
   int64 commission_rate = 6;
-  AttributeSets attribute_sets = 7;
-  RecommendRuleInfos rules = 8;
+  AttributeLists attribute_lists = 7;
+  int32 image_count = 8;
   aelf.Address recipient = 9;
   aelf.Address issuer = 10;
   aelf.Address owner = 11;
   string image = 12;
   CrossGenerationConfig cross_generation_config = 13;
   bool is_weight_enabled = 14;
+  aelf.Address admin = 15;
+  int32 attributes_per_gen = 16;
+}
+
+message DeployInscriptionInfo {
+  string p = 1;
+  string op = 2;
+  string tick = 3;
+  string max = 4;
+  string lim = 5;
+}
+
+message AdoptInscriptionInfo {
+  string p = 1;
+  string op = 2;
+  string tick = 3;
+  string amt = 4;
+  string gen = 5;
+}
+
+message AttributeLists {
+  repeated AttributeSet fixed_attributes = 1;
+  repeated AttributeSet random_attributes = 2;
 }
 
 message AttributeSets {
@@ -175,8 +215,12 @@ message ResetInput {
 
 message SetAttributesInput {
   string tick = 1;
-  repeated string trait_types = 2;              // trait types need to be replaced
-  repeated AttributeSet attribute_sets = 3;     // new attribute sets
+  AttributeLists attributes = 2;
+}
+
+message SetAttributesPerGenInput {
+  string tick = 1;
+  int32 attributes_per_gen = 2;
 }
 
 message StringList {
@@ -191,7 +235,6 @@ message SetRecommendRuleInput {
 message SetMaxGenerationInput {
   string tick = 1;
   int32 gen = 2;
-  repeated AttributeSet attribute_sets = 3;
 }
 
 message SetRatesInput {
@@ -205,6 +248,11 @@ message SetRecipientInput {
   aelf.Address recipient = 2;
 }
 
+message SetImageCountInput {
+  string tick = 1;
+  int32 image_count = 2;
+}
+
 message SetInscriptionAdminInput {
   string tick = 1;
   aelf.Address admin = 2;
@@ -212,11 +260,12 @@ message SetInscriptionAdminInput {
 
 message SetCrossGenerationConfigInput {
   string tick = 1;
-  int32 gen = 2;
-  bool cross_generation_fixed = 3;
-  int64 cross_generation_probability = 4;
-  repeated int64 weights = 5;
-  bool is_weight_enabled = 6;
+  CrossGenerationConfig config = 2;
+}
+
+message GetAttributeValuesInput {
+  string tick = 1;
+  string trait_type = 2;
 }
 
 message InscriptionInfo {
@@ -229,6 +278,8 @@ message InscriptionInfo {
   aelf.Address admin = 7;
   CrossGenerationConfig cross_generation_config = 8;
   bool is_weight_enabled = 9;
+  int32 image_count = 10;
+  int32 attributes_per_gen = 11;
 }
 
 message GetTokenInfoOutput {
@@ -249,10 +300,11 @@ message Config {
   int32 max_gen = 1;
   int64 image_max_size = 2;
   int64 image_max_count = 3;
-  int64 trait_value_max_count = 4;
-  int64 attribute_max_length = 5;
-  int32 recommend_rule_max_count = 6;
+  int64 trait_type_max_count = 4;
+  int64 trait_value_max_count = 5;
+  int64 attribute_max_length = 6;
   aelf.Address signatory = 7;
+  int32 max_attributes_per_gen = 8;
 }
 
 // log event
@@ -263,8 +315,8 @@ message Deployed {
   int32 max_generation = 3;
   int64 total_supply = 4;
   int32 decimals = 5;
-  AttributeSets attribute_sets = 6;
-  RecommendRule rule = 7;
+  AttributeLists attribute_lists = 6;
+  int32 image_count = 7;
   aelf.Address issuer = 8;
   aelf.Address owner = 9;
   int32 issue_chain_id = 10;
@@ -274,6 +326,9 @@ message Deployed {
   CrossGenerationConfig cross_generation_config = 14;
   bool is_weight_enabled = 15;
   aelf.Address admin = 16;
+  int64 loss_rate = 17;
+  int64 commission_rate = 18;
+  int32 attributes_per_gen = 19;
 }
 
 message Adopted {
@@ -320,8 +375,10 @@ message TokenReset {
 message AttributesSet {
   option (aelf.is_event) = true;
   string tick = 1;
-  StringList trait_types = 2;         // trait types need to be replaced
-  AttributeSets attribute_sets = 3;   // new attribute sets
+  AttributeSets removed_fixed_attributes = 2;
+  AttributeSets added_fixed_attributes = 3;
+  AttributeSets removed_random_attributes = 4;
+  AttributeSets added_random_attributes = 5;
 }
 
 message RecommendRuleSet {
@@ -331,12 +388,24 @@ message RecommendRuleSet {
   RecommendRule new_recommend_rule = 3;
 }
 
+message AttributesPerGenerationSet {
+  option (aelf.is_event) = true;
+  string tick = 1;
+  int32 old_attributes_per_gen = 2;
+  int32 new_attributes_per_gen = 3;
+}
+
+message ImageCountSet {
+  option (aelf.is_event) = true;
+  string tick = 1;
+  int32 image_count = 2;
+}
+
 message MaxGenerationSet {
   option (aelf.is_event) = true;
   string tick = 1;
   int32 old_gen = 2;
   int32 new_gen = 3;
-  AttributeSets attributes = 4;
 }
 
 message RatesSet {
