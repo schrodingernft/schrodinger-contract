@@ -102,6 +102,7 @@ public partial class SchrodingerContract
         int attributesPerGen, out List<AttributeSet> toRemoveFixed, out List<AttributeSet> toRemoveRandom)
     {
         CheckAttributeList(toUpdateAttributeList);
+        // distinct by trait type name
         var fixedAttributes = toUpdateAttributeList?.FixedAttributes?.DistinctBy(f => f.TraitType.Name).ToList();
         var randomAttributes = toUpdateAttributeList?.RandomAttributes?.DistinctBy(f => f.TraitType.Name).ToList();
         CheckRandomAttributeList(randomAttributes, maxGen, attributesPerGen);
@@ -125,7 +126,7 @@ public partial class SchrodingerContract
             attributeList.FixedAttributes != null && attributeList.FixedAttributes.Count > 0 &&
             attributeList.RandomAttributes != null && attributeList.RandomAttributes.Count > 0,
             "Invalid input attribute list.");
-        CheckAttributeListCount(attributeList.FixedAttributes, attributeList.RandomAttributes);
+        CheckAttributeTraitTypeListCount(attributeList.FixedAttributes, attributeList.RandomAttributes);
     }
 
     private void CheckRandomAttributeList(List<AttributeSet> randomAttributes, long maxGen, int attributesPerGen)
@@ -134,7 +135,7 @@ public partial class SchrodingerContract
             "Invalid random attribute list count.");
     }
 
-    private void CheckAttributeListCount(IEnumerable<AttributeSet> fixAttributes,
+    private void CheckAttributeTraitTypeListCount(IEnumerable<AttributeSet> fixAttributes,
         IEnumerable<AttributeSet> randomAttributes)
     {
         var traitTypeMaxCount =
@@ -155,7 +156,6 @@ public partial class SchrodingerContract
         toRemove = new List<AttributeSet>();
         var traitTypeMap = State.FixedTraitTypeMap[tick] ?? new AttributeInfos();
         traitTypeMap = SetAttributeSet(tick, traitTypeMap, toAddAttributeSets, out var result, out toRemove);
-        Assert(traitTypeMap.Data.Count > 0, "Invalid fixed attribute list.");
         State.FixedTraitTypeMap[tick] = traitTypeMap;
         return result;
     }
@@ -175,7 +175,7 @@ public partial class SchrodingerContract
         AttributeSet toAddAttribute,
         out AttributeSet toRemove, out AttributeSet updateToAddAttribute)
     {
-        updateToAddAttribute = toAddAttribute;
+        updateToAddAttribute = toAddAttribute.Clone();
         toRemove = null;
         var traitType = toAddAttribute.TraitType;
         if (!CheckAttributeExist(traitType.Name, traitTypeMap))
@@ -223,15 +223,14 @@ public partial class SchrodingerContract
         Assert(toUpdateTraitValues != null && toUpdateTraitValues.Data.Count > 0, "Invalid attribute trait values.");
         var traitValues = toUpdateTraitValues?.Data.DistinctBy(f => f.Name).ToList();
         CheckTraitValueCount(traitValues);
+        var traitValueMap = State.TraitValueMap[tick][traitTypeName] ?? new AttributeInfos();
+        traitValueMap.Data.Clear();
         foreach (var toUpdateTraitValue in traitValues)
         {
             CheckAttributeInfo(toUpdateTraitValue);
-            var traitValueMap = State.TraitValueMap[tick][traitTypeName] ?? new AttributeInfos();
-            traitValueMap.Data.Clear();
             traitValueMap.Data.Add(toUpdateTraitValue);
-            State.TraitValueMap[tick][traitTypeName] = traitValueMap;
         }
-
+        State.TraitValueMap[tick][traitTypeName] = traitValueMap;
         return toUpdateTraitValues;
     }
 
