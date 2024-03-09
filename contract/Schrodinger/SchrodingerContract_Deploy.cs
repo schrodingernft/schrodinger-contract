@@ -5,33 +5,28 @@ namespace Schrodinger;
 
 public partial class SchrodingerContract
 {
-    /// <summary>
-    /// Collection
-    /// </summary>
-    /// <param name="input"></param>
-    /// <returns></returns>
-    // public override Empty Deploy(DeployInput input)
-    // {
-    //     CheckInitialized();
-    //     Assert(!string.IsNullOrEmpty(input.Tick),"Invalid input.");
-    //     CheckImageSize(input.Image);
-    //     var externalInfo = GenerateExternalInfo(input.Tick, input.Image, 0);
-    //     CreateInscription(input.Tick, 0, 0, externalInfo, Context.Self, Context.Self);
-    //     Context.Fire(new Deployed
-    //     {
-    //         Symbol = GetInscriptionCollectionSymbol(input.Tick),
-    //         TotalSupply = 0,
-    //         CollectionExternalInfos = new ExternalInfos
-    //         {
-    //             Value = { externalInfo.Value }
-    //         },
-    //         Deployer = Context.Sender,
-    //         IssueChainId = Context.ChainId,
-    //         Issuer = Context.Self,
-    //         Owner = Context.Self
-    //     });
-    //     return new Empty();
-    // }
+    public override Empty DeployCollection(DeployCollectionInput input)
+    {
+        CheckInitialized();
+        Assert(!string.IsNullOrEmpty(input.Tick),"Invalid input.");
+        CheckImageSize(input.Image);
+        var externalInfo = GenerateExternalInfo(input.Tick, input.Image, 0);
+        CreateInscription(input.Tick, 0, 0, externalInfo, Context.Self, Context.Self);
+        Context.Fire(new CollectionDeployed
+        {
+            Symbol = GetInscriptionCollectionSymbol(input.Tick),
+            TotalSupply = 0,
+            CollectionExternalInfos = new ExternalInfos
+            {
+                Value = { externalInfo.Value }
+            },
+            Deployer = Context.Sender,
+            IssueChainId = Context.ChainId,
+            Issuer = Context.Self,
+            Owner = Context.Self
+        });
+        return new Empty();
+    }
     public override Empty Deploy(DeployInput input)
     {
         CheckDeployParams(input);

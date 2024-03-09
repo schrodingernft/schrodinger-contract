@@ -15,8 +15,8 @@ service SchrodingerContract {
 
   // core
   rpc Initialize(InitializeInput) returns (google.protobuf.Empty) {}
+  rpc DeployCollection (DeployCollectionInput) returns (google.protobuf.Empty) {}
   rpc Deploy (DeployInput) returns (google.protobuf.Empty) {}
-//  rpc Deploy (DeployInput) returns (google.protobuf.Empty) {}
   rpc Adopt (AdoptInput) returns (google.protobuf.Empty) {}
   rpc Confirm (ConfirmInput) returns (google.protobuf.Empty) {}
   rpc Reset (ResetInput) returns (google.protobuf.Empty) {}
@@ -72,21 +72,10 @@ message InitializeInput {
   aelf.Address signatory = 10;                // eoa address of server
 }
 
-//message DeployInput {
-//  string tick = 1;    
-//  string image = 2;  
-//}
-//
-//message Deployed {
-//  option (aelf.is_event) = true;
-//  string symbol = 1;
-//  int64 total_supply = 2;
-//  aelf.Address issuer = 3;
-//  aelf.Address owner = 4;
-//  int32 issue_chain_id = 5;
-//  ExternalInfos collection_external_infos = 6;
-//  aelf.Address deployer = 7;
-//}
+message DeployCollectionInput {
+  string tick = 1;    
+  string image = 2;  
+}
 
 message DeployInput {
   string tick = 1;
@@ -308,6 +297,17 @@ message Config {
 }
 
 // log event
+message CollectionDeployed {
+  option (aelf.is_event) = true;
+  string symbol = 1;
+  int64 total_supply = 2;
+  aelf.Address issuer = 3;
+  aelf.Address owner = 4;
+  int32 issue_chain_id = 5;
+  ExternalInfos collection_external_infos = 6;
+  aelf.Address deployer = 7;
+}
+
 message Deployed {
   option (aelf.is_event) = true;
   string tick = 1;
