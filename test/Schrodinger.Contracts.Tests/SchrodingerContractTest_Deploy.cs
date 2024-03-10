@@ -60,7 +60,6 @@ public partial class SchrodingerContractTests
             new AttributeInfo { Name = "Small", Weight = 10 },
             new AttributeInfo { Name = "Medium", Weight = 9 }
         };
-
         var traitValues3 = new List<AttributeInfo>
         {
             new AttributeInfo { Name = "Halo", Weight = 170 },
