@@ -31,7 +31,7 @@ public partial class SchrodingerContract
     public override InscriptionInfo GetInscriptionInfo(StringValue input)
     {
         var result = new InscriptionInfo();
-        if (input != null && !string.IsNullOrEmpty(input.Value))
+        if (input != null && IsStringValid(input.Value))
         {
             result = State.InscriptionInfoMap[input.Value] ?? new InscriptionInfo();
         }

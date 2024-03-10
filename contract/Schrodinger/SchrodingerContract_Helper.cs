@@ -31,6 +31,11 @@ public partial class SchrodingerContract
     {
         return input != null && !input.Value.IsNullOrEmpty();
     }
+    
+    private bool IsStringValid(string input)
+    {
+        return !string.IsNullOrWhiteSpace(input);
+    }
 
     #region Deploy
 
@@ -317,7 +322,7 @@ public partial class SchrodingerContract
     private void CheckDeployParams(DeployInput input)
     {
         CheckInitialized();
-        Assert(!string.IsNullOrEmpty(input.Tick), "Invalid input tick.");
+        Assert(IsStringValid(input.Tick), "Invalid input tick.");
         Assert(input.Decimals >= 0, "Invalid input decimals.");
         Assert(input.TotalSupply > 0, "Invalid input total supply.");
 
@@ -358,7 +363,7 @@ public partial class SchrodingerContract
     {
         var config = State.Config?.Value;
         var maxImageSize = config?.ImageMaxSize ?? SchrodingerContractConstants.DefaultImageMaxSize;
-        Assert(!string.IsNullOrEmpty(image) && Encoding.UTF8.GetByteCount(image) <= maxImageSize,
+        Assert(IsStringValid(image) && Encoding.UTF8.GetByteCount(image) <= maxImageSize,
             "Invalid image data.");
     }
 
@@ -392,15 +397,15 @@ public partial class SchrodingerContract
     {
         var attributeMaxLength =
             State.Config?.Value?.AttributeMaxLength ?? SchrodingerContractConstants.DefaultAttributeMaxLength;
-        Assert(
-            !string.IsNullOrEmpty(attributeInfo.Name) && attributeInfo.Name.Length <= attributeMaxLength &&
-            CheckAttributeWeight(attributeInfo.Weight), "Invalid trait value.");
+        Assert(IsStringValid(attributeInfo.Name), "Invalid trait type name.");
+        Assert(attributeInfo.Name.Length <= attributeMaxLength, "Invalid trait type name length.");
+        CheckAttributeWeight(attributeInfo.Weight);
     }
 
 
-    private bool CheckAttributeWeight(long weight)
+    private void CheckAttributeWeight(long weight)
     {
-        return weight > 0 && weight <= SchrodingerContractConstants.DefaultMaxAttributeWeight;
+        Assert(weight > 0 && weight <= SchrodingerContractConstants.DefaultMaxAttributeWeight, "Invalid weight.");
     }
 
     // if attribute exists return true.
