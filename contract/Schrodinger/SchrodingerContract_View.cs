@@ -100,14 +100,7 @@ public partial class SchrodingerContract
 
     public override AdoptInfo GetAdoptInfo(Hash input)
     {
-        var result = new AdoptInfo();
-        if (IsHashValid(input))
-        {
-            return result;
-        }
-
-        result = State.AdoptInfoMap[input] ?? new AdoptInfo();
-        return result;
+        return State.AdoptInfoMap[input];
     }
 
     public override GetTokenInfoOutput GetTokenInfo(StringValue input)

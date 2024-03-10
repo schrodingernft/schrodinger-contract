@@ -69,11 +69,8 @@ public partial class SchrodingerContract
 
     public override Empty SetRates(SetRatesInput input)
     {
-        Assert(
-            !string.IsNullOrWhiteSpace(input.Tick) && input.LossRate > 0 &&
-            input.LossRate <= SchrodingerContractConstants.Denominator &&
-            input.CommissionRate > 0 && input.CommissionRate <= SchrodingerContractConstants.Denominator,
-            "Invalid input.");
+        Assert(!string.IsNullOrWhiteSpace(input.Tick), "Invalid input tick.");
+        CheckRate(input.LossRate, input.CommissionRate);
         var inscription = CheckInscriptionExistAndPermission(input.Tick);
         var oldCommissionRate = inscription.CommissionRate;
         var oldLossRate = inscription.LossRate;
@@ -93,8 +90,8 @@ public partial class SchrodingerContract
 
     public override Empty SetRecipient(SetRecipientInput input)
     {
-        Assert(!string.IsNullOrWhiteSpace(input.Tick) && input.Recipient != null && input.Recipient.Value.Any(),
-            "Invalid input.");
+        Assert(!string.IsNullOrWhiteSpace(input.Tick), "Invalid input tick.");
+        Assert(IsAddressValid(input.Recipient), "Invalid recipient address.");
         var inscription = CheckInscriptionExistAndPermission(input.Tick);
         var oldRecipient = inscription.Recipient;
         inscription.Recipient = input.Recipient;
@@ -110,8 +107,8 @@ public partial class SchrodingerContract
 
     public override Empty SetInscriptionAdmin(SetInscriptionAdminInput input)
     {
-        Assert(!string.IsNullOrWhiteSpace(input.Tick) && input.Admin != null && input.Admin.Value.Any(),
-            "Invalid input.");
+        Assert(!string.IsNullOrWhiteSpace(input.Tick), "Invalid input tick.");
+        Assert(IsAddressValid(input.Admin), "Invalid admin address.");
         var inscription = CheckInscriptionExistAndPermission(input.Tick);
         var oldAdmin = inscription.Admin;
         inscription.Admin = input.Admin;
@@ -127,10 +124,10 @@ public partial class SchrodingerContract
 
     public override Empty SetCrossGenerationConfig(SetCrossGenerationConfigInput input)
     {
-        Assert(!string.IsNullOrWhiteSpace(input.Tick), "Invalid input.");
+        Assert(!string.IsNullOrEmpty(input.Tick), "Invalid input.");
         var inscription = CheckInscriptionExistAndPermission(input.Tick);
         var crossGenerationConfig = input.Config;
-        CheckCrossGenerationConfig(crossGenerationConfig,inscription.MaxGen);
+        CheckCrossGenerationConfig(crossGenerationConfig, inscription.MaxGen);
         inscription.CrossGenerationConfig = crossGenerationConfig;
         Context.Fire(new CrossGenerationConfigSet
         {
@@ -142,7 +139,7 @@ public partial class SchrodingerContract
 
     public override Empty SetAttributesPerGen(SetAttributesPerGenInput input)
     {
-        Assert(!string.IsNullOrWhiteSpace(input.Tick), "Invalid input.");
+        Assert(!string.IsNullOrEmpty(input.Tick), "Invalid input.");
         var inscription = CheckInscriptionExistAndPermission(input.Tick);
         CheckAttributePerGen(input.AttributesPerGen, inscription.MaxGen);
         var oldAttributesPerGen = inscription.AttributesPerGen;

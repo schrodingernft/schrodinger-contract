@@ -1,4 +1,5 @@
 using AElf.Contracts.MultiToken;
+using AElf.CSharp.Core;
 using AElf.Sdk.CSharp;
 using Google.Protobuf.WellKnownTypes;
 
@@ -64,7 +65,7 @@ public partial class SchrodingerContract
         var externalInfo = GenerateExternalInfo(tick, input.Image, input.TotalSupply);
         CreateInscription(tick, inscription.Decimals, input.TotalSupply, externalInfo, input.Issuer);
         Assert(int.TryParse(SchrodingerContractConstants.AncestorSymbolSuffix,out var symbolCount),"Invalid symbol count.");
-        State.SymbolCount[tick] = symbolCount;
+        State.SymbolCount[tick] = ++symbolCount;
         Context.Fire(new Deployed
         {
             Tick = tick,
