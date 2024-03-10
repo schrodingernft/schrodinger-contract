@@ -10,9 +10,10 @@ public partial class SchrodingerContractState : ContractState
     public SingletonState<Address> Admin { get; set; }
 
     // inscription
-    // fixed, tick -> attribute infos
+    // tick -> fix attribute infos
     public MappedState<string, AttributeInfos> FixedTraitTypeMap { get; set; }
-    // random, tick -> attribute infos
+
+    // tick -> random attribute infos(greater than 1)
     public MappedState<string, AttributeInfos> RandomTraitTypeMap { get; set; }
 
     // tick -> attribute type -> attribute infos

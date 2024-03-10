@@ -15,6 +15,7 @@ service SchrodingerContract {
 
   // core
   rpc Initialize(InitializeInput) returns (google.protobuf.Empty) {}
+  rpc DeployCollection (DeployCollectionInput) returns (google.protobuf.Empty) {}
   rpc Deploy (DeployInput) returns (google.protobuf.Empty) {}
   rpc Adopt (AdoptInput) returns (google.protobuf.Empty) {}
   rpc Confirm (ConfirmInput) returns (google.protobuf.Empty) {}
@@ -22,17 +23,19 @@ service SchrodingerContract {
 
   // token
   rpc SetAttributes (SetAttributesInput) returns (google.protobuf.Empty) {}
+  rpc SetAttributesPerGen (SetAttributesPerGenInput) returns (google.protobuf.Empty) {}
   rpc SetMaxGeneration (SetMaxGenerationInput) returns (google.protobuf.Empty) {}
   rpc SetRates (SetRatesInput) returns (google.protobuf.Empty) {}
   rpc SetRecipient (SetRecipientInput) returns (google.protobuf.Empty) {}
+  rpc SetImageCount (SetImageCountInput) returns (google.protobuf.Empty) {}
   rpc SetInscriptionAdmin (SetInscriptionAdminInput) returns (google.protobuf.Empty) {}
   rpc SetCrossGenerationConfig (SetCrossGenerationConfigInput) returns (google.protobuf.Empty) {}
   rpc GetInscriptionInfo (google.protobuf.StringValue) returns (InscriptionInfo) {option (aelf.is_view) = true;}
   rpc GetTick (google.protobuf.StringValue) returns (google.protobuf.StringValue) {option (aelf.is_view) = true;}
   rpc GetParent (google.protobuf.StringValue) returns (google.protobuf.StringValue) {option (aelf.is_view) = true;}
-  rpc GetAttributes (google.protobuf.StringValue) returns (AttributeSets) {option (aelf.is_view) = true;}
+  rpc GetAttributes (google.protobuf.StringValue) returns (AttributeLists) {option (aelf.is_view) = true;}
   rpc GetAttributeTypes (google.protobuf.StringValue) returns (AttributeInfos) {option (aelf.is_view) = true;}
-  rpc GetAttributeValues (google.protobuf.StringValue) returns (AttributeInfos) {option (aelf.is_view) = true;}
+  rpc GetAttributeValues (GetAttributeValuesInput) returns (AttributeInfos) {option (aelf.is_view) = true;}
   rpc GetAdoptInfo (aelf.Hash) returns (AdoptInfo) {option (aelf.is_view) = true;}
   rpc GetTokenInfo (google.protobuf.StringValue) returns (GetTokenInfoOutput) {option (aelf.is_view) = true;}
 
@@ -67,6 +70,11 @@ message InitializeInput {
   aelf.Address signatory = 10;                // eoa address of server
 }
 
+message DeployCollectionInput {
+  string tick = 1;    
+  string image = 2;  
+}
+
 message DeployInput {
   string tick = 1;
   int32 max_generation = 2;
@@ -83,6 +91,23 @@ message DeployInput {
   CrossGenerationConfig cross_generation_config = 13;
   bool is_weight_enabled = 14;
   aelf.Address admin = 15;
+  int32 attributes_per_gen = 16;
+}
+
+message DeployInscriptionInfo {
+  string p = 1;
+  string op = 2;
+  string tick = 3;
+  string max = 4;
+  string lim = 5;
+}
+
+message AdoptInscriptionInfo {
+  string p = 1;
+  string op = 2;
+  string tick = 3;
+  string amt = 4;
+  string gen = 5;
 }
 
 message AttributeLists {
@@ -164,8 +189,12 @@ message ResetInput {
 
 message SetAttributesInput {
   string tick = 1;
-  repeated AttributeSet fixed_attributes = 2;
-  repeated AttributeSet random_attributes = 3;
+  AttributeLists attributes = 2;
+}
+
+message SetAttributesPerGenInput {
+  string tick = 1;
+  int32 attributes_per_gen = 2;
 }
 
 message StringList {
@@ -175,7 +204,6 @@ message StringList {
 message SetMaxGenerationInput {
   string tick = 1;
   int32 gen = 2;
-  repeated AttributeSet attribute_sets = 3;
 }
 
 message SetRatesInput {
@@ -189,6 +217,11 @@ message SetRecipientInput {
   aelf.Address recipient = 2;
 }
 
+message SetImageCountInput {
+  string tick = 1;
+  int32 image_count = 2;
+}
+
 message SetInscriptionAdminInput {
   string tick = 1;
   aelf.Address admin = 2;
@@ -196,11 +229,12 @@ message SetInscriptionAdminInput {
 
 message SetCrossGenerationConfigInput {
   string tick = 1;
-  int32 gen = 2;
-  bool cross_generation_fixed = 3;
-  int64 cross_generation_probability = 4;
-  repeated int64 weights = 5;
-  bool is_weight_enabled = 6;
+  CrossGenerationConfig config = 2;
+}
+
+message GetAttributeValuesInput {
+  string tick = 1;
+  string trait_type = 2;
 }
 
 message InscriptionInfo {
@@ -214,6 +248,7 @@ message InscriptionInfo {
   CrossGenerationConfig cross_generation_config = 8;
   bool is_weight_enabled = 9;
   int32 image_count = 10;
+  int32 attributes_per_gen = 11;
 }
 
 message GetTokenInfoOutput {
@@ -239,9 +274,21 @@ message Config {
   int64 trait_value_max_count = 5;
   int64 attribute_max_length = 6;
   aelf.Address signatory = 7;
+  int32 max_attributes_per_gen = 8;
 }
 
 // log event
+message CollectionDeployed {
+  option (aelf.is_event) = true;
+  string symbol = 1;
+  int64 total_supply = 2;
+  aelf.Address issuer = 3;
+  aelf.Address owner = 4;
+  int32 issue_chain_id = 5;
+  ExternalInfos collection_external_infos = 6;
+  aelf.Address deployer = 7;
+}
+
 message Deployed {
   option (aelf.is_event) = true;
   string tick = 1;
@@ -260,6 +307,9 @@ message Deployed {
   CrossGenerationConfig cross_generation_config = 14;
   bool is_weight_enabled = 15;
   aelf.Address admin = 16;
+  int64 loss_rate = 17;
+  int64 commission_rate = 18;
+  int32 attributes_per_gen = 19;
 }
 
 message Adopted {
@@ -312,12 +362,24 @@ message AttributesSet {
   AttributeSets added_random_attributes = 5;
 }
 
+message AttributesPerGenerationSet {
+  option (aelf.is_event) = true;
+  string tick = 1;
+  int32 old_attributes_per_gen = 2;
+  int32 new_attributes_per_gen = 3;
+}
+
+message ImageCountSet {
+  option (aelf.is_event) = true;
+  string tick = 1;
+  int32 image_count = 2;
+}
+
 message MaxGenerationSet {
   option (aelf.is_event) = true;
   string tick = 1;
   int32 old_gen = 2;
   int32 new_gen = 3;
-  AttributeSets attributes = 4;
 }
 
 message RatesSet {
