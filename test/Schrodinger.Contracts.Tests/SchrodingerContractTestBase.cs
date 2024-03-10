@@ -1,6 +1,7 @@
 using System.IO;
 using AElf;
 using AElf.Boilerplate.TestBase;
+using AElf.Contracts.MultiToken;
 using AElf.ContractTestBase.ContractTestKit;
 using AElf.Cryptography;
 using AElf.Cryptography.ECDSA;
@@ -22,6 +23,9 @@ public class SchrodingerContractTestBase : DAppContractTestBase<SchrodingerContr
     internal SchrodingerContractContainer.SchrodingerContractStub UserSchrodingerContractStub { get; set; }
     internal SchrodingerContractContainer.SchrodingerContractStub User2SchrodingerContractStub { get; set; }
 
+    internal TokenContractContainer.TokenContractStub TokenContractStub { get; set; }
+    internal TokenContractContainer.TokenContractStub TokenContractUserStub { get; set; }
+    
     protected ECKeyPair DefaultKeyPair => Accounts[0].KeyPair;
     protected Address DefaultAddress => Accounts[0].Address;
     protected ECKeyPair UserKeyPair => Accounts[1].KeyPair;
@@ -55,6 +59,8 @@ public class SchrodingerContractTestBase : DAppContractTestBase<SchrodingerContr
         User2SchrodingerContractStub =
             GetContractStub<SchrodingerContractContainer.SchrodingerContractStub>(SchrodingerContractAddress,
                 User2KeyPair);
+        TokenContractStub = GetContractStub<TokenContractContainer.TokenContractStub>(TokenContractAddress,DefaultKeyPair);
+        TokenContractUserStub = GetContractStub<TokenContractContainer.TokenContractStub>(TokenContractAddress,UserKeyPair);
     }
 
     private T GetContractStub<T>(Address contractAddress, ECKeyPair senderKeyPair)

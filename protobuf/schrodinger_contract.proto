@@ -63,18 +63,12 @@ message InitializeInput {
   aelf.Address admin = 1;
   aelf.Address points_contract = 2;
   aelf.Hash points_contract_dapp_id = 3;
-  int32 max_gen = 4;
-  int64 image_max_size = 5;
-  int64 image_max_count = 6;
-  int64 trait_value_max_count = 7;
-  int64 attribute_max_length = 8;
-  int32 recommend_rule_max_count = 9;
-  aelf.Address signatory = 10;                // eoa address of server
 }
 
 message DeployCollectionInput {
   string tick = 1;    
-  string image = 2;  
+  string image = 2;
+  string seed_symbol = 3;
 }
 
 message DeployInput {
@@ -88,12 +82,12 @@ message DeployInput {
   int32 image_count = 8;
   aelf.Address recipient = 9;
   aelf.Address issuer = 10;
-  aelf.Address owner = 11;
-  string image = 12;
-  CrossGenerationConfig cross_generation_config = 13;
-  bool is_weight_enabled = 14;
-  aelf.Address admin = 15;
-  int32 attributes_per_gen = 16;
+  string image = 11;
+  CrossGenerationConfig cross_generation_config = 12;
+  bool is_weight_enabled = 13;
+  aelf.Address admin = 14;
+  int32 attributes_per_gen = 15;
+  string domain = 16;
 }
 
 message DeployInscriptionInfo {

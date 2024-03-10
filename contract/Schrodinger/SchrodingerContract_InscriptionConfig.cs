@@ -130,7 +130,7 @@ public partial class SchrodingerContract
         Assert(!string.IsNullOrWhiteSpace(input.Tick), "Invalid input.");
         var inscription = CheckInscriptionExistAndPermission(input.Tick);
         var crossGenerationConfig = input.Config;
-        CheckCrossGenerationConfig(crossGenerationConfig);
+        CheckCrossGenerationConfig(crossGenerationConfig,inscription.MaxGen);
         inscription.CrossGenerationConfig = crossGenerationConfig;
         Context.Fire(new CrossGenerationConfigSet
         {
