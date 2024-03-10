@@ -136,7 +136,7 @@ public partial class SchrodingerContract
     {
         return $"{GetInscriptionSymbol(tick)}{SchrodingerContractConstants.AncestorNameSuffix}";
     }
-    
+
     private string GetInscriptionCollectionName(string tick)
     {
         return $"{GetInscriptionCollectionSymbol(tick)}{SchrodingerContractConstants.AncestorNameSuffix}";
@@ -182,7 +182,8 @@ public partial class SchrodingerContract
         CheckAttributeTraitTypeListCount(attributeList.FixedAttributes, attributeList.RandomAttributes);
     }
 
-    private void CheckRandomAttributeList(IEnumerable<AttributeInfo> randomAttributes, long maxGen, int attributesPerGen)
+    private void CheckRandomAttributeList(IEnumerable<AttributeInfo> randomAttributes, long maxGen,
+        int attributesPerGen)
     {
         Assert(randomAttributes?.Count() >= ((long)attributesPerGen).Mul(maxGen),
             "Invalid random attribute list count.");
@@ -202,7 +203,7 @@ public partial class SchrodingerContract
         CheckAttributeListDuplicate(randomAttributes);
         var intersection = fixedAttributes.Select(f => f.TraitType.Name)
             .Intersect(randomAttributes.Select(f => f.TraitType.Name));
-        Assert(!intersection.Any(), "Trait type cannot be repeated.");
+        Assert(!intersection.Any(), "Fixed and random trait type cannot be repeated.");
     }
 
     private List<AttributeSet> SetFixedAttributeSet(string tick, List<AttributeSet> sourceAttributeSets,
@@ -299,97 +300,6 @@ public partial class SchrodingerContract
         }).ToList();
     }
 
-    #endregion
-
-    #region Param check
-
-    private void CheckDeployParams(DeployInput input)
-    {
-        CheckInitialized();
-        Assert(!string.IsNullOrWhiteSpace(input.Tick) &&
-               input.Decimals >= 0 && input.TotalSupply > 0 && input.LossRate > 0 && input.CommissionRate > 0,
-            "Invalid input.");
-        CheckDeployPermission(input.Tick);
-        CheckGeneration(input.MaxGeneration);
-        CheckAttributePerGen(input.AttributesPerGen, input.MaxGeneration);
-        CheckImageSize(input.Image);
-        CheckImageCount(input.ImageCount);
-        CheckCrossGenerationConfig(input.CrossGenerationConfig,input.MaxGeneration);
-    }
-
-    private void CheckDeployPermission(string tick)
-    {
-        SetTokenContract();
-        var issuer = State.TokenContract.GetTokenInfo.Call(new GetTokenInfoInput
-        {
-            Symbol = GetInscriptionCollectionSymbol(tick)
-        }).Issuer;
-        Assert(issuer == Context.Sender,"No permission to create.");
-    }
-
-    private void CheckGeneration(int maxGen)
-    {
-        var config = State.Config?.Value;
-        var max = config?.MaxGen ?? SchrodingerContractConstants.DefaultMaxGen;
-        Assert(maxGen >= SchrodingerContractConstants.DefaultMinGen && maxGen <= max, "Invalid max generation.");
-    }
-
-    private void CheckImageSize(string image)
-    {
-        var config = State.Config?.Value;
-        var maxImageSize = config?.ImageMaxSize ?? SchrodingerContractConstants.DefaultImageMaxSize;
-        Assert(!string.IsNullOrWhiteSpace(image) && Encoding.UTF8.GetByteCount(image) <= maxImageSize,
-            "Invalid image data.");
-    }
-
-    private void CheckImageCount(int imageCount)
-    {
-        var config = State.Config?.Value;
-        var maxImageCount = config?.ImageMaxCount ?? SchrodingerContractConstants.DefaultImageMaxCount;
-        Assert(imageCount > 0 && imageCount <= maxImageCount, "Invalid image count.");
-    }
-
-    private void CheckCrossGenerationConfig(CrossGenerationConfig crossGenerationConfig, int maxGen)
-    {
-        Assert(
-            crossGenerationConfig.Gen >= 0 && crossGenerationConfig.Gen <= maxGen &&
-            crossGenerationConfig.CrossGenerationProbability >= 0 &&
-            crossGenerationConfig.CrossGenerationProbability <=
-            SchrodingerContractConstants.Denominator &&
-            crossGenerationConfig.Weights.Count == crossGenerationConfig.Gen,
-            "Invalid cross generation config.");
-    }
-
-    private void CheckAttributePerGen(int attributesPerGen, int maxGen)
-    {
-        var config = State.Config?.Value;
-        var maxAttributePerGen = config?.MaxAttributesPerGen ?? SchrodingerContractConstants.DefaultMaxAttributePerGen;
-        Assert(attributesPerGen > 0 && attributesPerGen <= maxAttributePerGen && attributesPerGen <= maxGen,
-            "Invalid attributes per gen.");
-    }
-
-    private void CheckAttributeInfo(AttributeInfo attributeInfo)
-    {
-        var attributeMaxLength =
-            State.Config?.Value?.AttributeMaxLength ?? SchrodingerContractConstants.DefaultAttributeMaxLength;
-        Assert(
-            !string.IsNullOrEmpty(attributeInfo.Name) && attributeInfo.Name.Length <= attributeMaxLength &&
-            CheckAttributeWeight(attributeInfo.Weight), "Invalid trait value.");
-    }
-
-
-    private bool CheckAttributeWeight(long weight)
-    {
-        return weight > 0 && weight <= SchrodingerContractConstants.DefaultMaxAttributeWeight;
-    }
-
-    // if attribute exists return true.
-    private bool CheckAttributeExist(string traitTypeName, AttributeInfos traitTypeMap)
-    {
-        var existingTraitType = traitTypeMap.Data.FirstOrDefault(f => f.Name == traitTypeName);
-        return existingTraitType != null;
-    }
-
     private void CheckTraitValueCount(List<AttributeInfo> traitValues)
     {
         var maxTraitValueCount = State.Config?.Value?.TraitValueMaxCount ??
@@ -419,6 +329,106 @@ public partial class SchrodingerContract
         Assert(inscription != null, "Inscription not found.");
         Assert(inscription.Admin == Context.Sender, "No permission.");
         return inscription;
+    }
+
+    #endregion
+
+    #region Param check
+
+    private void CheckDeployParams(DeployInput input)
+    {
+        CheckInitialized();
+        Assert(!string.IsNullOrWhiteSpace(input.Tick), "Invalid input tick.");
+        Assert(input.Decimals >= 0, "Invalid input decimals.");
+        Assert(input.TotalSupply > 0, "Invalid input total supply.");
+
+        CheckRate(input.LossRate, input.CommissionRate);
+        CheckDeployPermission(input.Tick);
+        CheckGeneration(input.MaxGeneration);
+        CheckAttributePerGen(input.AttributesPerGen, input.MaxGeneration);
+        CheckImageSize(input.Image);
+        CheckImageCount(input.ImageCount);
+        CheckCrossGenerationConfig(input.CrossGenerationConfig, input.MaxGeneration);
+    }
+
+    private void CheckRate(long lossRate, long commissionRate)
+    {
+        Assert(lossRate > 0 && lossRate <= SchrodingerContractConstants.Denominator, "Invalid loss rate.");
+        Assert(commissionRate > 0 && commissionRate <= SchrodingerContractConstants.Denominator,
+            "Invalid commission rate.");
+    }
+
+    private void CheckDeployPermission(string tick)
+    {
+        SetTokenContract();
+        var issuer = State.TokenContract.GetTokenInfo.Call(new GetTokenInfoInput
+        {
+            Symbol = GetInscriptionCollectionSymbol(tick)
+        }).Issuer;
+        Assert(issuer == Context.Sender, "No permission to create.");
+    }
+
+    private void CheckGeneration(int maxGen)
+    {
+        var config = State.Config?.Value;
+        var max = config?.MaxGen ?? SchrodingerContractConstants.DefaultMaxGen;
+        Assert(maxGen >= SchrodingerContractConstants.DefaultMinGen && maxGen <= max, "Invalid max generation.");
+    }
+
+    private void CheckImageSize(string image)
+    {
+        var config = State.Config?.Value;
+        var maxImageSize = config?.ImageMaxSize ?? SchrodingerContractConstants.DefaultImageMaxSize;
+        Assert(!string.IsNullOrWhiteSpace(image) && Encoding.UTF8.GetByteCount(image) <= maxImageSize,
+            "Invalid image data.");
+    }
+
+    private void CheckImageCount(int imageCount)
+    {
+        var config = State.Config?.Value;
+        var maxImageCount = config?.ImageMaxCount ?? SchrodingerContractConstants.DefaultImageMaxCount;
+        Assert(imageCount > 0 && imageCount <= maxImageCount, "Invalid image count.");
+    }
+
+    private void CheckCrossGenerationConfig(CrossGenerationConfig crossGenerationConfig, int maxGen)
+    {
+        Assert(crossGenerationConfig.Gen >= 0 && crossGenerationConfig.Gen <= maxGen,
+            "Invalid cross generation config gen.");
+        Assert(crossGenerationConfig.CrossGenerationProbability >= 0 &&
+               crossGenerationConfig.CrossGenerationProbability <= SchrodingerContractConstants.Denominator,
+            "Invalid cross generation probability.");
+        Assert(crossGenerationConfig.Weights.Count == crossGenerationConfig.Gen, "Invalid cross generation weights.");
+    }
+
+    private void CheckAttributePerGen(int attributesPerGen, int maxGen)
+    {
+        var config = State.Config?.Value;
+        var maxAttributePerGen = config?.MaxAttributesPerGen ?? SchrodingerContractConstants.DefaultMaxAttributePerGen;
+        Assert(attributesPerGen > 0 && attributesPerGen <= maxGen,
+            "Invalid attributes per gen.");
+        Assert(attributesPerGen <= maxAttributePerGen, "Attributes per generation need smaller than max.");
+    }
+
+    private void CheckAttributeInfo(AttributeInfo attributeInfo)
+    {
+        var attributeMaxLength =
+            State.Config?.Value?.AttributeMaxLength ?? SchrodingerContractConstants.DefaultAttributeMaxLength;
+        Assert(
+            !string.IsNullOrEmpty(attributeInfo.Name) && attributeInfo.Name.Length <= attributeMaxLength &&
+            CheckAttributeWeight(attributeInfo.Weight), "Invalid trait value.");
+    }
+
+
+    private bool CheckAttributeWeight(long weight)
+    {
+        return weight > 0 && weight <= SchrodingerContractConstants.DefaultMaxAttributeWeight;
+    }
+
+    // if attribute exists return true.
+    private bool CheckAttributeExist(string traitTypeName, AttributeInfos traitTypeMap)
+    {
+        var existingTraitType = traitTypeMap.Data.FirstOrDefault(f => f.Name == traitTypeName);
+        return existingTraitType != null;
     }
 
     #endregion

@@ -72,7 +72,7 @@ message InitializeInput {
 }
 
 message DeployCollectionInput {
-  string tick = 1;    
+  string tick = 1;
   string image = 2;
   string seed_symbol = 3;
 }
