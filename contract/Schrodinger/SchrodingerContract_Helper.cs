@@ -317,7 +317,7 @@ public partial class SchrodingerContract
     private void CheckDeployParams(DeployInput input)
     {
         CheckInitialized();
-        Assert(!string.IsNullOrWhiteSpace(input.Tick), "Invalid input tick.");
+        Assert(!string.IsNullOrEmpty(input.Tick), "Invalid input tick.");
         Assert(input.Decimals >= 0, "Invalid input decimals.");
         Assert(input.TotalSupply > 0, "Invalid input total supply.");
 
@@ -358,7 +358,7 @@ public partial class SchrodingerContract
     {
         var config = State.Config?.Value;
         var maxImageSize = config?.ImageMaxSize ?? SchrodingerContractConstants.DefaultImageMaxSize;
-        Assert(!string.IsNullOrWhiteSpace(image) && Encoding.UTF8.GetByteCount(image) <= maxImageSize,
+        Assert(!string.IsNullOrEmpty(image) && Encoding.UTF8.GetByteCount(image) <= maxImageSize,
             "Invalid image data.");
     }
 
