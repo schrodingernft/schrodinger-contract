@@ -72,8 +72,9 @@ message InitializeInput {
 }
 
 message DeployCollectionInput {
-  string tick = 1;
+  string tick = 1;    
   string image = 2;
+  string seed_symbol = 3;
 }
 
 message DeployInput {
@@ -87,13 +88,12 @@ message DeployInput {
   int32 image_count = 8;
   aelf.Address recipient = 9;
   aelf.Address issuer = 10;
-  aelf.Address owner = 11;
-  string image = 12;
-  CrossGenerationConfig cross_generation_config = 13;
-  bool is_weight_enabled = 14;
-  aelf.Address admin = 15;
-  int32 attributes_per_gen = 16;
-  string domain = 17;
+  string image = 11;
+  CrossGenerationConfig cross_generation_config = 12;
+  bool is_weight_enabled = 13;
+  aelf.Address admin = 14;
+  int32 attributes_per_gen = 15;
+  string domain = 16;
 }
 
 message DeployInscriptionInfo {

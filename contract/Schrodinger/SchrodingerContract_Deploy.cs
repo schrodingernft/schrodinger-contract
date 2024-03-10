@@ -1,3 +1,4 @@
+using AElf.Contracts.MultiToken;
 using AElf.Sdk.CSharp;
 using Google.Protobuf.WellKnownTypes;
 
@@ -10,8 +11,17 @@ public partial class SchrodingerContract
         CheckInitialized();
         Assert(!string.IsNullOrEmpty(input.Tick),"Invalid input.");
         CheckImageSize(input.Image);
+        // Approve Seed.
+        SetTokenContract();
+        State.TokenContract.TransferFrom.Send(new TransferFromInput
+        {
+            Symbol = input.SeedSymbol,
+            From = Context.Sender,
+            To = Context.Self,
+            Amount = 1,
+        });
         var externalInfo = GenerateExternalInfo(input.Tick, input.Image, 0);
-        CreateInscription(input.Tick, 0, 0, externalInfo, Context.Self, Context.Self);
+        CreateInscriptionCollection(input.Tick, 0, 1, externalInfo, Context.Sender, Context.Sender);
         Context.Fire(new CollectionDeployed
         {
             Symbol = GetInscriptionCollectionSymbol(input.Tick),
@@ -22,8 +32,8 @@ public partial class SchrodingerContract
             },
             Deployer = Context.Sender,
             IssueChainId = Context.ChainId,
-            Issuer = Context.Self,
-            Owner = Context.Self
+            Issuer = Context.Sender,
+            Owner = Context.Sender
         });
         return new Empty();
     }
@@ -52,7 +62,7 @@ public partial class SchrodingerContract
             inscription.AttributesPerGen, out _, out _);
         // Generate external info
         var externalInfo = GenerateExternalInfo(tick, input.Image, input.TotalSupply);
-        CreateInscription(tick, inscription.Decimals, input.TotalSupply, externalInfo, input.Issuer, input.Owner);
+        CreateInscription(tick, inscription.Decimals, input.TotalSupply, externalInfo, input.Issuer);
 
         JoinPointsContract(input.Domain);
         
@@ -66,7 +76,7 @@ public partial class SchrodingerContract
             AttributeLists = attributeList,
             ImageCount = input.ImageCount,
             Issuer = input.Issuer ?? Context.Sender,
-            Owner = input.Owner ?? Context.Sender,
+            Owner = Context.Self,
             IssueChainId = Context.ChainId,
             Deployer = Context.Sender,
             TokenName = GetInscriptionName(tick),

@@ -1,3 +1,4 @@
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -77,7 +78,7 @@ public partial class SchrodingerContract
     }
 
     private void CreateInscription(string tick, int decimals, long totalSupply, ExternalInfo externalInfo,
-        Address issuer, Address owner)
+        Address issuer)
     {
         var createTokenInput = new CreateInput
         {
@@ -89,15 +90,36 @@ public partial class SchrodingerContract
             IsBurnable = true,
             IssueChainId = Context.ChainId,
             ExternalInfo = externalInfo,
-            Owner = owner ?? Context.Sender
+            Owner = Context.Self
         };
+        State.TokenContract.Create.Send(createTokenInput);
+    }
+
+    private void CreateInscriptionCollection(string tick, int decimals, long totalSupply, ExternalInfo externalInfo,
+        Address issuer, Address owner)
+    {
+        var createTokenInput = new CreateInput
+        {
+            Symbol = GetInscriptionCollectionSymbol(tick),
+            TokenName = GetInscriptionCollectionName(tick),
+            TotalSupply = totalSupply,
+            Decimals = decimals,
+            Issuer = issuer ?? Context.Sender,
+            IsBurnable = true,
+            IssueChainId = Context.ChainId,
+            ExternalInfo = externalInfo,
+            Owner = Context.Self
+        };
+        State.TokenContract.Create.Send(createTokenInput);
+    }
+
+    private void SetTokenContract()
+    {
         if (State.TokenContract.Value == null)
         {
             State.TokenContract.Value =
                 Context.GetContractAddressByName(SmartContractConstants.TokenContractSystemName);
         }
-
-        State.TokenContract.Create.Send(createTokenInput);
     }
 
     private string GetInscriptionSymbol(string tick)
@@ -114,6 +136,11 @@ public partial class SchrodingerContract
     {
         return $"{GetInscriptionSymbol(tick)}{SchrodingerContractConstants.AncestorNameSuffix}";
     }
+    
+    private string GetInscriptionCollectionName(string tick)
+    {
+        return $"{GetInscriptionCollectionSymbol(tick)}{SchrodingerContractConstants.AncestorNameSuffix}";
+    }
 
     #endregion
 
@@ -126,7 +153,6 @@ public partial class SchrodingerContract
         // distinct by trait type name
         var fixedAttributes = toUpdateAttributeList?.FixedAttributes?.DistinctBy(f => f.TraitType.Name).ToList();
         var randomAttributes = toUpdateAttributeList?.RandomAttributes?.DistinctBy(f => f.TraitType.Name).ToList();
-        CheckRandomAttributeList(randomAttributes, maxGen, attributesPerGen);
         CheckForDuplicateTraitTypes(fixedAttributes, randomAttributes);
         var fixedAttributeSet = SetFixedAttributeSet(tick, fixedAttributes, out toRemoveFixed);
         var randomAttributeSet =
@@ -150,9 +176,9 @@ public partial class SchrodingerContract
         CheckAttributeTraitTypeListCount(attributeList.FixedAttributes, attributeList.RandomAttributes);
     }
 
-    private void CheckRandomAttributeList(List<AttributeSet> randomAttributes, long maxGen, int attributesPerGen)
+    private void CheckRandomAttributeList(IEnumerable<AttributeInfo> randomAttributes, long maxGen, int attributesPerGen)
     {
-        Assert(randomAttributes?.Count >= ((long)attributesPerGen).Mul(maxGen.Sub(1)),
+        Assert(randomAttributes?.Count() >= ((long)attributesPerGen).Mul(maxGen),
             "Invalid random attribute list count.");
     }
 
@@ -168,27 +194,27 @@ public partial class SchrodingerContract
     {
         var intersection = fixedAttributes.Select(f => f.TraitType.Name)
             .Intersect(randomAttributes.Select(f => f.TraitType.Name));
-        Assert(intersection.Any(), "Trait type cannot be repeated.");
+        Assert(!intersection.Any(), "Trait type cannot be repeated.");
     }
 
-    private List<AttributeSet> SetFixedAttributeSet(string tick, List<AttributeSet> toAddAttributeSets,
+    private List<AttributeSet> SetFixedAttributeSet(string tick, List<AttributeSet> sourceAttributeSets,
         out List<AttributeSet> toRemove)
     {
         toRemove = new List<AttributeSet>();
         var traitTypeMap = State.FixedTraitTypeMap[tick] ?? new AttributeInfos();
-        traitTypeMap = SetAttributeSet(tick, traitTypeMap, toAddAttributeSets, out var result, out toRemove);
+        traitTypeMap = SetAttributeSet(tick, traitTypeMap, sourceAttributeSets, out var result, out toRemove);
         State.FixedTraitTypeMap[tick] = traitTypeMap;
         return result;
     }
 
-    private List<AttributeSet> SetRandomAttributeSet(string tick, List<AttributeSet> toAddAttributeSets, long maxGen,
+    private List<AttributeSet> SetRandomAttributeSet(string tick, List<AttributeSet> sourceAttributeSets, long maxGen,
         int attributesPerGen, out List<AttributeSet> toRemove)
     {
         toRemove = new List<AttributeSet>();
         var traitTypeMap = State.RandomTraitTypeMap[tick] ?? new AttributeInfos();
-        traitTypeMap = SetAttributeSet(tick, traitTypeMap, toAddAttributeSets, out var result, out toRemove);
+        traitTypeMap = SetAttributeSet(tick, traitTypeMap, sourceAttributeSets, out var result, out toRemove);
         State.RandomTraitTypeMap[tick] = traitTypeMap;
-        CheckRandomAttributeList(result, maxGen, attributesPerGen);
+        CheckRandomAttributeList(traitTypeMap.Data, maxGen, attributesPerGen);
         return result;
     }
 
@@ -219,11 +245,11 @@ public partial class SchrodingerContract
     }
 
     private AttributeInfos SetAttributeSet(string tick, AttributeInfos traitTypeMap,
-        List<AttributeSet> toAddAttributeSets, out List<AttributeSet> result, out List<AttributeSet> toRemove)
+        List<AttributeSet> sourceAttributeSets, out List<AttributeSet> result, out List<AttributeSet> toRemove)
     {
         result = new List<AttributeSet>();
         toRemove = new List<AttributeSet>();
-        foreach (var toAddAttribute in toAddAttributeSets)
+        foreach (var toAddAttribute in sourceAttributeSets)
         {
             var traitType = toAddAttribute.TraitType;
             CheckAttributeInfo(traitType);
@@ -275,11 +301,22 @@ public partial class SchrodingerContract
         Assert(!string.IsNullOrWhiteSpace(input.Tick) &&
                input.Decimals >= 0 && input.TotalSupply > 0 && input.LossRate > 0 && input.CommissionRate > 0,
             "Invalid input.");
+        CheckDeployPermission(input.Tick);
         CheckGeneration(input.MaxGeneration);
         CheckAttributePerGen(input.AttributesPerGen, input.MaxGeneration);
         CheckImageSize(input.Image);
         CheckImageCount(input.ImageCount);
-        CheckCrossGenerationConfig(input.CrossGenerationConfig);
+        CheckCrossGenerationConfig(input.CrossGenerationConfig,input.MaxGeneration);
+    }
+
+    private void CheckDeployPermission(string tick)
+    {
+        SetTokenContract();
+        var issuer = State.TokenContract.GetTokenInfo.Call(new GetTokenInfoInput
+        {
+            Symbol = GetInscriptionCollectionSymbol(tick)
+        }).Issuer;
+        Assert(issuer == Context.Sender,"No permission to create.");
     }
 
     private void CheckGeneration(int maxGen)
@@ -304,11 +341,13 @@ public partial class SchrodingerContract
         Assert(imageCount > 0 && imageCount <= maxImageCount, "Invalid image count.");
     }
 
-    private void CheckCrossGenerationConfig(CrossGenerationConfig crossGenerationConfig)
+    private void CheckCrossGenerationConfig(CrossGenerationConfig crossGenerationConfig, int maxGen)
     {
         Assert(
-            crossGenerationConfig.Gen >= 0 && crossGenerationConfig.CrossGenerationProbability >= 0 &&
-            crossGenerationConfig.CrossGenerationProbability <= SchrodingerContractConstants.Denominator &&
+            crossGenerationConfig.Gen >= 0 && crossGenerationConfig.Gen <= maxGen &&
+            crossGenerationConfig.CrossGenerationProbability >= 0 &&
+            crossGenerationConfig.CrossGenerationProbability <=
+            SchrodingerContractConstants.Denominator &&
             crossGenerationConfig.Weights.Count == crossGenerationConfig.Gen,
             "Invalid cross generation config.");
     }
