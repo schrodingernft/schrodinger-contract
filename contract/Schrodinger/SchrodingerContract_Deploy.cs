@@ -10,7 +10,7 @@ public partial class SchrodingerContract
     public override Empty DeployCollection(DeployCollectionInput input)
     {
         CheckInitialized();
-        Assert(!string.IsNullOrEmpty(input.Tick),"Invalid input.");
+        Assert(IsStringValid(input.Tick),"Invalid input.");
         CheckImageSize(input.Image);
         // Approve Seed.
         SetTokenContract();
