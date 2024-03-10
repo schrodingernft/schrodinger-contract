@@ -129,6 +129,7 @@ public partial class SchrodingerContract
         var crossGenerationConfig = input.Config;
         CheckCrossGenerationConfig(crossGenerationConfig, inscription.MaxGen);
         inscription.CrossGenerationConfig = crossGenerationConfig;
+        State.InscriptionInfoMap[input.Tick] = inscription;
         Context.Fire(new CrossGenerationConfigSet
         {
             Tick = input.Tick,
