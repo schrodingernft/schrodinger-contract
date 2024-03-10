@@ -14,7 +14,16 @@ public partial class SchrodingerContract : SchrodingerContractContainer.Schrodin
         State.GenesisContract.Value = Context.GetZeroSmartContractAddress();
         Assert(State.GenesisContract.GetContractAuthor.Call(Context.Self) == Context.Sender, "No permission.");
 
+        ProcessInitializeInput(input);
+
+        State.Initialized.Value = true;
+        return new Empty();
+    }
+
+    private void ProcessInitializeInput(InitializeInput input)
+    {
         Assert(input.Admin == null || !input.Admin.Value.IsNullOrEmpty(), "Invalid input admin.");
+        State.Admin.Value = input.Admin ?? Context.Sender;
 
         Assert(input.PointsContract == null || IsAddressValid(input.PointsContract), "Invalid input points contract.");
         State.PointsContract.Value = input.PointsContract;
@@ -23,9 +32,26 @@ public partial class SchrodingerContract : SchrodingerContractContainer.Schrodin
             "Invalid input points contract dapp id");
         State.PointsContractDAppId.Value = input.PointsContractDappId;
 
-        State.Admin.Value = input.Admin ?? Context.Sender;
-        State.Initialized.Value = true;
-        return new Empty();
+        Assert(input.MaxGen > 0, "Invalid input max gen.");
+        Assert(input.ImageMaxSize > 0, "Invalid input image max size.");
+        Assert(input.ImageMaxCount > 0, "Invalid input image max count.");
+        Assert(input.TraitTypeMaxCount > 0, "Invalid input trait type max count.");
+        Assert(input.TraitValueMaxCount > 0, "Invalid input trait value max count.");
+        Assert(input.AttributeMaxLength > 0, "Invalid input attribute max length.");
+        Assert(input.MaxAttributesPerGen > 0, "Invalid input max attributes per gen.");
+        Assert(IsAddressValid(input.Signatory), "Invalid input signatory.");
+
+        State.Config.Value = new Config
+        {
+            MaxGen = input.MaxGen,
+            ImageMaxSize = input.ImageMaxSize,
+            ImageMaxCount = input.ImageMaxCount,
+            TraitTypeMaxCount = input.TraitTypeMaxCount,
+            TraitValueMaxCount = input.TraitValueMaxCount,
+            AttributeMaxLength = input.AttributeMaxLength,
+            MaxAttributesPerGen = input.MaxAttributesPerGen,
+            Signatory = input.Signatory
+        };
     }
 
     public override Empty SetPointsContractDAppId(Hash input)

@@ -1,4 +1,8 @@
 using System.Linq;
+using System.Threading.Tasks;
+using AElf;
+using AElf.Contracts.MultiToken;
+using AElf.Cryptography;
 using AElf.CSharp.Core;
 using AElf.Types;
 using Google.Protobuf;
@@ -17,5 +21,28 @@ public partial class SchrodingerContractTests
         logEvent.MergeFrom(log.NonIndexed);
 
         return logEvent;
+    }
+
+    private ByteString GenerateSignature(byte[] privateKey, Hash adoptId, string image)
+    {
+        var data = new ConfirmInput
+        {
+            AdoptId = adoptId,
+            Image = image
+        };
+        var dataHash = HashHelper.ComputeFrom(data);
+        var signature = CryptoHelper.SignWithPrivateKey(privateKey, dataHash.ToByteArray());
+        return ByteStringHelper.FromHexString(signature.ToHex());
+    }
+
+    private async Task<long> GetTokenBalance(string symbol, Address sender)
+    {
+        var output = await TokenContractStub.GetBalance.CallAsync(new GetBalanceInput
+        {
+            Owner = sender,
+            Symbol = symbol
+        });
+
+        return output.Balance;
     }
 }

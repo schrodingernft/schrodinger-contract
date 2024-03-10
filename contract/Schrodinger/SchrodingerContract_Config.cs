@@ -138,17 +138,17 @@ public partial class SchrodingerContract
 
         return new Empty();
     }
-    
+
     public override Empty SetAdmin(Address input)
     {
         CheckAdminPermission();
-        
+
         Assert(IsAddressValid(input), "Invalid input.");
 
         if (State.Admin.Value == input) return new Empty();
-        
+
         State.Admin.Value = input;
-        
+
         Context.Fire(new AdminSet
         {
             OldAdmin = Context.Sender,

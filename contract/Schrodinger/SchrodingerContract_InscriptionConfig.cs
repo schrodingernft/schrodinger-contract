@@ -1,4 +1,3 @@
-using System.Linq;
 using AElf.Sdk.CSharp;
 using Google.Protobuf.WellKnownTypes;
 

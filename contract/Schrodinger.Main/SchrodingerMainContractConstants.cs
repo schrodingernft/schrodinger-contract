@@ -1,6 +1,6 @@
-namespace Schrodinger;
+namespace Schrodinger.Main;
 
-public static class SchrodingerContractConstants
+public static class SchrodingerMainContractConstants
 {
     // token
     public const string CollectionSymbolSuffix = "0";

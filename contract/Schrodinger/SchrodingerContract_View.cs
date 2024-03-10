@@ -11,11 +11,6 @@ public partial class SchrodingerContract
         return State.Admin.Value;
     }
 
-    // public override BoolValue GetJoinRecord(Address address)
-    // {
-    //     return new BoolValue{ Value = State.JoinRecord[address] };
-    // }
-
     public override Hash GetPointsContractDAppId(Empty input)
     {
         return State.PointsContractDAppId.Value;
@@ -56,7 +51,7 @@ public partial class SchrodingerContract
     {
         var adoptId = State.SymbolAdoptIdMap[input.Value];
         if (adoptId == null) return new StringValue();
-        
+
         var adoptInfo = State.AdoptInfoMap[adoptId];
 
         return new StringValue
@@ -120,7 +115,7 @@ public partial class SchrodingerContract
     {
         var adoptId = State.SymbolAdoptIdMap[input.Value];
         if (adoptId == null) return new GetTokenInfoOutput();
-        
+
         var adoptInfo = State.AdoptInfoMap[adoptId];
         if (adoptInfo == null) return new GetTokenInfoOutput();
 

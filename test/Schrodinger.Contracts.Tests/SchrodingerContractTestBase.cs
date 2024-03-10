@@ -10,6 +10,7 @@ using AElf.Kernel;
 using AElf.Standards.ACS0;
 using AElf.Types;
 using Google.Protobuf;
+using Schrodinger.Contracts.TestPointsContract;
 using Volo.Abp.Threading;
 
 namespace Schrodinger;
@@ -18,6 +19,7 @@ public class SchrodingerContractTestBase : DAppContractTestBase<SchrodingerContr
 {
     internal ACS0Container.ACS0Stub ZeroContractStub { get; set; }
     internal Address SchrodingerContractAddress { get; set; }
+    internal Address TestPointsContractAddress { get; set; }
 
     internal SchrodingerContractContainer.SchrodingerContractStub SchrodingerContractStub { get; set; }
     internal SchrodingerContractContainer.SchrodingerContractStub UserSchrodingerContractStub { get; set; }
@@ -25,7 +27,7 @@ public class SchrodingerContractTestBase : DAppContractTestBase<SchrodingerContr
 
     internal TokenContractContainer.TokenContractStub TokenContractStub { get; set; }
     internal TokenContractContainer.TokenContractStub TokenContractUserStub { get; set; }
-    
+
     protected ECKeyPair DefaultKeyPair => Accounts[0].KeyPair;
     protected Address DefaultAddress => Accounts[0].Address;
     protected ECKeyPair UserKeyPair => Accounts[1].KeyPair;
@@ -59,8 +61,20 @@ public class SchrodingerContractTestBase : DAppContractTestBase<SchrodingerContr
         User2SchrodingerContractStub =
             GetContractStub<SchrodingerContractContainer.SchrodingerContractStub>(SchrodingerContractAddress,
                 User2KeyPair);
-        TokenContractStub = GetContractStub<TokenContractContainer.TokenContractStub>(TokenContractAddress,DefaultKeyPair);
-        TokenContractUserStub = GetContractStub<TokenContractContainer.TokenContractStub>(TokenContractAddress,UserKeyPair);
+        TokenContractStub =
+            GetContractStub<TokenContractContainer.TokenContractStub>(TokenContractAddress, DefaultKeyPair);
+        TokenContractUserStub =
+            GetContractStub<TokenContractContainer.TokenContractStub>(TokenContractAddress, UserKeyPair);
+
+        result = AsyncHelper.RunSync(async () => await ZeroContractStub.DeploySmartContract.SendAsync(
+            new ContractDeploymentInput
+            {
+                Category = KernelConstants.CodeCoverageRunnerCategory,
+                Code = ByteString.CopyFrom(
+                    File.ReadAllBytes(typeof(TestPointsContract).Assembly.Location))
+            }));
+
+        TestPointsContractAddress = Address.Parser.ParseFrom(result.TransactionResult.ReturnValue);
     }
 
     private T GetContractStub<T>(Address contractAddress, ECKeyPair senderKeyPair)

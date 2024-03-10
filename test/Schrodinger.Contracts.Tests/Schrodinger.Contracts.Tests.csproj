@@ -44,6 +44,7 @@
 
     <ItemGroup>
         <ProjectReference Include="..\..\contract\Schrodinger\Schrodinger.csproj" />
+        <ProjectReference Include="..\..\test\Schrodinger.Contracts.TestPointsContract\Schrodinger.Contracts.TestPointsContract.csproj" />
         <ProjectReference Include="..\..\src\AElf.Boilerplate.MainChain\AElf.Boilerplate.MainChain.csproj" />
         <ProjectReference Include="..\..\src\AElf.Boilerplate.TestBase\AElf.Boilerplate.TestBase.csproj" />
     </ItemGroup>

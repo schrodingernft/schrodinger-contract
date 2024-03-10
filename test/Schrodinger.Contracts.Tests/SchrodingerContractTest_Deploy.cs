@@ -1,5 +1,4 @@
 using System.Collections.Generic;
-using System.Linq;
 using System.Threading.Tasks;
 using AElf;
 using AElf.Contracts.MultiToken;
@@ -22,8 +21,16 @@ public partial class SchrodingerContractTests
         await SchrodingerContractStub.Initialize.SendAsync(new InitializeInput
         {
             Admin = DefaultAddress,
-            PointsContract = DefaultAddress,
-            PointsContractDappId = HashHelper.ComputeFrom("PointsContractDappId")
+            PointsContract = TestPointsContractAddress,
+            PointsContractDappId = HashHelper.ComputeFrom("PointsContractDappId"),
+            MaxGen = 10,
+            ImageMaxSize = 10240,
+            ImageMaxCount = 2,
+            TraitTypeMaxCount = 50,
+            TraitValueMaxCount = 100,
+            AttributeMaxLength = 80,
+            MaxAttributesPerGen = 5,
+            Signatory = DefaultAddress
         });
     }
 
@@ -48,7 +55,7 @@ public partial class SchrodingerContractTests
 
     private AttributeLists GetAttributeLists()
     {
-         var traitValues1 = new List<AttributeInfo>
+        var traitValues1 = new List<AttributeInfo>
         {
             new AttributeInfo { Name = "Black", Weight = 8 },
             new AttributeInfo { Name = "white", Weight = 2 },
@@ -207,7 +214,7 @@ public partial class SchrodingerContractTests
             CrossGenerationConfig = new CrossGenerationConfig
             {
                 Gen = 0,
-                CrossGenerationProbability = 0,
+                CrossGenerationProbability = 10000,
                 IsWeightEnabled = false
             }
         });
@@ -285,10 +292,10 @@ public partial class SchrodingerContractTests
             Attributes = attribute
         });
     }
-    
+
     private AttributeLists GetAttributeLists_other()
     {
-         var traitValues1 = new List<AttributeInfo>
+        var traitValues1 = new List<AttributeInfo>
         {
             new AttributeInfo { Name = "Alien", Weight = 760 },
             new AttributeInfo { Name = "Ape", Weight = 95 },
@@ -336,6 +343,7 @@ public partial class SchrodingerContractTests
             RandomAttributes = { randomAttributes }
         };
     }
+
     private async Task BuySeed()
     {
         await TokenContractStub.Create.SendAsync(new CreateInput

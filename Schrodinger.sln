@@ -21,6 +21,10 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Schrodinger", "contract\Sch
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Schrodinger.Contracts.Tests", "test\Schrodinger.Contracts.Tests\Schrodinger.Contracts.Tests.csproj", "{226C9BA7-239F-4A7E-B0ED-4AE970E793CA}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Schrodinger.Contracts.TestPointsContract", "test\Schrodinger.Contracts.TestPointsContract\Schrodinger.Contracts.TestPointsContract.csproj", "{976B77C2-C122-499E-B0A2-40212760AEB0}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Schrodinger.Main", "contract\Schrodinger.Main\Schrodinger.Main.csproj", "{DC48311D-41DF-492D-84FB-9497D437A380}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -47,6 +51,14 @@ Global
 		{226C9BA7-239F-4A7E-B0ED-4AE970E793CA}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{226C9BA7-239F-4A7E-B0ED-4AE970E793CA}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{226C9BA7-239F-4A7E-B0ED-4AE970E793CA}.Release|Any CPU.Build.0 = Release|Any CPU
+		{976B77C2-C122-499E-B0A2-40212760AEB0}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{976B77C2-C122-499E-B0A2-40212760AEB0}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{976B77C2-C122-499E-B0A2-40212760AEB0}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{976B77C2-C122-499E-B0A2-40212760AEB0}.Release|Any CPU.Build.0 = Release|Any CPU
+		{DC48311D-41DF-492D-84FB-9497D437A380}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{DC48311D-41DF-492D-84FB-9497D437A380}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{DC48311D-41DF-492D-84FB-9497D437A380}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{DC48311D-41DF-492D-84FB-9497D437A380}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -58,6 +70,8 @@ Global
 		{DCC207EA-842A-4B54-858B-295CAA8947D5} = {21D85A91-5BB8-4912-8107-49435A461AAC}
 		{8EB85D34-7795-44F3-9638-C235D7A17D8B} = {83F5DA0A-BC4D-4B34-859D-EB0E3FE0AD2A}
 		{226C9BA7-239F-4A7E-B0ED-4AE970E793CA} = {DBC47323-E6A2-42A2-A624-CE2EE6139567}
+		{976B77C2-C122-499E-B0A2-40212760AEB0} = {DBC47323-E6A2-42A2-A624-CE2EE6139567}
+		{DC48311D-41DF-492D-84FB-9497D437A380} = {83F5DA0A-BC4D-4B34-859D-EB0E3FE0AD2A}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {D7426B41-E959-40E4-9ED8-ED8D9C50F133}

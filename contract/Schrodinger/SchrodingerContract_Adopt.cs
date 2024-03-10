@@ -52,9 +52,8 @@ public partial class SchrodingerContract
 
         var randomHash = GetRandomHash();
         adoptInfo.Gen = GenerateGen(inscriptionInfo, parentGen, randomHash);
-        adoptInfo.Attributes =
-            GenerateAttributes(parentAttributes, tick, inscriptionInfo.AttributesPerGen,
-                adoptInfo.Gen - adoptInfo.ParentGen, randomHash);
+        adoptInfo.Attributes = GenerateAttributes(parentAttributes, tick, inscriptionInfo.AttributesPerGen,
+            adoptInfo.Gen.Sub(adoptInfo.ParentGen), randomHash);
         adoptInfo.Symbol = GenerateSymbol(tick);
         adoptInfo.TokenName = GenerateTokenName(adoptInfo.Symbol, adoptInfo.Gen);
 
@@ -121,9 +120,14 @@ public partial class SchrodingerContract
     {
         // calculate amount
         lossAmount = inputAmount.Mul(inscriptionInfo.LossRate).Div(SchrodingerContractConstants.Denominator);
-        outputAmount = inputAmount - lossAmount;
+        if (lossAmount == 0) lossAmount = lossAmount.Add(1);
+
+        outputAmount = inputAmount.Sub(lossAmount);
+
         commissionAmount = lossAmount.Mul(inscriptionInfo.CommissionRate).Div(SchrodingerContractConstants.Denominator);
-        lossAmount -= commissionAmount;
+        if (commissionAmount == 0) commissionAmount++;
+
+        lossAmount = lossAmount.Sub(commissionAmount);
     }
 
     private void ProcessToken(string symbol, long inputAmount, long burnAmount, long outputAmount, Address to,
@@ -138,12 +142,15 @@ public partial class SchrodingerContract
             Symbol = symbol
         });
 
-        // burn token
-        State.TokenContract.Burn.Send(new BurnInput
+        if (burnAmount > 0)
         {
-            Symbol = symbol,
-            Amount = burnAmount
-        });
+            // burn token
+            State.TokenContract.Burn.Send(new BurnInput
+            {
+                Symbol = symbol,
+                Amount = burnAmount
+            });
+        }
 
         // send commission to recipient
         State.TokenContract.Transfer.Send(new TransferInput
@@ -172,10 +179,12 @@ public partial class SchrodingerContract
     {
         var crossGenerationConfig = inscriptionInfo.CrossGenerationConfig;
 
+        parentGen++;
+
         if (crossGenerationConfig.Gen == 0 ||
             !IsCrossGenerationHappened(crossGenerationConfig.CrossGenerationProbability, randomHash))
         {
-            return parentGen + 1;
+            return parentGen;
         }
 
         if (crossGenerationConfig.CrossGenerationFixed)
@@ -186,9 +195,9 @@ public partial class SchrodingerContract
 
         var gens = Enumerable.Range(1, crossGenerationConfig.Gen).ToList();
 
-        var result = parentGen +
-                     GetRandomItems(randomHash, nameof(GenerateGen), gens, crossGenerationConfig.Weights.ToList(), 1)
-                         .First();
+        var result =
+            parentGen.Add(GetRandomItems(randomHash, nameof(GenerateGen), gens, crossGenerationConfig.Weights.ToList(),
+                1).FirstOrDefault());
         return result >= inscriptionInfo.MaxGen ? inscriptionInfo.MaxGen : result;
     }
 
@@ -215,14 +224,14 @@ public partial class SchrodingerContract
             var sum = 0L;
             for (var i = 0; i < items.Count; i++)
             {
-                sum += weights[i];
-                if (random < sum)
-                {
-                    selectedItems.Add(items[i]);
-                    totalWeights -= weights[i];
-                    items.RemoveAt(i);
-                    break;
-                }
+                sum = sum.Add(weights[i]);
+
+                if (random >= sum) continue;
+
+                selectedItems.Add(items[i]);
+                totalWeights = totalWeights.Add(weights[i]);
+                items.RemoveAt(i);
+                break;
             }
         }
 
@@ -234,32 +243,40 @@ public partial class SchrodingerContract
     {
         var attributes = new Attributes();
 
+        // gen0 -> gen1
         if (parentAttributes.Data.Count == 0)
         {
             attributes.Data.AddRange(State.FixedTraitTypeMap[tick].Data.Select(t => new Attribute
             {
-                TraitType = t.Name
+                TraitType = t.Name,
+                Value = GetRandomItems(randomHash, nameof(t.Name),
+                    State.TraitValueMap[tick][t.Name].Data.Select(a => a.Name).ToList(),
+                    State.TraitValueMap[tick][t.Name].Data.Select(a => a.Weight).ToList(), 1).FirstOrDefault()
             }));
 
-            amount--;
+            amount = amount.Sub(amount);
         }
         else
         {
             attributes.Data.AddRange(parentAttributes.Data);
         }
 
+        // get non-selected trait types
         var traitTypes = State.RandomTraitTypeMap[tick].Data
             .Where(a => attributes.Data.Select(t => t.TraitType).All(t => t != a.Name)).ToList();
 
+        // select trait types randomly
         var randomTraitTypes = GetRandomItems(randomHash, nameof(GenerateAttributes),
-            traitTypes.Select(t => t.Name).ToList(), traitTypes.Select(t => t.Weight).ToList(), amount);
+            traitTypes.Select(t => t.Name).ToList(), traitTypes.Select(t => t.Weight).ToList(),
+            amount.Mul(attributesPerGen));
 
+        // select trait values randomly
         attributes.Data.AddRange(randomTraitTypes.Select(t => new Attribute
         {
             TraitType = t,
             Value = GetRandomItems(randomHash, nameof(t),
-                State.TraitValueMap[tick][t].Data.Select(t => t.Name).ToList(),
-                State.TraitValueMap[tick][t].Data.Select(t => t.Weight).ToList(), 1).First()
+                State.TraitValueMap[tick][t].Data.Select(a => a.Name).ToList(),
+                State.TraitValueMap[tick][t].Data.Select(a => a.Weight).ToList(), 1).FirstOrDefault()
         }));
 
         return attributes;
@@ -269,14 +286,19 @@ public partial class SchrodingerContract
     {
         Assert(input != null, "Invalid input.");
         Assert(input.AdoptId != null, "Invalid input adopt id.");
-        Assert(input.Image != null, "Invalid input image.");
         Assert(IsByteStringValid(input.Signature), "Invalid input signature.");
+
+        CheckImageSize(input.Image);
 
         var adoptInfo = State.AdoptInfoMap[input.AdoptId];
         Assert(adoptInfo != null, "Adopt id not exists.");
+        Assert(adoptInfo.Adopter == Context.Sender, "No permission.");
 
-        Assert(!IsStringValid(adoptInfo.Symbol), "Adopt id already confirmed.");
+        Assert(!adoptInfo.IsConfirmed, "Adopt id already confirmed.");
         Assert(RecoverAddressFromSignature(input) == State.Config.Value.Signatory);
+
+        adoptInfo.IsConfirmed = true;
+        State.SymbolAdoptIdMap[adoptInfo.Symbol] = adoptInfo.AdoptId;
 
         var tick = GetTickFromSymbol(adoptInfo.Parent);
         var inscriptionInfo = State.InscriptionInfoMap[tick];
@@ -394,16 +416,15 @@ public partial class SchrodingerContract
         Assert(input != null, "Invalid input.");
         Assert(IsSymbolValid(input.Symbol), "Invalid input symbol.");
         Assert(input.Amount > 0, "Invalid input amount.");
-        Assert(input.Recipient == null || IsAddressValid(input.Recipient), "Invalid input recipient.");
         Assert(IsStringValid(input.Domain), "Invalid input domain.");
 
         var tick = GetTickFromSymbol(input.Symbol);
         var inscriptionInfo = State.InscriptionInfoMap[tick];
 
         Assert(inscriptionInfo != null, "Tick not deployed.");
-        Assert(inscriptionInfo.Ancestor == input.Symbol, "Can not reset gen0.");
+        Assert(inscriptionInfo.Ancestor != input.Symbol, "Can not reset gen0.");
 
-        ProcessToken(input.Symbol, input.Amount, input.Amount, input.Amount, input.Recipient ?? Context.Sender,
+        ProcessToken(input.Symbol, input.Amount, input.Amount, input.Amount, Context.Sender,
             inscriptionInfo.Ancestor);
 
         JoinPointsContract(input.Domain);
@@ -414,7 +435,7 @@ public partial class SchrodingerContract
             Symbol = input.Symbol,
             Ancestor = inscriptionInfo.Ancestor,
             Amount = input.Amount,
-            Recipient = input.Recipient ?? Context.Sender
+            Recipient = Context.Sender
         });
 
         return new Empty();

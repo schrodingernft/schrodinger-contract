@@ -1,4 +1,3 @@
-using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -38,14 +37,9 @@ public partial class SchrodingerContract
         return !string.IsNullOrWhiteSpace(input);
     }
 
-    private bool IsStringValid(string input)
-    {
-        return !string.IsNullOrWhiteSpace(input);
-    }
-
     private bool IsByteStringValid(ByteString input)
     {
-        return input != null && input.Length > 0;
+        return !input.IsNullOrEmpty();
     }
 
     private bool IsSymbolValid(string input)
