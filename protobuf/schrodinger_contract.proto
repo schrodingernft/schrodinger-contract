@@ -36,7 +36,6 @@ service SchrodingerContract {
   rpc GetAttributes (google.protobuf.StringValue) returns (AttributeLists) {option (aelf.is_view) = true;}
   rpc GetAttributeTypes (google.protobuf.StringValue) returns (AttributeInfos) {option (aelf.is_view) = true;}
   rpc GetAttributeValues (GetAttributeValuesInput) returns (AttributeInfos) {option (aelf.is_view) = true;}
-  rpc GetRecommendImageCount (google.protobuf.Int64Value) returns (google.protobuf.Int64Value) {option (aelf.is_view) = true;}
   rpc GetAdoptInfo (aelf.Hash) returns (AdoptInfo) {option (aelf.is_view) = true;}
   rpc GetTokenInfo (google.protobuf.StringValue) returns (GetTokenInfoOutput) {option (aelf.is_view) = true;}
 
@@ -48,7 +47,6 @@ service SchrodingerContract {
   rpc SetImageMaxSize (google.protobuf.Int64Value) returns (google.protobuf.Empty) {}
   rpc SetImageMaxCount (google.protobuf.Int64Value) returns (google.protobuf.Empty) {}
   rpc SetAttributeConfig (SetAttributeConfigInput) returns (google.protobuf.Empty) {}
-  rpc SetRecommendRuleMaxCount (google.protobuf.Int32Value) returns (google.protobuf.Empty) {}
   rpc SetSignatoryConfig (aelf.Address) returns (google.protobuf.Empty) {}
   rpc GetConfig (google.protobuf.Empty) returns (Config) {option (aelf.is_view) = true;}
 
@@ -63,10 +61,18 @@ message InitializeInput {
   aelf.Address admin = 1;
   aelf.Address points_contract = 2;
   aelf.Hash points_contract_dapp_id = 3;
+  int32 max_gen = 4;
+  int64 image_max_size = 5;
+  int64 image_max_count = 6;
+  int64 trait_type_max_count = 7;
+  int64 trait_value_max_count = 8;
+  int64 attribute_max_length = 9;
+  aelf.Address signatory = 10;                // eoa address of server
+  int32 max_attributes_per_gen = 11;
 }
 
 message DeployCollectionInput {
-  string tick = 1;    
+  string tick = 1;
   string image = 2;
   string seed_symbol = 3;
 }
@@ -129,25 +135,12 @@ message AttributeInfo {
   int64 weight = 2;
 }
 
-message RecommendRuleInfo {
-  int64 interval = 1;
-  int64 amount = 2;
-}
-
-message RecommendRuleInfos {
-  repeated RecommendRuleInfo data = 1;
-}
-
 message CrossGenerationConfig {
   int32 gen = 1;                               // cross generation limit, 0 means no cross generation mechanism
   bool cross_generation_fixed = 2;             // whether the cross generation quantity is fixed
   int64 cross_generation_probability = 3;
   repeated int64 weights = 4;                  // determine the cross generation quantity
   bool is_weight_enabled = 5;
-}
-
-message RecommendRule {
-  map<int64, int64> data = 1;
 }
 
 message ExternalInfos {
@@ -168,11 +161,13 @@ message AdoptInfo {
   int64 output_amount = 5;
   Attributes parent_attributes = 6;
   int64 image_count = 7;
-  int64 block_height = 9;             // adopt block height
-  string symbol = 10;                 // generated symbol   
+  int64 block_height = 8;             // adopt block height
+  string symbol = 9;                  // generated symbol   
+  string token_name = 10;
   Attributes attributes = 11;         // generated attributes
   int32 gen = 12;                     // generated gen
   aelf.Address adopter = 13;          // sender
+  bool is_confirmed = 14;
 }
 
 message Attributes {
@@ -193,7 +188,8 @@ message ConfirmInput {
 message ResetInput {
   string symbol = 1;
   int64 amount = 2;
-  string domain = 3;          // for point contract
+  aelf.Address recipient = 3;
+  string domain = 4;          // for point contract
 }
 
 message SetAttributesInput {
@@ -208,11 +204,6 @@ message SetAttributesPerGenInput {
 
 message StringList {
   repeated string data = 1;
-}
-
-message SetRecommendRuleInput {
-  string tick = 1;
-  RecommendRuleInfos recommend_rules = 2;
 }
 
 message SetMaxGenerationInput {
@@ -269,14 +260,16 @@ message GetTokenInfoOutput {
   aelf.Hash adopt_id = 1;
   string parent = 2;
   int32 parent_gen = 3;
-  Attributes parent_attributes = 6;
-  Attributes attributes = 9;
-  int32 gen = 10;
+  Attributes parent_attributes = 4;
+  Attributes attributes = 5;
+  int32 gen = 6;
 }
 
 message SetAttributeConfigInput {
-  int64 trait_value_max_count = 1;
-  int64 attribute_max_length = 2;
+  int64 trait_type_max_count = 1;
+  int64 trait_value_max_count = 2;
+  int64 attribute_max_length = 3;
+  int32 max_attributes_per_gen = 4;
 }
 
 message Config {
@@ -339,6 +332,9 @@ message Adopted {
   int64 block_height = 10;                 // adopt block height
   Attributes attributes = 11;              // generated attributes
   int32 gen = 12;                          // generated generation
+  string ancestor = 13;
+  string symbol = 14;
+  string token_name = 15;
 }
 
 message Confirmed {
@@ -373,13 +369,6 @@ message AttributesSet {
   AttributeSets added_fixed_attributes = 3;
   AttributeSets removed_random_attributes = 4;
   AttributeSets added_random_attributes = 5;
-}
-
-message RecommendRuleSet {
-  option (aelf.is_event) = true;
-  string tick = 1;
-  RecommendRule old_recommend_rule = 2;
-  RecommendRule new_recommend_rule = 3;
 }
 
 message AttributesPerGenerationSet {
@@ -453,13 +442,10 @@ message ImageMaxCountSet {
 
 message AttributeConfigSet {
   option (aelf.is_event) = true;
-  int64 trait_value_max_count = 1;
-  int64 attribute_max_length = 2;
-}
-
-message RecommendRuleMaxCountSet {
-  option (aelf.is_event) = true;
-  int32 recommend_rule_max_count = 1;
+  int64 trait_type_max_count = 1;
+  int64 trait_value_max_count = 2;
+  int64 attribute_max_length = 3;
+  int32 max_attributes_per_gen = 4;
 }
 
 message SignatoryConfigSet {
