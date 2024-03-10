@@ -26,6 +26,11 @@ public partial class SchrodingerContract
         return State.PointsContract.Value;
     }
 
+    public override Config GetConfig(Empty input)
+    {
+        return State.Config.Value;
+    }
+
     #region inscription
 
     public override InscriptionInfo GetInscriptionInfo(StringValue input)
@@ -49,7 +54,15 @@ public partial class SchrodingerContract
 
     public override StringValue GetParent(StringValue input)
     {
-        return new StringValue();
+        var adoptId = State.SymbolAdoptIdMap[input.Value];
+        if (adoptId == null) return new StringValue();
+        
+        var adoptInfo = State.AdoptInfoMap[adoptId];
+
+        return new StringValue
+        {
+            Value = adoptInfo?.Parent
+        };
     }
 
     public override AttributeLists GetAttributes(StringValue input)
@@ -100,19 +113,26 @@ public partial class SchrodingerContract
 
     public override AdoptInfo GetAdoptInfo(Hash input)
     {
-        var result = new AdoptInfo();
-        if (IsHashValid(input))
-        {
-            return result;
-        }
-
-        result = State.AdoptInfoMap[input] ?? new AdoptInfo();
-        return result;
+        return State.AdoptInfoMap[input];
     }
 
     public override GetTokenInfoOutput GetTokenInfo(StringValue input)
     {
-        return new GetTokenInfoOutput();
+        var adoptId = State.SymbolAdoptIdMap[input.Value];
+        if (adoptId == null) return new GetTokenInfoOutput();
+        
+        var adoptInfo = State.AdoptInfoMap[adoptId];
+        if (adoptInfo == null) return new GetTokenInfoOutput();
+
+        return new GetTokenInfoOutput
+        {
+            AdoptId = adoptId,
+            Parent = adoptInfo.Parent,
+            ParentGen = adoptInfo.ParentGen,
+            ParentAttributes = adoptInfo.ParentAttributes,
+            Attributes = adoptInfo.Attributes,
+            Gen = adoptInfo.Gen
+        };
     }
 
     #endregion

@@ -6,6 +6,7 @@ using AElf.Contracts.MultiToken;
 using AElf.CSharp.Core;
 using AElf.Sdk.CSharp;
 using AElf.Types;
+using Google.Protobuf;
 
 namespace Schrodinger;
 
@@ -29,6 +30,26 @@ public partial class SchrodingerContract
     private bool IsHashValid(Hash input)
     {
         return input != null && !input.Value.IsNullOrEmpty();
+    }
+
+    private bool IsStringValid(string input)
+    {
+        return !string.IsNullOrWhiteSpace(input);
+    }
+
+    private bool IsByteStringValid(ByteString input)
+    {
+        return input != null && input.Length > 0;
+    }
+
+    private bool IsSymbolValid(string input)
+    {
+        return IsStringValid(input) && input.Split(SchrodingerContractConstants.Separator).Length == 2;
+    }
+
+    private string GetTickFromSymbol(string symbol)
+    {
+        return symbol.Split(SchrodingerContractConstants.Separator)[0].ToUpper();
     }
 
     #region Deploy
@@ -107,7 +128,7 @@ public partial class SchrodingerContract
         var randomAttributes = toUpdateAttributeList?.RandomAttributes?.DistinctBy(f => f.TraitType.Name).ToList();
         CheckRandomAttributeList(randomAttributes, maxGen, attributesPerGen);
         CheckForDuplicateTraitTypes(fixedAttributes, randomAttributes);
-        var fixedAttributeSet =  SetFixedAttributeSet(tick, fixedAttributes, out toRemoveFixed);
+        var fixedAttributeSet = SetFixedAttributeSet(tick, fixedAttributes, out toRemoveFixed);
         var randomAttributeSet =
             SetRandomAttributeSet(tick, randomAttributes, maxGen, attributesPerGen, out toRemoveRandom);
         var result = new AttributeLists
@@ -230,6 +251,7 @@ public partial class SchrodingerContract
             CheckAttributeInfo(toUpdateTraitValue);
             traitValueMap.Data.Add(toUpdateTraitValue);
         }
+
         State.TraitValueMap[tick][traitTypeName] = traitValueMap;
         return toUpdateTraitValues;
     }

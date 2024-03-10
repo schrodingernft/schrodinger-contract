@@ -53,6 +53,9 @@ public partial class SchrodingerContract
         // Generate external info
         var externalInfo = GenerateExternalInfo(tick, input.Image, input.TotalSupply);
         CreateInscription(tick, inscription.Decimals, input.TotalSupply, externalInfo, input.Issuer, input.Owner);
+
+        JoinPointsContract(input.Domain);
+        
         Context.Fire(new Deployed
         {
             Tick = tick,

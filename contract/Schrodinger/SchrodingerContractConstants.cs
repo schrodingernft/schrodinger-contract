@@ -6,7 +6,7 @@ public static class SchrodingerContractConstants
     public const string CollectionSymbolSuffix = "0";
     public const string AncestorSymbolSuffix = "1";
     public const char Separator = '-';
-    public const string Gen = "GEN";
+    public const string TokenNameSuffix = "GEN-";
     public const string AncestorNameSuffix = "GEN0";
 
     // external info
@@ -19,6 +19,7 @@ public static class SchrodingerContractConstants
     public const string DeployOp = "deploy";
     public const string AdoptOp = "adopt";
     public const string Lim = "-";
+    public const string Amt = "1";
 
     // config
     public const int DefaultMinGen = 1;
@@ -27,15 +28,12 @@ public static class SchrodingerContractConstants
     public const long DefaultImageMaxCount = 10;
     public const long DefaultTraitValueMaxCount = 100;
     public const long DefaultAttributeMaxLength = 80;
-    public const int DefaultRecommendRuleMaxCount = 10;
-    public const long DefaultRetryCooldownInterval = 100; // TODO
     public const int DefaultMaxAttributeWeight = 1000;
     public const int DefaultMaxAttributePerGen = 1;
     public const int DefaultMaxAttributeTraitTypeCount = 50;
-
-
+    
     public const string ELFSymbol = "ELF";
-
+    
     // math
     public const long Hundred = 100;
     public const long Denominator = 10000;

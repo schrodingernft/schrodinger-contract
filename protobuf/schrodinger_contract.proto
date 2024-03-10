@@ -68,11 +68,12 @@ message InitializeInput {
   int64 trait_value_max_count = 8;
   int64 attribute_max_length = 9;
   aelf.Address signatory = 10;                // eoa address of server
+  int32 max_attributes_per_gen = 11;
 }
 
 message DeployCollectionInput {
-  string tick = 1;    
-  string image = 2;  
+  string tick = 1;
+  string image = 2;
 }
 
 message DeployInput {
@@ -92,6 +93,7 @@ message DeployInput {
   bool is_weight_enabled = 14;
   aelf.Address admin = 15;
   int32 attributes_per_gen = 16;
+  string domain = 17;
 }
 
 message DeployInscriptionInfo {
@@ -160,10 +162,12 @@ message AdoptInfo {
   Attributes parent_attributes = 6;
   int64 image_count = 7;
   int64 block_height = 8;             // adopt block height
-  string symbol = 9;                 // generated symbol   
-  Attributes attributes = 10;         // generated attributes
-  int32 gen = 11;                     // generated gen
-  aelf.Address adopter = 12;          // sender
+  string symbol = 9;                  // generated symbol   
+  string token_name = 10;
+  Attributes attributes = 11;         // generated attributes
+  int32 gen = 12;                     // generated gen
+  aelf.Address adopter = 13;          // sender
+  bool is_confirmed = 14;
 }
 
 message Attributes {
@@ -184,7 +188,8 @@ message ConfirmInput {
 message ResetInput {
   string symbol = 1;
   int64 amount = 2;
-  string domain = 3;          // for point contract
+  aelf.Address recipient = 3;
+  string domain = 4;          // for point contract
 }
 
 message SetAttributesInput {
@@ -264,6 +269,7 @@ message SetAttributeConfigInput {
   int64 trait_type_max_count = 1;
   int64 trait_value_max_count = 2;
   int64 attribute_max_length = 3;
+  int32 max_attributes_per_gen = 4;
 }
 
 message Config {
@@ -326,6 +332,9 @@ message Adopted {
   int64 block_height = 10;                 // adopt block height
   Attributes attributes = 11;              // generated attributes
   int32 gen = 12;                          // generated generation
+  string ancestor = 13;
+  string symbol = 14;
+  string token_name = 15;
 }
 
 message Confirmed {
@@ -436,6 +445,7 @@ message AttributeConfigSet {
   int64 trait_type_max_count = 1;
   int64 trait_value_max_count = 2;
   int64 attribute_max_length = 3;
+  int32 max_attributes_per_gen = 4;
 }
 
 message SignatoryConfigSet {

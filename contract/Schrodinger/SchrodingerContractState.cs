@@ -18,7 +18,7 @@ public partial class SchrodingerContractState : ContractState
 
     // tick -> attribute type -> attribute infos
     public MappedState<string, string, AttributeInfos> TraitValueMap { get; set; }
-
+    
     // tick -> inscription info
     public MappedState<string, InscriptionInfo> InscriptionInfoMap { get; set; }
 
@@ -27,7 +27,8 @@ public partial class SchrodingerContractState : ContractState
 
     // symbol -> adopt id
     public MappedState<string, Hash> SymbolAdoptIdMap { get; set; }
-    public SingletonState<long> SymbolCount { get; set; } // start from 2
+    // tick -> count, start from 2
+    public MappedState<string, long> SymbolCountMap { get; set; }
 
     // config
     public SingletonState<Config> Config { get; set; }

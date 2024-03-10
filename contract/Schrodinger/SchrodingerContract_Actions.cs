@@ -28,16 +28,6 @@ public partial class SchrodingerContract : SchrodingerContractContainer.Schrodin
         return new Empty();
     }
 
-    public override Empty SetAdmin(Address input)
-    {
-        CheckAdminPermission();
-        Assert(IsAddressValid(input), "Invalid input.");
-
-        State.Admin.Value = input;
-
-        return new Empty();
-    }
-
     public override Empty SetPointsContractDAppId(Hash input)
     {
         CheckAdminPermission();
@@ -61,30 +51,4 @@ public partial class SchrodingerContract : SchrodingerContractContainer.Schrodin
 
         return new Empty();
     }
-
-    // public override Empty Join(JoinInput input)
-    // {
-    //     var joinRecord = State.JoinRecord[Context.Sender];
-    //     Assert(!joinRecord, "you have joined");
-    //     State.JoinRecord[Context.Sender] = true;
-    //
-    //     Context.Fire(new Joined()
-    //     {
-    //         Domain = input.Domain,
-    //         Registrant = Context.Sender
-    //     });
-    //     
-    //     var pointsContractDAppId = State.PointsContractDAppId;
-    //     var pointsContractAddress = State.PointsContract;
-    //     if(pointsContractDAppId == null || pointsContractAddress == null) return new Empty();
-    //     
-    //     State.PointsContract.Join.Send(new Points.Contracts.Point.JoinInput()
-    //     {
-    //         DappId = State.PointsContractDAppId.Value,
-    //         Domain = input.Domain,
-    //         Registrant = Context.Sender
-    //     });
-    //     
-    //     return new Empty();
-    // }
 }
