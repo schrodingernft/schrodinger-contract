@@ -18,7 +18,6 @@ public static class SchrodingerContractConstants
     public const int InscriptionAmt = 1;
     public const string DeployOp = "deploy";
     public const string AdoptOp = "adopt";
-    public const string Lim = "-";
 
     // config
     public const int DefaultMinGen = 1;

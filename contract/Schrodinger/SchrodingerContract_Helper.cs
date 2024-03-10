@@ -47,8 +47,8 @@ public partial class SchrodingerContract
             P = SchrodingerContractConstants.InscriptionType,
             Op = SchrodingerContractConstants.DeployOp,
             Tick = tick,
-            Max = totalSupply == 0 ? SchrodingerContractConstants.Lim : totalSupply.ToString(),
-            Lim = SchrodingerContractConstants.Lim
+            Max = totalSupply.ToString(),
+            Lim = totalSupply.ToString()
         };
         dic[SchrodingerContractConstants.InscriptionDeployKey] = info.ToString();
 
@@ -130,8 +130,8 @@ public partial class SchrodingerContract
     {
         CheckAttributeList(toUpdateAttributeList);
         // distinct by trait type name
-        var fixedAttributes = toUpdateAttributeList?.FixedAttributes?.DistinctBy(f => f.TraitType.Name).ToList();
-        var randomAttributes = toUpdateAttributeList?.RandomAttributes?.DistinctBy(f => f.TraitType.Name).ToList();
+        var fixedAttributes = toUpdateAttributeList?.FixedAttributes.ToList();
+        var randomAttributes = toUpdateAttributeList?.RandomAttributes.ToList();
         CheckForDuplicateTraitTypes(fixedAttributes, randomAttributes);
         var fixedAttributeSet = SetFixedAttributeSet(tick, fixedAttributes, out toRemoveFixed);
         var randomAttributeSet =
@@ -143,6 +143,12 @@ public partial class SchrodingerContract
         };
         CheckAttributeList(result);
         return result;
+    }
+
+    private void CheckAttributeListDuplicate(List<AttributeSet> attributeSets)
+    {
+        var hasDuplicates = attributeSets.GroupBy(x => x.TraitType.Name).Any(g => g.Count() > 1);
+        Assert(!hasDuplicates, "Duplicate attribute type.");
     }
 
     private void CheckAttributeList(AttributeLists attributeList)
@@ -171,6 +177,8 @@ public partial class SchrodingerContract
 
     private void CheckForDuplicateTraitTypes(List<AttributeSet> fixedAttributes, List<AttributeSet> randomAttributes)
     {
+        CheckAttributeListDuplicate(fixedAttributes);
+        CheckAttributeListDuplicate(randomAttributes);
         var intersection = fixedAttributes.Select(f => f.TraitType.Name)
             .Intersect(randomAttributes.Select(f => f.TraitType.Name));
         Assert(!intersection.Any(), "Trait type cannot be repeated.");

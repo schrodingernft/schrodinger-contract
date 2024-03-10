@@ -27,7 +27,7 @@ public partial class SchrodingerContractState : ContractState
 
     // symbol -> adopt id
     public MappedState<string, Hash> SymbolAdoptIdMap { get; set; }
-    public SingletonState<long> SymbolCount { get; set; } // start from 2
+    public MappedState<string, long> SymbolCount { get; set; } // start from 2
 
     // config
     public SingletonState<Config> Config { get; set; }

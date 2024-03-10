@@ -63,6 +63,8 @@ public partial class SchrodingerContract
         // Generate external info
         var externalInfo = GenerateExternalInfo(tick, input.Image, input.TotalSupply);
         CreateInscription(tick, inscription.Decimals, input.TotalSupply, externalInfo, input.Issuer);
+        Assert(int.TryParse(SchrodingerContractConstants.AncestorSymbolSuffix,out var symbolCount),"Invalid symbol count.");
+        State.SymbolCount[tick] = symbolCount;
         Context.Fire(new Deployed
         {
             Tick = tick,

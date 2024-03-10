@@ -43,7 +43,7 @@
             <OutputItemType>Contract</OutputItemType>
             <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
         </PackageReference>
-        <PackageReference Include="AElf.Contracts.MultiToken" Version="1.6.0">
+        <PackageReference Include="AElf.Contracts.MultiToken" Version="1.8.0-19792">
             <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
             <OutputItemType>Contract</OutputItemType>
             <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
