@@ -45,9 +45,5 @@
             <Link>Protobuf\Proto\schrodinger_contract.proto</Link>
         </ContractCode>
     </ItemGroup>
-
-    <ItemGroup>
-        <Folder Include="obj" />
-        <Folder Include="obj\Debug\net6.0" />
-    </ItemGroup>
+    
 </Project>

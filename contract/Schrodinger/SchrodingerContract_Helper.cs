@@ -31,7 +31,7 @@ public partial class SchrodingerContract
     {
         return input != null && !input.Value.IsNullOrEmpty();
     }
-    
+
     private bool IsStringValid(string input)
     {
         return !string.IsNullOrWhiteSpace(input);
@@ -50,6 +50,14 @@ public partial class SchrodingerContract
     private string GetTickFromSymbol(string symbol)
     {
         return symbol.Split(SchrodingerContractConstants.Separator)[0].ToUpper();
+    }
+
+    private InscriptionInfo CheckInscriptionExistAndPermission(string tick)
+    {
+        var inscription = State.InscriptionInfoMap[tick];
+        Assert(inscription != null, "Inscription not found.");
+        Assert(inscription.Admin == Context.Sender, "No permission.");
+        return inscription;
     }
 
     #region Deploy
@@ -94,24 +102,6 @@ public partial class SchrodingerContract
         State.TokenContract.Create.Send(createTokenInput);
     }
 
-    private void CreateInscriptionCollection(string tick, int decimals, long totalSupply, ExternalInfo externalInfo,
-        Address issuer, Address owner)
-    {
-        var createTokenInput = new CreateInput
-        {
-            Symbol = GetInscriptionCollectionSymbol(tick),
-            TokenName = GetInscriptionCollectionName(tick),
-            TotalSupply = totalSupply,
-            Decimals = decimals,
-            Issuer = issuer ?? Context.Sender,
-            IsBurnable = true,
-            IssueChainId = Context.ChainId,
-            ExternalInfo = externalInfo,
-            Owner = Context.Self
-        };
-        State.TokenContract.Create.Send(createTokenInput);
-    }
-
     private void SetTokenContract()
     {
         if (State.TokenContract.Value == null)
@@ -136,24 +126,26 @@ public partial class SchrodingerContract
         return $"{GetInscriptionSymbol(tick)}{SchrodingerContractConstants.AncestorNameSuffix}";
     }
 
-    private string GetInscriptionCollectionName(string tick)
-    {
-        return $"{GetInscriptionCollectionSymbol(tick)}{SchrodingerContractConstants.AncestorNameSuffix}";
-    }
-
     #endregion
 
     #region Attribute
 
-    private AttributeLists SetAttributeList(string tick, long maxGen, AttributeLists toUpdateAttributeList,
+    /// <param name="tick"></param>
+    /// <param name="maxGen"></param>
+    /// <param name="sourceAttributeList">to add attribute list, contains fixed and random</param>
+    /// <param name="attributesPerGen"></param>
+    /// <param name="toRemoveFixed">out to removed fixed attributeSets</param>
+    /// <param name="toRemoveRandom">out to removed random attributeSets</param>
+    /// <returns></returns>
+    private AttributeLists SetAttributeList(string tick, long maxGen, AttributeLists sourceAttributeList,
         int attributesPerGen, out List<AttributeSet> toRemoveFixed, out List<AttributeSet> toRemoveRandom)
     {
-        CheckAttributeList(toUpdateAttributeList);
+        CheckAttributeList(sourceAttributeList);
         // distinct by trait type name
-        var fixedAttributes = toUpdateAttributeList?.FixedAttributes.ToList();
-        var randomAttributes = toUpdateAttributeList?.RandomAttributes.ToList();
+        var fixedAttributes = sourceAttributeList?.FixedAttributes.ToList();
+        var randomAttributes = sourceAttributeList?.RandomAttributes.ToList();
         CheckForDuplicateTraitTypes(fixedAttributes, randomAttributes);
-        var fixedAttributeSet = SetFixedAttributeSet(tick, fixedAttributes, out toRemoveFixed);
+        var fixedAttributeSet = SetFixedAttributeSets(tick, fixedAttributes, out toRemoveFixed);
         var randomAttributeSet =
             SetRandomAttributeSet(tick, randomAttributes, maxGen, attributesPerGen, out toRemoveRandom);
         var result = new AttributeLists
@@ -164,6 +156,146 @@ public partial class SchrodingerContract
         CheckAttributeList(result);
         return result;
     }
+
+    /// <summary>
+    /// Set fixed attribute sets.
+    /// </summary>
+    /// <param name="tick"></param>
+    /// <param name="sourceAttributeSets"> to set attribute sets</param>
+    /// <param name="toRemove">out to removed attribute sets.</param>
+    /// <returns></returns>
+    private List<AttributeSet> SetFixedAttributeSets(string tick, List<AttributeSet> sourceAttributeSets,
+        out List<AttributeSet> toRemove)
+    {
+        toRemove = new List<AttributeSet>();
+        var traitTypeMap = State.FixedTraitTypeMap[tick] ?? new AttributeInfos();
+        traitTypeMap = SetAttributeSet(tick, traitTypeMap, sourceAttributeSets, out var updateFixedAttributeSets,
+            out toRemove);
+        State.FixedTraitTypeMap[tick] = traitTypeMap;
+        return updateFixedAttributeSets;
+    }
+
+    /// <summary>
+    /// Set random attribute sets.
+    /// After changed, check random attribute list count according to maxGen and attributesPerGen.
+    /// </summary>
+    /// <param name="tick"></param>
+    /// <param name="sourceAttributeSets"> to set attribute sets</param>
+    /// <param name="maxGen"></param>
+    /// <param name="attributesPerGen"></param>
+    /// <param name="toRemove">out to removed attribute sets.</param>
+    /// <returns></returns>
+    private List<AttributeSet> SetRandomAttributeSet(string tick, List<AttributeSet> sourceAttributeSets, long maxGen,
+        int attributesPerGen, out List<AttributeSet> toRemove)
+    {
+        toRemove = new List<AttributeSet>();
+        var traitTypeMap = State.RandomTraitTypeMap[tick] ?? new AttributeInfos();
+        traitTypeMap = SetAttributeSet(tick, traitTypeMap, sourceAttributeSets, out var updateRandomAttributeSets,
+            out toRemove);
+        State.RandomTraitTypeMap[tick] = traitTypeMap;
+        CheckRandomAttributeList(traitTypeMap.Data, maxGen, attributesPerGen);
+        return updateRandomAttributeSets;
+    }
+
+    /// <param name="tick"></param>
+    /// <param name="traitTypeMap">trait type list from state</param>
+    /// <param name="sourceAttributeSet">input attributeSet.</param>
+    /// <param name="toRemove"> The trait type exists, the list of source trait values is empty, remove the trait type and trait values.</param>
+    /// <param name="updateAttributeSet">attributeSet after update</param>
+    /// <returns></returns>
+    private AttributeInfos UpdateTraitTypeAndSetValue(string tick, AttributeInfos traitTypeMap,
+        AttributeSet sourceAttributeSet, out AttributeSet toRemove, out AttributeSet updateAttributeSet)
+    {
+        updateAttributeSet = sourceAttributeSet.Clone();
+        toRemove = null;
+        var traitType = sourceAttributeSet.TraitType;
+        if (!CheckTraitTypeExist(traitType.Name, traitTypeMap))
+        {
+            // trait type not exist
+            traitTypeMap.Data.Add(traitType);
+            updateAttributeSet.Values = SetTraitValues(tick, traitType.Name, sourceAttributeSet.Values);
+        }
+        else
+        {
+            // trait type exist
+            if (CheckAndRemoveAttributeSet(tick, traitTypeMap, sourceAttributeSet, out toRemove, out traitTypeMap))
+            {
+                // trait value != null and reset trait values
+                updateAttributeSet.Values = SetTraitValues(tick, traitType.Name, sourceAttributeSet.Values);
+            }
+        }
+
+        return traitTypeMap;
+    }
+
+    // 
+    /// <summary>
+    /// return trait type list,out update attribute sets(trait type and values),out to remove attribute sets.
+    /// </summary>
+    /// <param name="tick"></param>
+    /// <param name="traitTypeMap">trait type list from state</param>
+    /// <param name="sourceAttributeSets">input attributeSets</param>
+    /// <param name="updateAttributeSets">out update attribute set, remove duplication from trait value list</param>
+    /// <param name="toRemove">out remove list</param>
+    /// <returns></returns>
+    private AttributeInfos SetAttributeSet(string tick, AttributeInfos traitTypeMap,
+        List<AttributeSet> sourceAttributeSets, out List<AttributeSet> updateAttributeSets,
+        out List<AttributeSet> toRemove)
+    {
+        updateAttributeSets = new List<AttributeSet>();
+        toRemove = new List<AttributeSet>();
+        foreach (var sourceAttributeSet in sourceAttributeSets)
+        {
+            var traitType = sourceAttributeSet.TraitType;
+            CheckAttributeInfo(traitType);
+            traitTypeMap = UpdateTraitTypeAndSetValue(tick, traitTypeMap, sourceAttributeSet, out var toRemoveItem,
+                out var updateAttributeSet);
+            updateAttributeSets.Add(updateAttributeSet);
+            if (toRemoveItem != null)
+            {
+                toRemove.Add(toRemoveItem);
+            }
+        }
+
+        return traitTypeMap;
+    }
+
+    /// <param name="tick"></param>
+    /// <param name="traitTypeName"></param>
+    /// <param name="sourceTraitValues"> input trait values</param>
+    /// <returns>after changed,example remove duplicates</returns>
+    private AttributeInfos SetTraitValues(string tick, string traitTypeName, AttributeInfos sourceTraitValues)
+    {
+        Assert(sourceTraitValues != null && sourceTraitValues.Data.Count > 0, "Invalid attribute trait values.");
+        var traitValues = sourceTraitValues?.Data.DistinctBy(f => f.Name).ToList();
+        CheckTraitValueCount(traitValues);
+        var traitValueMap = State.TraitValueMap[tick][traitTypeName] ?? new AttributeInfos();
+        traitValueMap.Data.Clear();
+        foreach (var sourceTraitValue in traitValues)
+        {
+            CheckAttributeInfo(sourceTraitValue);
+            traitValueMap.Data.Add(sourceTraitValue);
+        }
+
+        State.TraitValueMap[tick][traitTypeName] = traitValueMap;
+        return new AttributeInfos
+        {
+            Data = { traitValues }
+        };
+    }
+
+    private List<AttributeSet> GetAttributes(string tick, AttributeInfos attributeInfos)
+    {
+        return attributeInfos.Data.Select(traitType => new AttributeSet
+        {
+            TraitType = traitType,
+            Values = new AttributeInfos { Data = { State.TraitValueMap[tick][traitType.Name]?.Data } }
+        }).ToList();
+    }
+
+    #endregion
+
+    #region Attribute param check
 
     private void CheckAttributeListDuplicate(List<AttributeSet> attributeSets)
     {
@@ -196,6 +328,12 @@ public partial class SchrodingerContract
         Assert(fixAttributes.Count().Add(randomAttributes.Count()) <= traitTypeMaxCount);
     }
 
+    /// <summary>
+    /// Attribute list cannot be duplicated.
+    /// Fixed and random trait type cannot be repeated.
+    /// </summary>
+    /// <param name="fixedAttributes"></param>
+    /// <param name="randomAttributes"></param>
     private void CheckForDuplicateTraitTypes(List<AttributeSet> fixedAttributes, List<AttributeSet> randomAttributes)
     {
         CheckAttributeListDuplicate(fixedAttributes);
@@ -203,100 +341,6 @@ public partial class SchrodingerContract
         var intersection = fixedAttributes.Select(f => f.TraitType.Name)
             .Intersect(randomAttributes.Select(f => f.TraitType.Name));
         Assert(!intersection.Any(), "Fixed and random trait type cannot be repeated.");
-    }
-
-    private List<AttributeSet> SetFixedAttributeSet(string tick, List<AttributeSet> sourceAttributeSets,
-        out List<AttributeSet> toRemove)
-    {
-        toRemove = new List<AttributeSet>();
-        var traitTypeMap = State.FixedTraitTypeMap[tick] ?? new AttributeInfos();
-        traitTypeMap = SetAttributeSet(tick, traitTypeMap, sourceAttributeSets, out var result, out toRemove);
-        State.FixedTraitTypeMap[tick] = traitTypeMap;
-        return result;
-    }
-
-    private List<AttributeSet> SetRandomAttributeSet(string tick, List<AttributeSet> sourceAttributeSets, long maxGen,
-        int attributesPerGen, out List<AttributeSet> toRemove)
-    {
-        toRemove = new List<AttributeSet>();
-        var traitTypeMap = State.RandomTraitTypeMap[tick] ?? new AttributeInfos();
-        traitTypeMap = SetAttributeSet(tick, traitTypeMap, sourceAttributeSets, out var result, out toRemove);
-        State.RandomTraitTypeMap[tick] = traitTypeMap;
-        CheckRandomAttributeList(traitTypeMap.Data, maxGen, attributesPerGen);
-        return result;
-    }
-
-    private AttributeInfos UpdateTraitTypeAndSetValue(string tick, AttributeInfos traitTypeMap,
-        AttributeSet toAddAttribute,
-        out AttributeSet toRemove, out AttributeSet updateToAddAttribute)
-    {
-        updateToAddAttribute = toAddAttribute.Clone();
-        toRemove = null;
-        var traitType = toAddAttribute.TraitType;
-        if (!CheckAttributeExist(traitType.Name, traitTypeMap))
-        {
-            // trait type not exist
-            traitTypeMap.Data.Add(traitType);
-            updateToAddAttribute.Values = SetTraitValues(tick, traitType.Name, toAddAttribute.Values);
-        }
-        else
-        {
-            // trait type exist
-            if (CheckAndRemoveAttributeSet(tick, traitTypeMap, toAddAttribute, out toRemove, out traitTypeMap))
-            {
-                // trait value != null and reset trait values
-                updateToAddAttribute.Values = SetTraitValues(tick, traitType.Name, toAddAttribute.Values);
-            }
-        }
-
-        return traitTypeMap;
-    }
-
-    private AttributeInfos SetAttributeSet(string tick, AttributeInfos traitTypeMap,
-        List<AttributeSet> sourceAttributeSets, out List<AttributeSet> result, out List<AttributeSet> toRemove)
-    {
-        result = new List<AttributeSet>();
-        toRemove = new List<AttributeSet>();
-        foreach (var toAddAttribute in sourceAttributeSets)
-        {
-            var traitType = toAddAttribute.TraitType;
-            CheckAttributeInfo(traitType);
-            traitTypeMap = UpdateTraitTypeAndSetValue(tick, traitTypeMap, toAddAttribute, out var toRemoveItem,
-                out var updateToAddAttribute);
-            result.Add(updateToAddAttribute);
-            if (toRemoveItem != null)
-            {
-                toRemove.Add(toRemoveItem);
-            }
-        }
-
-        return traitTypeMap;
-    }
-
-    private AttributeInfos SetTraitValues(string tick, string traitTypeName, AttributeInfos toUpdateTraitValues)
-    {
-        Assert(toUpdateTraitValues != null && toUpdateTraitValues.Data.Count > 0, "Invalid attribute trait values.");
-        var traitValues = toUpdateTraitValues?.Data.DistinctBy(f => f.Name).ToList();
-        CheckTraitValueCount(traitValues);
-        var traitValueMap = State.TraitValueMap[tick][traitTypeName] ?? new AttributeInfos();
-        traitValueMap.Data.Clear();
-        foreach (var toUpdateTraitValue in traitValues)
-        {
-            CheckAttributeInfo(toUpdateTraitValue);
-            traitValueMap.Data.Add(toUpdateTraitValue);
-        }
-
-        State.TraitValueMap[tick][traitTypeName] = traitValueMap;
-        return toUpdateTraitValues;
-    }
-
-    private List<AttributeSet> GetAttributes(string tick, AttributeInfos attributeInfos)
-    {
-        return attributeInfos.Data.Select(traitType => new AttributeSet
-        {
-            TraitType = traitType,
-            Values = new AttributeInfos { Data = { State.TraitValueMap[tick][traitType.Name]?.Data } }
-        }).ToList();
     }
 
     private void CheckTraitValueCount(List<AttributeInfo> traitValues)
@@ -307,7 +351,15 @@ public partial class SchrodingerContract
             "Invalid attribute trait values count.");
     }
 
-    // if don't need to set trait value return false.
+    /// <summary>
+    /// if don't need to set trait value return false.
+    /// </summary>
+    /// <param name="tick"></param>
+    /// <param name="traitTypeMap"> trait type list from state</param>
+    /// <param name="attribute">input attribute set</param>
+    /// <param name="toRemove">to remove attributeSet, the list of source trait values is empty, remove the trait type and trait values.</param>
+    /// <param name="updateTraitTypeMap">trait type list after changed</param>
+    /// <returns></returns>
     private bool CheckAndRemoveAttributeSet(string tick, AttributeInfos traitTypeMap, AttributeSet attribute,
         out AttributeSet toRemove, out AttributeInfos updateTraitTypeMap)
     {
@@ -320,14 +372,6 @@ public partial class SchrodingerContract
         toRemove = attribute;
         updateTraitTypeMap = traitTypeMap;
         return false;
-    }
-
-    private InscriptionInfo CheckInscriptionExistAndPermission(string tick)
-    {
-        var inscription = State.InscriptionInfoMap[tick];
-        Assert(inscription != null, "Inscription not found.");
-        Assert(inscription.Admin == Context.Sender, "No permission.");
-        return inscription;
     }
 
     #endregion
@@ -424,7 +468,7 @@ public partial class SchrodingerContract
     }
 
     // if attribute exists return true.
-    private bool CheckAttributeExist(string traitTypeName, AttributeInfos traitTypeMap)
+    private bool CheckTraitTypeExist(string traitTypeName, AttributeInfos traitTypeMap)
     {
         var existingTraitType = traitTypeMap.Data.FirstOrDefault(f => f.Name == traitTypeName);
         return existingTraitType != null;

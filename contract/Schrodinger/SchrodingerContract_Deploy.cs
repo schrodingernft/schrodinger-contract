@@ -6,38 +6,6 @@ namespace Schrodinger;
 
 public partial class SchrodingerContract
 {
-    public override Empty DeployCollection(DeployCollectionInput input)
-    {
-        CheckInitialized();
-        Assert(IsStringValid(input.Tick),"Invalid input.");
-        CheckImageSize(input.Image);
-        // Approve Seed.
-        SetTokenContract();
-        State.TokenContract.TransferFrom.Send(new TransferFromInput
-        {
-            Symbol = input.SeedSymbol,
-            From = Context.Sender,
-            To = Context.Self,
-            Amount = 1,
-        });
-        var externalInfo = GenerateExternalInfo(input.Tick, input.Image, 0);
-        CreateInscriptionCollection(input.Tick, 0, 1, externalInfo, Context.Sender, Context.Sender);
-        Context.Fire(new CollectionDeployed
-        {
-            Symbol = GetInscriptionCollectionSymbol(input.Tick),
-            TotalSupply = 0,
-            CollectionExternalInfos = new ExternalInfos
-            {
-                Value = { externalInfo.Value }
-            },
-            Deployer = Context.Sender,
-            IssueChainId = Context.ChainId,
-            Issuer = Context.Sender,
-            Owner = Context.Sender
-        });
-        return new Empty();
-    }
-
     public override Empty Deploy(DeployInput input)
     {
         CheckDeployParams(input);

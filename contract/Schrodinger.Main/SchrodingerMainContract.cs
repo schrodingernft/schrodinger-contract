@@ -46,7 +46,7 @@ public partial class SchrodingerMainContract : SchrodingerMainContractContainer.
             Amount = 1,
         });
         var externalInfo = GenerateExternalInfo(input.Tick, input.Image, 0);
-        CreateInscriptionCollection(input.Tick, 0, 1, externalInfo, Context.Sender, Context.Sender);
+        CreateInscriptionCollection(input.Tick, 0, 1, externalInfo, Context.Sender);
         Context.Fire(new Deployed
         {
             Symbol = GetInscriptionCollectionSymbol(input.Tick),
@@ -64,7 +64,7 @@ public partial class SchrodingerMainContract : SchrodingerMainContractContainer.
     }
 
     private void CreateInscriptionCollection(string tick, int decimals, long totalSupply, ExternalInfo externalInfo,
-        Address issuer, Address owner)
+        Address issuer)
     {
         var createTokenInput = new CreateInput
         {
