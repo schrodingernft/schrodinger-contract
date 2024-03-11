@@ -12,7 +12,7 @@ public partial class SchrodingerContract : SchrodingerContractContainer.Schrodin
         Assert(input != null, "Invalid input.");
 
         State.GenesisContract.Value = Context.GetZeroSmartContractAddress();
-        Assert(State.GenesisContract.GetContractAuthor.Call(Context.Self) == Context.Sender, "No permission.");
+        Assert(State.GenesisContract.GetContractInfo.Call(Context.Self).Deployer == Context.Sender, "No permission.");
 
         ProcessInitializeInput(input);
 
