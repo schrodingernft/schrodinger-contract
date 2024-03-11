@@ -8,6 +8,7 @@ public static class SchrodingerContractConstants
     public const char Separator = '-';
     public const string TokenNameSuffix = "GEN-";
     public const string AncestorNameSuffix = "GEN0";
+    public const int DefaultSymbolIndexStart = 2;
 
     // external info
     public const string InscriptionDeployKey = "__inscription_deploy";
