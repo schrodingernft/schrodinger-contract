@@ -1,8 +1,14 @@
 using System.Collections.Generic;
+using System.IO;
 using System.Threading.Tasks;
 using AElf;
 using AElf.Contracts.MultiToken;
+using AElf.Standards.ACS0;
+using AElf.Types;
+using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
+using Schrodinger.Main;
+using SchrodingerMain;
 using Shouldly;
 using Xunit;
 
@@ -14,15 +20,37 @@ public partial class SchrodingerContractTests
         "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACgAAAAoCAYAAACM/rhtAAADfklEQVR4nO2Yy2sTQRzHv7t5lTa2HtRjaGhJpfRSkFAPtiJBL3rz0iBWkC6ilLTE+ijYg0p9hlaLoCko9pDc/Av2UFvBEq+12lgIBk9WkEJqk5rselh3O9nsYybbood+IWTnN7uzn/nOY3+7XCopyfiPxf9rADvtATrVHqBTuZ1cLAx5tePk9JZjGCPVDSgMedEvFgAA6Yif6nxVLJ2pC5CEm569hTQFWM/EMoLhAFVnHAEKQ170TCxrcLRg9coNAJGpkBYQh7PaMRkn64xuSA6hEZjaGSu3DQH1EPqyHsLMPTWuanGsE4sA+sWCpdO2gKwXGLn34/wIDox1avMSAIJiAblMHumIH2n1nNlJ5tXOfe9slw9eX9cCaw9atGMy7rqwhovzRabGSb051YRShWMGdJMQeihV+4SfOPE4WxNnUfedT3g/1sV8HdWTpFAyHloWBcMBHJ1YQlRgm1XK2b2cUprXpYa9HHxta4gkVhzBqaqnk5ycO2SZsPra1jDwdpOp0VwmXwVElnOZPMT4YaSSZaq2diVZGAicRv75yaqyGA9pkE1ejrotHgDGW4sYb61doUYxGp05m7Usb2zRv2W4SYh6gXZTOzLEuUxem2cAMPquiL6XnwEAsW4fvm3IWCpsu9bc6KFu2w0AT6aUvS823FJVqcTt+2C0OmPdPgBA+8i17djkQwDAK5YhVuFIUFIuSXHIbIvQr1gSzkzlMt0KBijs8UxKmB/tMK0PhgOWcKt/XVP/WcUDwNWnyk8vMk7OMb30c7DL76qqb5hJaMdHml3UeyAAcLeDMtWEuPuVR++jFdungeogCblUqAAAhl98YdqkmQDrgdSry8/mHgBw6reZ1Xu1u3v7Tbnq4d7i9WCzrKRLdqAkZD3O1QCaSZ99qDe5HHPhV8kYlJyPH26EsP4bSCUlZjgqQAA4d8kNiWifdELtgJeXDZMKJTkwf42wE1VyJll0vgr2OI/BuerHZTAcwOBC0XC/pBGVg4D5UJMauOJD3/2Ptps6i5jSWy/nwpZcMa1//ayEqMBjcME46QiGA0hF9mOjRJ+UUDsI0LkYFXhEElnHrwiqHH08MlIqKVm6yDrMTA4CO+PizLEG6vvtuIPAtotmkOqqFuMh2/2ROWHVO2b2GplKSpiLd5gOqbr9RAVrBMcZdaPHHHI2WYEYD1nOu0giawn5B8F9gRyqFJDiAAAAAElFTkSuQmCC";
 
     private readonly string _tick = "SGR";
-
-    [Fact]
-    public async Task Initialize()
+    
+    private async Task InitializeSchrodingerMain()
     {
-        await SchrodingerContractStub.Initialize.SendAsync(new InitializeInput
+        await SchrodingerMainContractStub.Initialize.SendAsync(new SchrodingerMain.InitializeInput
         {
             Admin = DefaultAddress,
-            PointsContract = TestPointsContractAddress,
-            PointsContractDappId = HashHelper.ComputeFrom("PointsContractDappId"),
+            ImageMaxSize = 10240
+        });
+    }
+    
+    private async Task Initialize()
+    {
+        await UpdateContract();
+
+        // await SchrodingerContractStub.Initialize.SendAsync(new InitializeInput
+        // {
+        //     Admin = DefaultAddress,
+        //     PointsContract = TestPointsContractAddress,
+        //     PointsContractDappId = HashHelper.ComputeFrom("PointsContractDappId"),
+        //     MaxGen = 10,
+        //     ImageMaxSize = 10240,
+        //     ImageMaxCount = 2,
+        //     TraitTypeMaxCount = 50,
+        //     TraitValueMaxCount = 100,
+        //     AttributeMaxLength = 80,
+        //     MaxAttributesPerGen = 5,
+        //     Signatory = DefaultAddress
+        // });
+
+        await SchrodingerContractStub.SetConfig.SendAsync(new Config
+        {
             MaxGen = 10,
             ImageMaxSize = 10240,
             ImageMaxCount = 2,
@@ -32,14 +60,18 @@ public partial class SchrodingerContractTests
             MaxAttributesPerGen = 5,
             Signatory = DefaultAddress
         });
+        
+        await SchrodingerContractStub.SetPointsContract.SendAsync(TestPointsContractAddress);
+        await SchrodingerContractStub.SetPointsContractDAppId.SendAsync(HashHelper.ComputeFrom("PointsContractDappId"));
     }
 
     [Fact]
     public async Task DeployCollectionTest()
     {
-        await Initialize();
+        await InitializeSchrodingerMain();
         await BuySeed();
-        await SchrodingerContractStub.DeployCollection.SendAsync(new DeployCollectionInput
+        
+        await SchrodingerMainContractStub.Deploy.SendAsync(new SchrodingerMain.DeployInput
         {
             Tick = _tick,
             Image = _image,
@@ -198,6 +230,7 @@ public partial class SchrodingerContractTests
     public async Task DeployTest()
     {
         await DeployCollectionTest();
+        await Initialize();
         await SchrodingerContractStub.Deploy.SendAsync(new DeployInput()
         {
             Tick = _tick,

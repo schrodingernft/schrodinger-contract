@@ -1,4 +1,5 @@
 using System.IO;
+using System.Threading.Tasks;
 using AElf;
 using AElf.Boilerplate.TestBase;
 using AElf.Contracts.MultiToken;
@@ -11,6 +12,8 @@ using AElf.Standards.ACS0;
 using AElf.Types;
 using Google.Protobuf;
 using Schrodinger.Contracts.TestPointsContract;
+using Schrodinger.Main;
+using SchrodingerMain;
 using Volo.Abp.Threading;
 
 namespace Schrodinger;
@@ -27,6 +30,8 @@ public class SchrodingerContractTestBase : DAppContractTestBase<SchrodingerContr
 
     internal TokenContractContainer.TokenContractStub TokenContractStub { get; set; }
     internal TokenContractContainer.TokenContractStub TokenContractUserStub { get; set; }
+
+    internal SchrodingerMainContractContainer.SchrodingerMainContractStub SchrodingerMainContractStub { get; set; }
 
     protected ECKeyPair DefaultKeyPair => Accounts[0].KeyPair;
     protected Address DefaultAddress => Accounts[0].Address;
@@ -47,20 +52,13 @@ public class SchrodingerContractTestBase : DAppContractTestBase<SchrodingerContr
             {
                 Category = KernelConstants.CodeCoverageRunnerCategory,
                 Code = ByteString.CopyFrom(
-                    File.ReadAllBytes(typeof(SchrodingerContract).Assembly.Location))
+                    File.ReadAllBytes(typeof(SchrodingerMainContract).Assembly.Location))
             }));
 
         SchrodingerContractAddress = Address.Parser.ParseFrom(result.TransactionResult.ReturnValue);
-
-        SchrodingerContractStub =
-            GetContractStub<SchrodingerContractContainer.SchrodingerContractStub>(SchrodingerContractAddress,
-                DefaultKeyPair);
-        UserSchrodingerContractStub =
-            GetContractStub<SchrodingerContractContainer.SchrodingerContractStub>(SchrodingerContractAddress,
-                UserKeyPair);
-        User2SchrodingerContractStub =
-            GetContractStub<SchrodingerContractContainer.SchrodingerContractStub>(SchrodingerContractAddress,
-                User2KeyPair);
+        SchrodingerMainContractStub = GetContractStub<SchrodingerMainContractContainer.SchrodingerMainContractStub>(SchrodingerContractAddress,
+            DefaultKeyPair);
+        
         TokenContractStub =
             GetContractStub<TokenContractContainer.TokenContractStub>(TokenContractAddress, DefaultKeyPair);
         TokenContractUserStub =
@@ -77,7 +75,7 @@ public class SchrodingerContractTestBase : DAppContractTestBase<SchrodingerContr
         TestPointsContractAddress = Address.Parser.ParseFrom(result.TransactionResult.ReturnValue);
     }
 
-    private T GetContractStub<T>(Address contractAddress, ECKeyPair senderKeyPair)
+    internal T GetContractStub<T>(Address contractAddress, ECKeyPair senderKeyPair)
         where T : ContractStubBase, new()
     {
         return GetTester<T>(contractAddress, senderKeyPair);
@@ -88,5 +86,25 @@ public class SchrodingerContractTestBase : DAppContractTestBase<SchrodingerContr
         var dataHash = HashHelper.ComputeFrom(contractOperation);
         var signature = CryptoHelper.SignWithPrivateKey(privateKey, dataHash.ToByteArray());
         return ByteStringHelper.FromHexString(signature.ToHex());
+    }
+    
+    internal async Task UpdateContract()
+    {
+        var file = await File.ReadAllBytesAsync(typeof(SchrodingerContract).Assembly.Location);
+        await ZeroContractStub.UpdateSmartContract.SendAsync(new ContractUpdateInput
+        {
+            Code = ByteString.CopyFrom(file),
+            Address = SchrodingerContractAddress
+        });
+        
+        SchrodingerContractStub =
+            GetContractStub<SchrodingerContractContainer.SchrodingerContractStub>(SchrodingerContractAddress,
+                DefaultKeyPair);
+        UserSchrodingerContractStub =
+            GetContractStub<SchrodingerContractContainer.SchrodingerContractStub>(SchrodingerContractAddress,
+                UserKeyPair);
+        User2SchrodingerContractStub =
+            GetContractStub<SchrodingerContractContainer.SchrodingerContractStub>(SchrodingerContractAddress,
+                User2KeyPair);
     }
 }

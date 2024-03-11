@@ -5,6 +5,7 @@ using AElf.Contracts.MultiToken;
 using AElf.Sdk.CSharp;
 using AElf.Types;
 using Google.Protobuf.WellKnownTypes;
+using SchrodingerMain;
 
 namespace Schrodinger.Main;
 
@@ -20,6 +21,9 @@ public partial class SchrodingerMainContract : SchrodingerMainContractContainer.
 
         Assert(input.Admin == null || !input.Admin.Value.IsNullOrEmpty(), "Invalid input admin.");
         State.Admin.Value = input.Admin ?? Context.Sender;
+        
+        Assert(input.ImageMaxSize > 0, "Invalid input image max size.");
+        State.ImageMaxSize.Value = input.ImageMaxSize;
 
         State.TokenContract.Value =
             Context.GetContractAddressByName(SmartContractConstants.TokenContractSystemName);

@@ -31,6 +31,9 @@
     </ItemGroup>
     
     <ItemGroup>
+        <ContractBase Include="..\..\protobuf\acs12.proto">
+            <Link>Protobuf\Proto\acs12.proto</Link>
+        </ContractBase>
         <ContractStub Include="..\..\protobuf\acs0.proto">
             <Link>Protobuf\Proto\acs0.proto</Link>
         </ContractStub>
@@ -40,10 +43,14 @@
         <ContractStub Include="..\..\protobuf\schrodinger_contract.proto">
             <Link>Protobuf\Proto\schrodinger_contract.proto</Link>
         </ContractStub>
+        <ContractStub Include="..\..\protobuf\schrodinger_contract_main.proto">
+            <Link>Protobuf\Proto\schrodinger_contract_main.proto</Link>
+        </ContractStub>
     </ItemGroup>
 
     <ItemGroup>
         <ProjectReference Include="..\..\contract\Schrodinger\Schrodinger.csproj" />
+        <ProjectReference Include="..\..\contract\Schrodinger.Main\Schrodinger.Main.csproj" />
         <ProjectReference Include="..\..\test\Schrodinger.Contracts.TestPointsContract\Schrodinger.Contracts.TestPointsContract.csproj" />
         <ProjectReference Include="..\..\src\AElf.Boilerplate.MainChain\AElf.Boilerplate.MainChain.csproj" />
         <ProjectReference Include="..\..\src\AElf.Boilerplate.TestBase\AElf.Boilerplate.TestBase.csproj" />

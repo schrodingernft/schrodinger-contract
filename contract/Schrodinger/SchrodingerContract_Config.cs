@@ -11,7 +11,7 @@ public partial class SchrodingerContract
         CheckAdminPermission();
 
         ValidateConfigInput(input);
-        if (State.Config.Value.Equals(input)) return new Empty();
+        if (State.Config.Value != null && State.Config.Value.Equals(input)) return new Empty();
 
         State.Config.Value = input;
 
