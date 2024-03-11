@@ -391,8 +391,8 @@ public partial class SchrodingerContract
 
     private void CheckRate(long lossRate, long commissionRate)
     {
-        Assert(lossRate > 0 && lossRate <= SchrodingerContractConstants.Denominator, "Invalid loss rate.");
-        Assert(commissionRate > 0 && commissionRate <= SchrodingerContractConstants.Denominator,
+        Assert(lossRate >= 0 && lossRate <= SchrodingerContractConstants.Denominator, "Invalid loss rate.");
+        Assert(commissionRate >= 0 && commissionRate <= SchrodingerContractConstants.Denominator,
             "Invalid commission rate.");
     }
 
