@@ -60,7 +60,7 @@ public partial class SchrodingerMainContract : SchrodingerMainContractContainer.
             Deployer = Context.Sender,
             IssueChainId = Context.ChainId,
             Issuer = Context.Sender,
-            Owner = Context.Sender,
+            Owner = Context.Self,
             TokenName = input.TokenName,
             Decimals = input.Decimals
         });
