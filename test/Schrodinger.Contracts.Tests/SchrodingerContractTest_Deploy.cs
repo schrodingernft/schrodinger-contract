@@ -21,8 +21,9 @@ public partial class SchrodingerContractTests
 
     private readonly string _tick = "SGR";
     private readonly string _tokenName = "SCHRODINGER";
+    private readonly int _mainChainId = 9992731;
 
-    
+
     private async Task InitializeSchrodingerMain()
     {
         await SchrodingerMainContractStub.Initialize.SendAsync(new SchrodingerMain.InitializeInput
@@ -79,7 +80,8 @@ public partial class SchrodingerContractTests
             Image = _image,
             SeedSymbol = "SEED-1",
             TokenName = _tokenName,
-            Decimals = 0
+            Decimals = 0,
+            IssueChainId = _mainChainId
         });
         var tokenInfo = await TokenContractStub.GetTokenInfo.CallAsync(new GetTokenInfoInput
         {

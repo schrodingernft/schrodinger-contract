@@ -37,6 +37,7 @@ public partial class SchrodingerMainContract : SchrodingerMainContractContainer.
         CheckInitialized();
         Assert(!string.IsNullOrEmpty(input.Tick) && !string.IsNullOrEmpty(input.TokenName), "Invalid input.");
         Assert(input.Decimals >= 0, "Invalid input decimals.");
+        Assert(input.IssueChainId > 0, "Invalid input issue chain id.");
 
         CheckImageSize(input.Image);
 
@@ -47,9 +48,9 @@ public partial class SchrodingerMainContract : SchrodingerMainContractContainer.
             To = Context.Self,
             Amount = 1,
         });
-        var externalInfo = GenerateExternalInfo(input.Tick, input.Image);
-        CreateInscriptionCollection(input.Tick, externalInfo, input.TokenName, input.Decimals);
-        Context.Fire(new Deployed
+        var externalInfo = GenerateExternalInfo(input.Tick, input.Image, input.IssueChainId);
+        CreateInscriptionCollection(input.Tick, externalInfo, input.TokenName, input.Decimals, input.IssueChainId);
+        Context.Fire(new CollectionDeployed
         {
             Symbol = GetInscriptionCollectionSymbol(input.Tick),
             TotalSupply = SchrodingerMainContractConstants.DefaultCollectionTotalSupply,
@@ -58,7 +59,7 @@ public partial class SchrodingerMainContract : SchrodingerMainContractContainer.
                 Value = { externalInfo.Value }
             },
             Deployer = Context.Sender,
-            IssueChainId = Context.ChainId,
+            IssueChainId = input.IssueChainId,
             Issuer = Context.Sender,
             Owner = Context.Self,
             TokenName = input.TokenName,
@@ -67,7 +68,8 @@ public partial class SchrodingerMainContract : SchrodingerMainContractContainer.
         return new Empty();
     }
 
-    private void CreateInscriptionCollection(string tick, ExternalInfo externalInfo, string tokenName, int decimals)
+    private void CreateInscriptionCollection(string tick, ExternalInfo externalInfo, string tokenName, int decimals,
+        int issueChainId)
     {
         var createTokenInput = new CreateInput
         {
@@ -77,7 +79,7 @@ public partial class SchrodingerMainContract : SchrodingerMainContractContainer.
             Decimals = decimals,
             Issuer = Context.Sender,
             IsBurnable = true,
-            IssueChainId = Context.ChainId,
+            IssueChainId = issueChainId,
             ExternalInfo = externalInfo,
             Owner = Context.Self
         };
@@ -103,12 +105,13 @@ public partial class SchrodingerMainContract : SchrodingerMainContractContainer.
             $"{tick}{SchrodingerMainContractConstants.Separator}{SchrodingerMainContractConstants.CollectionSymbolSuffix}";
     }
 
-    private ExternalInfo GenerateExternalInfo(string tick, string image)
+    private ExternalInfo GenerateExternalInfo(string tick, string image, int issueChainId)
     {
         var externalInfo = new ExternalInfo();
         var dic = new Dictionary<string, string>
         {
-            [SchrodingerMainContractConstants.InscriptionImageKey] = image
+            [SchrodingerMainContractConstants.InscriptionImageKey] = image,
+            [SchrodingerMainContractConstants.InscriptionCreateChainIdKey] = issueChainId.ToString()
         };
 
         var info = new DeployInscriptionInfo
