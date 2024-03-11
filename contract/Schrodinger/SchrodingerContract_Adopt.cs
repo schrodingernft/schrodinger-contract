@@ -450,6 +450,8 @@ public partial class SchrodingerContract
     {
         if (State.JoinRecord[Context.Sender]) return;
 
+        State.JoinRecord[Context.Sender] = true;
+
         State.PointsContract.Join.Send(new JoinInput
         {
             DappId = State.PointsContractDAppId.Value,

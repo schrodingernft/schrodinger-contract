@@ -47,12 +47,23 @@ public class SchrodingerContractTestBase : DAppContractTestBase<SchrodingerContr
 
         ZeroContractStub = GetContractStub<ACS0Container.ACS0Stub>(BasicContractZeroAddress, DefaultKeyPair);
 
+        var code = System.IO.File.ReadAllBytes(typeof(SchrodingerMainContract).Assembly.Location);
+        var contractOperation = new ContractOperation
+        {
+            ChainId = 9992731,
+            CodeHash = HashHelper.ComputeFrom(code),
+            Deployer = DefaultAddress,
+            Salt = HashHelper.ComputeFrom("schrodinger"),
+            Version = 1
+        };
+        contractOperation.Signature = GenerateContractSignature(DefaultKeyPair.PrivateKey, contractOperation);
+
         var result = AsyncHelper.RunSync(async () => await ZeroContractStub.DeploySmartContract.SendAsync(
             new ContractDeploymentInput
             {
                 Category = KernelConstants.CodeCoverageRunnerCategory,
-                Code = ByteString.CopyFrom(
-                    File.ReadAllBytes(typeof(SchrodingerMainContract).Assembly.Location))
+                Code = ByteString.CopyFrom(code),
+                ContractOperation = contractOperation
             }));
 
         SchrodingerContractAddress = Address.Parser.ParseFrom(result.TransactionResult.ReturnValue);
@@ -90,11 +101,23 @@ public class SchrodingerContractTestBase : DAppContractTestBase<SchrodingerContr
     
     internal async Task UpdateContract()
     {
+        var code = await System.IO.File.ReadAllBytesAsync(typeof(SchrodingerContract).Assembly.Location);
+        var contractOperation = new ContractOperation
+        {
+            ChainId = 9992731,
+            CodeHash = HashHelper.ComputeFrom(code),
+            Deployer = DefaultAddress,
+            Salt = HashHelper.ComputeFrom("schrodinger"),
+            Version = 2
+        };
+        contractOperation.Signature = GenerateContractSignature(DefaultKeyPair.PrivateKey, contractOperation);
+        
         var file = await File.ReadAllBytesAsync(typeof(SchrodingerContract).Assembly.Location);
         await ZeroContractStub.UpdateSmartContract.SendAsync(new ContractUpdateInput
         {
             Code = ByteString.CopyFrom(file),
-            Address = SchrodingerContractAddress
+            Address = SchrodingerContractAddress,
+            ContractOperation = contractOperation
         });
         
         SchrodingerContractStub =
