@@ -21,7 +21,7 @@ public partial class SchrodingerMainContract : SchrodingerMainContractContainer.
 
         Assert(input.Admin == null || !input.Admin.Value.IsNullOrEmpty(), "Invalid input admin.");
         State.Admin.Value = input.Admin ?? Context.Sender;
-        
+
         Assert(input.ImageMaxSize > 0, "Invalid input image max size.");
         State.ImageMaxSize.Value = input.ImageMaxSize;
 
@@ -35,7 +35,9 @@ public partial class SchrodingerMainContract : SchrodingerMainContractContainer.
     public override Empty Deploy(DeployInput input)
     {
         CheckInitialized();
-        Assert(!string.IsNullOrEmpty(input.Tick), "Invalid input.");
+        Assert(!string.IsNullOrEmpty(input.Tick) && !string.IsNullOrEmpty(input.TokenName), "Invalid input.");
+        Assert(input.Decimals >= 0, "Invalid input decimals.");
+
         CheckImageSize(input.Image);
 
         State.TokenContract.TransferFrom.Send(new TransferFromInput
@@ -45,12 +47,12 @@ public partial class SchrodingerMainContract : SchrodingerMainContractContainer.
             To = Context.Self,
             Amount = 1,
         });
-        var externalInfo = GenerateExternalInfo(input.Tick, input.Image, 0);
-        CreateInscriptionCollection(input.Tick, 0, 1, externalInfo, Context.Sender);
+        var externalInfo = GenerateExternalInfo(input.Tick, input.Image);
+        CreateInscriptionCollection(input.Tick, externalInfo, input.TokenName, input.Decimals);
         Context.Fire(new Deployed
         {
             Symbol = GetInscriptionCollectionSymbol(input.Tick),
-            TotalSupply = 0,
+            TotalSupply = SchrodingerMainContractConstants.DefaultCollectionTotalSupply,
             CollectionExternalInfos = new ExternalInfos
             {
                 Value = { externalInfo.Value }
@@ -58,21 +60,22 @@ public partial class SchrodingerMainContract : SchrodingerMainContractContainer.
             Deployer = Context.Sender,
             IssueChainId = Context.ChainId,
             Issuer = Context.Sender,
-            Owner = Context.Sender
+            Owner = Context.Sender,
+            TokenName = input.TokenName,
+            Decimals = input.Decimals
         });
         return new Empty();
     }
 
-    private void CreateInscriptionCollection(string tick, int decimals, long totalSupply, ExternalInfo externalInfo,
-        Address issuer)
+    private void CreateInscriptionCollection(string tick, ExternalInfo externalInfo, string tokenName, int decimals)
     {
         var createTokenInput = new CreateInput
         {
             Symbol = GetInscriptionCollectionSymbol(tick),
-            TokenName = GetInscriptionCollectionName(tick),
-            TotalSupply = totalSupply,
+            TokenName = tokenName,
+            TotalSupply = SchrodingerMainContractConstants.DefaultCollectionTotalSupply,
             Decimals = decimals,
-            Issuer = issuer ?? Context.Sender,
+            Issuer = Context.Sender,
             IsBurnable = true,
             IssueChainId = Context.ChainId,
             ExternalInfo = externalInfo,
@@ -100,12 +103,7 @@ public partial class SchrodingerMainContract : SchrodingerMainContractContainer.
             $"{tick}{SchrodingerMainContractConstants.Separator}{SchrodingerMainContractConstants.CollectionSymbolSuffix}";
     }
 
-    private string GetInscriptionCollectionName(string tick)
-    {
-        return $"{GetInscriptionCollectionSymbol(tick)}{SchrodingerMainContractConstants.AncestorNameSuffix}";
-    }
-
-    private ExternalInfo GenerateExternalInfo(string tick, string image, long totalSupply)
+    private ExternalInfo GenerateExternalInfo(string tick, string image)
     {
         var externalInfo = new ExternalInfo();
         var dic = new Dictionary<string, string>
@@ -118,8 +116,8 @@ public partial class SchrodingerMainContract : SchrodingerMainContractContainer.
             P = SchrodingerMainContractConstants.InscriptionType,
             Op = SchrodingerMainContractConstants.DeployOp,
             Tick = tick,
-            Max = totalSupply.ToString(),
-            Lim = totalSupply.ToString()
+            Max = SchrodingerMainContractConstants.DefaultCollectionTotalSupply.ToString(),
+            Lim = SchrodingerMainContractConstants.Lim
         };
         dic[SchrodingerMainContractConstants.InscriptionDeployKey] = info.ToString();
 
@@ -151,7 +149,7 @@ public partial class SchrodingerMainContract : SchrodingerMainContractContainer.
         Assert(input != null && input.Value > 0, "Invalid input.");
 
         State.ImageMaxSize.Value = input.Value;
-        
+
         return new Empty();
     }
 
@@ -159,7 +157,7 @@ public partial class SchrodingerMainContract : SchrodingerMainContractContainer.
     {
         return new Int64Value { Value = State.ImageMaxSize.Value };
     }
-    
+
     private bool IsAddressValid(Address input)
     {
         return input != null && !input.Value.IsNullOrEmpty();

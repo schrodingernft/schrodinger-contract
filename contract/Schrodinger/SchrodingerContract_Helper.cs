@@ -90,7 +90,7 @@ public partial class SchrodingerContract
         var createTokenInput = new CreateInput
         {
             Symbol = GetInscriptionSymbol(tick),
-            TokenName = GetInscriptionName(tick),
+            TokenName = tick,
             TotalSupply = totalSupply,
             Decimals = decimals,
             Issuer = issuer ?? Context.Sender,
@@ -119,11 +119,6 @@ public partial class SchrodingerContract
     private string GetInscriptionCollectionSymbol(string tick)
     {
         return $"{tick}{SchrodingerContractConstants.Separator}{SchrodingerContractConstants.CollectionSymbolSuffix}";
-    }
-
-    private string GetInscriptionName(string tick)
-    {
-        return $"{GetInscriptionSymbol(tick)}{SchrodingerContractConstants.AncestorNameSuffix}";
     }
 
     #endregion

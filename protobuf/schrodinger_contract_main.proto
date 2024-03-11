@@ -31,6 +31,8 @@ message DeployInput {
   string tick = 1;
   string image = 2;
   string seed_symbol = 3;
+  string token_name = 4;
+  int32 decimals = 5;
 }
 
 message ExternalInfos {
@@ -55,4 +57,6 @@ message Deployed {
   int32 issue_chain_id = 5;
   ExternalInfos collection_external_infos = 6;
   aelf.Address deployer = 7;
+  string token_name = 8;
+  int32 decimals = 9;
 }

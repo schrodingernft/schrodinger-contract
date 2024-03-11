@@ -8,6 +8,8 @@ public static class SchrodingerMainContractConstants
     public const char Separator = '-';
     public const string TokenNameSuffix = "GEN-";
     public const string AncestorNameSuffix = "GEN0";
+    public const int DefaultCollectionTotalSupply = 1;
+
 
     // external info
     public const string InscriptionDeployKey = "__inscription_deploy";
@@ -18,7 +20,7 @@ public static class SchrodingerMainContractConstants
     public const int InscriptionAmt = 1;
     public const string DeployOp = "deploy";
     public const string AdoptOp = "adopt";
-    public const string Lim = "-";
+    public const string Lim = "0";
     public const string Amt = "1";
 
     // config

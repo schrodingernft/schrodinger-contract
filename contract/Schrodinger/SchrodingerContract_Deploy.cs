@@ -48,7 +48,7 @@ public partial class SchrodingerContract
             Owner = Context.Self,
             IssueChainId = Context.ChainId,
             Deployer = Context.Sender,
-            TokenName = GetInscriptionName(tick),
+            TokenName = tick,
             ExternalInfos = new ExternalInfos
             {
                 Value = { externalInfo.Value }
