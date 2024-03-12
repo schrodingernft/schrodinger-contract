@@ -316,7 +316,7 @@ public partial class SchrodingerContract
         Assert(adoptInfo.Adopter == Context.Sender, "No permission.");
 
         Assert(!adoptInfo.IsConfirmed, "Adopt id already confirmed.");
-        Assert(RecoverAddressFromSignature(input) == State.Config.Value.Signatory);
+        Assert(RecoverAddressFromSignature(input) == State.Config.Value.Signatory, "Not authorized.");
 
         adoptInfo.IsConfirmed = true;
         State.SymbolAdoptIdMap[adoptInfo.Symbol] = adoptInfo.AdoptId;
@@ -328,8 +328,7 @@ public partial class SchrodingerContract
             adoptInfo.Attributes);
 
         CreateInscriptionAndIssue(adoptInfo.Symbol, adoptInfo.TokenName, inscriptionInfo.Decimals,
-            adoptInfo.OutputAmount, externalInfo,
-            Context.Self, Context.Self);
+            adoptInfo.OutputAmount, externalInfo, Context.Self, Context.Self);
 
         Context.Fire(new Confirmed
         {
