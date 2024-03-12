@@ -23,7 +23,7 @@ public partial class SchrodingerContractTests
         return logEvent;
     }
 
-    private ByteString GenerateSignature(byte[] privateKey, Hash adoptId, string image)
+    private string GenerateSignature(byte[] privateKey, Hash adoptId, string image)
     {
         var data = new ConfirmInput
         {
@@ -32,7 +32,7 @@ public partial class SchrodingerContractTests
         };
         var dataHash = HashHelper.ComputeFrom(data);
         var signature = CryptoHelper.SignWithPrivateKey(privateKey, dataHash.ToByteArray());
-        return ByteStringHelper.FromHexString(signature.ToHex());
+        return signature.ToHex();
     }
 
     private async Task<long> GetTokenBalance(string symbol, Address sender)

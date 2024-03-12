@@ -182,7 +182,7 @@ message Attribute {
 message ConfirmInput {
   aelf.Hash adopt_id = 1;
   string image = 2;           // base64
-  bytes signature = 10000;    // signed by server
+  string signature = 10000;    // signed by server
 }
 
 message ResetInput {
