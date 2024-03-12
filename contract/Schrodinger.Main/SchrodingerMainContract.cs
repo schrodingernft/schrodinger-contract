@@ -39,6 +39,7 @@ public partial class SchrodingerMainContract : SchrodingerMainContractContainer.
         Assert(input.Decimals >= 0, "Invalid input decimals.");
         Assert(input.IssueChainId > 0, "Invalid input issue chain id.");
 
+
         CheckImageSize(input.Image);
 
         State.TokenContract.TransferFrom.Send(new TransferFromInput
@@ -79,7 +80,7 @@ public partial class SchrodingerMainContract : SchrodingerMainContractContainer.
             Decimals = decimals,
             Issuer = Context.Sender,
             IsBurnable = true,
-            IssueChainId = issueChainId,
+            IssueChainId = Context.ChainId,
             ExternalInfo = externalInfo,
             Owner = Context.Self
         };

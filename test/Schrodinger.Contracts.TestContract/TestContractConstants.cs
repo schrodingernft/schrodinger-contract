@@ -7,5 +7,7 @@ public static class TestContractConstants
     public const long DefaultMaxAttributeWeight = 1000;
     public const int DefaultMaxAttributePerGen = 1;
     public const int DefaultMaxAttributeTraitTypeCount = 50;
+    public const int DefaultFixedTraitTypeMaxCount = 5;
+
     
 }

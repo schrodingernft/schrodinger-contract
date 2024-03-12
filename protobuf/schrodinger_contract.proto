@@ -22,7 +22,8 @@ service SchrodingerContract {
   rpc Reset (ResetInput) returns (google.protobuf.Empty) {}
 
   // token
-  rpc SetAttributes (SetAttributesInput) returns (google.protobuf.Empty) {}
+  rpc SetFixedAttributes (SetAttributesInput) returns (google.protobuf.Empty) {}
+  rpc SetRandomAttributes (SetAttributesInput) returns (google.protobuf.Empty) {}
   rpc SetAttributesPerGen (SetAttributesPerGenInput) returns (google.protobuf.Empty) {}
   rpc SetMaxGeneration (SetMaxGenerationInput) returns (google.protobuf.Empty) {}
   rpc SetRates (SetRatesInput) returns (google.protobuf.Empty) {}
@@ -193,7 +194,7 @@ message ResetInput {
 
 message SetAttributesInput {
   string tick = 1;
-  AttributeLists attributes = 2;
+  AttributeSet attribute_set = 2;
 }
 
 message SetAttributesPerGenInput {
@@ -280,19 +281,10 @@ message Config {
   int64 attribute_max_length = 6;
   aelf.Address signatory = 7;
   int32 max_attributes_per_gen = 8;
+  int64 fixed_trait_type_max_count = 9;
 }
 
 // log event
-message CollectionDeployed {
-  option (aelf.is_event) = true;
-  string symbol = 1;
-  int64 total_supply = 2;
-  aelf.Address issuer = 3;
-  aelf.Address owner = 4;
-  int32 issue_chain_id = 5;
-  ExternalInfos collection_external_infos = 6;
-  aelf.Address deployer = 7;
-}
 
 message Deployed {
   option (aelf.is_event) = true;

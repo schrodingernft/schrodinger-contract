@@ -5,34 +5,34 @@ namespace Schrodinger;
 
 public partial class SchrodingerContract
 {
-    public override Empty SetAttributes(SetAttributesInput input)
-    {
-        Assert(IsStringValid(input.Tick), "Invalid input.");
-        var inscription = CheckInscriptionExistAndPermission(input.Tick);
-        var attributeList = SetAttributeList(input.Tick, inscription.MaxGen, input.Attributes,
-            inscription.AttributesPerGen, out var toRemoveFixed, out var toRemoveRandom);
-        Context.Fire(new AttributesSet
-        {
-            Tick = input.Tick,
-            RemovedFixedAttributes = new AttributeSets
-            {
-                Data = { toRemoveFixed }
-            },
-            RemovedRandomAttributes = new AttributeSets
-            {
-                Data = { toRemoveRandom }
-            },
-            AddedFixedAttributes = new AttributeSets
-            {
-                Data = { attributeList.FixedAttributes }
-            },
-            AddedRandomAttributes = new AttributeSets
-            {
-                Data = { attributeList.RandomAttributes }
-            }
-        });
-        return new Empty();
-    }
+    // public override Empty SetAttributes(SetAttributesInput input)
+    // {
+    //     Assert(IsStringValid(input.Tick), "Invalid input.");
+    //     var inscription = CheckInscriptionExistAndPermission(input.Tick);
+    //     var attributeList = SetAttributeList(input.Tick, inscription.MaxGen, input.Attributes,
+    //         inscription.AttributesPerGen, out var toRemoveFixed, out var toRemoveRandom);
+    //     Context.Fire(new AttributesSet
+    //     {
+    //         Tick = input.Tick,
+    //         RemovedFixedAttributes = new AttributeSets
+    //         {
+    //             Data = { toRemoveFixed }
+    //         },
+    //         RemovedRandomAttributes = new AttributeSets
+    //         {
+    //             Data = { toRemoveRandom }
+    //         },
+    //         AddedFixedAttributes = new AttributeSets
+    //         {
+    //             Data = { attributeList.FixedAttributes }
+    //         },
+    //         AddedRandomAttributes = new AttributeSets
+    //         {
+    //             Data = { attributeList.RandomAttributes }
+    //         }
+    //     });
+    //     return new Empty();
+    // }
 
     public override Empty SetImageCount(SetImageCountInput input)
     {

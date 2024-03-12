@@ -7,6 +7,7 @@ using AElf.CSharp.Core;
 using AElf.Sdk.CSharp;
 using AElf.Types;
 using Google.Protobuf;
+using Google.Protobuf.Collections;
 
 namespace Schrodinger;
 
@@ -129,26 +130,20 @@ public partial class SchrodingerContract
     /// <param name="maxGen"></param>
     /// <param name="sourceAttributeList">to add attribute list, contains fixed and random</param>
     /// <param name="attributesPerGen"></param>
-    /// <param name="toRemoveFixed">out to removed fixed attributeSets</param>
-    /// <param name="toRemoveRandom">out to removed random attributeSets</param>
     /// <returns></returns>
     private AttributeLists SetAttributeList(string tick, long maxGen, AttributeLists sourceAttributeList,
-        int attributesPerGen, out List<AttributeSet> toRemoveFixed, out List<AttributeSet> toRemoveRandom)
+        int attributesPerGen)
     {
-        CheckAttributeList(sourceAttributeList);
-        // distinct by trait type name
-        var fixedAttributes = sourceAttributeList?.FixedAttributes.ToList();
-        var randomAttributes = sourceAttributeList?.RandomAttributes.ToList();
-        CheckForDuplicateTraitTypes(fixedAttributes, randomAttributes);
-        var fixedAttributeSet = SetFixedAttributeSets(tick, fixedAttributes, out toRemoveFixed);
-        var randomAttributeSet =
-            SetRandomAttributeSet(tick, randomAttributes, maxGen, attributesPerGen, out toRemoveRandom);
+        var fixedAttributes = sourceAttributeList?.FixedAttributes;
+        var randomAttributes = sourceAttributeList?.RandomAttributes;
+        CheckAttributeList(fixedAttributes, randomAttributes); 
+        SetFixedAttributeSets(tick, fixedAttributes);
+        SetRandomAttributeSet(tick, randomAttributes, maxGen, attributesPerGen);
         var result = new AttributeLists
         {
-            FixedAttributes = { fixedAttributeSet },
-            RandomAttributes = { randomAttributeSet }
+            FixedAttributes = { fixedAttributes },
+            RandomAttributes = { randomAttributes }
         };
-        CheckAttributeList(result);
         return result;
     }
 
@@ -159,15 +154,11 @@ public partial class SchrodingerContract
     /// <param name="sourceAttributeSets"> to set attribute sets</param>
     /// <param name="toRemove">out to removed attribute sets.</param>
     /// <returns></returns>
-    private List<AttributeSet> SetFixedAttributeSets(string tick, List<AttributeSet> sourceAttributeSets,
-        out List<AttributeSet> toRemove)
+    private void SetFixedAttributeSets(string tick, RepeatedField<AttributeSet> sourceAttributeSets)
     {
-        toRemove = new List<AttributeSet>();
         var traitTypeMap = State.FixedTraitTypeMap[tick] ?? new AttributeInfos();
-        traitTypeMap = SetAttributeSet(tick, traitTypeMap, sourceAttributeSets, out var updateFixedAttributeSets,
-            out toRemove);
+        SetAttributeSet(tick, traitTypeMap, sourceAttributeSets);
         State.FixedTraitTypeMap[tick] = traitTypeMap;
-        return updateFixedAttributeSets;
     }
 
     /// <summary>
@@ -180,16 +171,14 @@ public partial class SchrodingerContract
     /// <param name="attributesPerGen"></param>
     /// <param name="toRemove">out to removed attribute sets.</param>
     /// <returns></returns>
-    private List<AttributeSet> SetRandomAttributeSet(string tick, List<AttributeSet> sourceAttributeSets, long maxGen,
-        int attributesPerGen, out List<AttributeSet> toRemove)
+    private void SetRandomAttributeSet(string tick, RepeatedField<AttributeSet> sourceAttributeSets,
+        long maxGen,
+        int attributesPerGen)
     {
-        toRemove = new List<AttributeSet>();
         var traitTypeMap = State.RandomTraitTypeMap[tick] ?? new AttributeInfos();
-        traitTypeMap = SetAttributeSet(tick, traitTypeMap, sourceAttributeSets, out var updateRandomAttributeSets,
-            out toRemove);
+        SetAttributeSet(tick, traitTypeMap, sourceAttributeSets, true);
         State.RandomTraitTypeMap[tick] = traitTypeMap;
         CheckRandomAttributeList(traitTypeMap.Data, maxGen, attributesPerGen);
-        return updateRandomAttributeSets;
     }
 
     /// <param name="tick"></param>
@@ -199,12 +188,11 @@ public partial class SchrodingerContract
     /// <param name="updateAttributeSet">attributeSet after update</param>
     /// <returns></returns>
     private AttributeInfos UpdateTraitTypeAndSetValue(string tick, AttributeInfos traitTypeMap,
-        AttributeSet sourceAttributeSet, out AttributeSet toRemove, out AttributeSet updateAttributeSet)
+        AttributeSet sourceAttributeSet, out AttributeSet updateAttributeSet)
     {
         updateAttributeSet = sourceAttributeSet.Clone();
-        toRemove = null;
         var traitType = sourceAttributeSet.TraitType;
-        if (!CheckTraitTypeExist(traitType.Name, traitTypeMap))
+        if (!CheckTraitTypeExist(tick, traitType.Name))
         {
             // trait type not exist
             traitTypeMap.Data.Add(traitType);
@@ -213,7 +201,37 @@ public partial class SchrodingerContract
         else
         {
             // trait type exist
-            if (CheckAndRemoveAttributeSet(tick, traitTypeMap, sourceAttributeSet, out toRemove, out traitTypeMap))
+            if (CheckAndRemoveAttributeSet(tick, traitTypeMap, sourceAttributeSet, out traitTypeMap))
+            {
+                // trait value != null and reset trait values
+                updateAttributeSet.Values = SetTraitValues(tick, traitType.Name, sourceAttributeSet.Values);
+            }
+        }
+
+        return traitTypeMap;
+    }
+
+    /// <param name="tick"></param>
+    /// <param name="traitTypeMap">trait type list from state</param>
+    /// <param name="sourceAttributeSet">input attributeSet.</param>
+    /// <param name="toRemove"> The trait type exists, the list of source trait values is empty, remove the trait type and trait values.</param>
+    /// <param name="updateAttributeSet">attributeSet after update</param>
+    /// <returns></returns>
+    private AttributeInfos SetTraitValue(string tick, AttributeInfos traitTypeMap,
+        AttributeSet sourceAttributeSet, out AttributeSet updateAttributeSet)
+    {
+        updateAttributeSet = sourceAttributeSet.Clone();
+        var traitType = sourceAttributeSet.TraitType;
+        if (!CheckTraitTypeExist(tick, traitType.Name))
+        {
+            // trait type not exist
+            traitTypeMap.Data.Add(traitType);
+            updateAttributeSet.Values = SetTraitValues(tick, traitType.Name, sourceAttributeSet.Values);
+        }
+        else
+        {
+            // trait type exist
+            if (CheckAndRemoveAttributeSet(tick, traitTypeMap, sourceAttributeSet, out traitTypeMap))
             {
                 // trait value != null and reset trait values
                 updateAttributeSet.Values = SetTraitValues(tick, traitType.Name, sourceAttributeSet.Values);
@@ -232,27 +250,22 @@ public partial class SchrodingerContract
     /// <param name="sourceAttributeSets">input attributeSets</param>
     /// <param name="updateAttributeSets">out update attribute set, remove duplication from trait value list</param>
     /// <param name="toRemove">out remove list</param>
+    /// <param name="isRandom">if is random trait type</param>
     /// <returns></returns>
-    private AttributeInfos SetAttributeSet(string tick, AttributeInfos traitTypeMap,
-        List<AttributeSet> sourceAttributeSets, out List<AttributeSet> updateAttributeSets,
-        out List<AttributeSet> toRemove)
+    private void SetAttributeSet(string tick, AttributeInfos traitTypeMap,
+        RepeatedField<AttributeSet> sourceAttributeSets, bool isRandom = false)
     {
-        updateAttributeSets = new List<AttributeSet>();
-        toRemove = new List<AttributeSet>();
         foreach (var sourceAttributeSet in sourceAttributeSets)
         {
             var traitType = sourceAttributeSet.TraitType;
-            CheckAttributeInfo(traitType);
-            traitTypeMap = UpdateTraitTypeAndSetValue(tick, traitTypeMap, sourceAttributeSet, out var toRemoveItem,
-                out var updateAttributeSet);
-            updateAttributeSets.Add(updateAttributeSet);
-            if (toRemoveItem != null)
+            if (isRandom)
             {
-                toRemove.Add(toRemoveItem);
+                CheckTraitTypeRepeated(tick, traitType.Name);
             }
+            CheckAttributeInfo(traitType);
+            SetTraitValues(tick, traitType.Name, sourceAttributeSet.Values);
+            traitTypeMap.Data.Add(traitType);
         }
-
-        return traitTypeMap;
     }
 
     /// <param name="tick"></param>
@@ -262,21 +275,21 @@ public partial class SchrodingerContract
     private AttributeInfos SetTraitValues(string tick, string traitTypeName, AttributeInfos sourceTraitValues)
     {
         Assert(sourceTraitValues != null && sourceTraitValues.Data.Count > 0, "Invalid attribute trait values.");
-        var traitValues = sourceTraitValues?.Data.DistinctBy(f => f.Name).ToList();
-        CheckTraitValueCount(traitValues);
+        var uniqueSet = new HashSet<string>();
         var traitValueMap = State.TraitValueMap[tick][traitTypeName] ?? new AttributeInfos();
-        traitValueMap.Data.Clear();
-        foreach (var sourceTraitValue in traitValues)
+        var data = traitValueMap.Data;
+        var traitValuesCount = 0;
+        data.Clear();
+        foreach (var sourceTraitValue in sourceTraitValues.Data)
         {
+            if (!uniqueSet.Add(sourceTraitValue.Name)) continue;
             CheckAttributeInfo(sourceTraitValue);
-            traitValueMap.Data.Add(sourceTraitValue);
+            data.Add(sourceTraitValue);
+            traitValuesCount++;
         }
-
+        CheckTraitValueCount(traitValuesCount);
         State.TraitValueMap[tick][traitTypeName] = traitValueMap;
-        return new AttributeInfos
-        {
-            Data = { traitValues }
-        };
+        return traitValueMap;
     }
 
     private List<AttributeSet> GetAttributes(string tick, AttributeInfos attributeInfos)
@@ -292,58 +305,45 @@ public partial class SchrodingerContract
 
     #region Attribute param check
 
-    private void CheckAttributeListDuplicate(List<AttributeSet> attributeSets)
+    private void CheckAttributeListDuplicate(RepeatedField<AttributeSet> attributeSets)
     {
-        var hasDuplicates = attributeSets.GroupBy(x => x.TraitType.Name).Any(g => g.Count() > 1);
-        Assert(!hasDuplicates, "Duplicate attribute type.");
+        var unique = new HashSet<string>();
+        foreach (var set in attributeSets)
+        {
+            Assert(unique.Add(set.TraitType.Name), "Duplicate attribute type.");
+        }
     }
 
-    private void CheckAttributeList(AttributeLists attributeList)
+    private void CheckAttributeList(RepeatedField<AttributeSet> fixedAttributeSets,
+        RepeatedField<AttributeSet> randomAttributeSets)
     {
-        Assert(
-            attributeList != null &&
-            attributeList.FixedAttributes != null && attributeList.FixedAttributes.Count > 0 &&
-            attributeList.RandomAttributes != null && attributeList.RandomAttributes.Count > 0,
-            "Invalid input attribute list.");
-        CheckAttributeTraitTypeListCount(attributeList.FixedAttributes, attributeList.RandomAttributes);
+        Assert(fixedAttributeSets != null && randomAttributeSets != null, "Invalid input attribute list.");
+        var fixedCount = fixedAttributeSets.Count;
+        var randomCount = randomAttributeSets.Count;
+        var traitTypeMaxCount = State.Config.Value?.TraitTypeMaxCount ??
+                                SchrodingerContractConstants.DefaultMaxAttributeTraitTypeCount;
+        var fixedTraitTypeMaxCount = State.Config.Value?.FixedTraitTypeMaxCount ??
+                                     SchrodingerContractConstants.DefaultFixedTraitTypeMaxCount;
+        Assert(fixedCount > 0 && fixedCount <= fixedTraitTypeMaxCount, "Invalid input fixed attribute list count.");
+        Assert(randomCount > 0, "Invalid input random attribute list count.");
+        Assert(fixedCount.Add(randomCount) <= traitTypeMaxCount, "Fixed and random list exceed.");
+        CheckAttributeListDuplicate(fixedAttributeSets);
+        CheckAttributeListDuplicate(randomAttributeSets);
     }
 
-    private void CheckRandomAttributeList(IEnumerable<AttributeInfo> randomAttributes, long maxGen,
+    private void CheckRandomAttributeList(RepeatedField<AttributeInfo> randomAttributes, long maxGen,
         int attributesPerGen)
     {
-        Assert(randomAttributes?.Count() >= ((long)attributesPerGen).Mul(maxGen),
+        Assert(randomAttributes?.Count >= ((long)attributesPerGen).Mul(maxGen),
             "Invalid random attribute list count.");
     }
 
-    private void CheckAttributeTraitTypeListCount(IEnumerable<AttributeSet> fixAttributes,
-        IEnumerable<AttributeSet> randomAttributes)
-    {
-        var traitTypeMaxCount =
-            State.Config.Value?.TraitTypeMaxCount ?? SchrodingerContractConstants.DefaultMaxAttributeTraitTypeCount;
-        Assert(fixAttributes.Count().Add(randomAttributes.Count()) <= traitTypeMaxCount);
-    }
-
-    /// <summary>
-    /// Attribute list cannot be duplicated.
-    /// Fixed and random trait type cannot be repeated.
-    /// </summary>
-    /// <param name="fixedAttributes"></param>
-    /// <param name="randomAttributes"></param>
-    private void CheckForDuplicateTraitTypes(List<AttributeSet> fixedAttributes, List<AttributeSet> randomAttributes)
-    {
-        CheckAttributeListDuplicate(fixedAttributes);
-        CheckAttributeListDuplicate(randomAttributes);
-        var intersection = fixedAttributes.Select(f => f.TraitType.Name)
-            .Intersect(randomAttributes.Select(f => f.TraitType.Name));
-        Assert(!intersection.Any(), "Fixed and random trait type cannot be repeated.");
-    }
-
-    private void CheckTraitValueCount(List<AttributeInfo> traitValues)
+    private void CheckTraitValueCount(long traitValueCounts)
     {
         var maxTraitValueCount = State.Config?.Value?.TraitValueMaxCount ??
                                  SchrodingerContractConstants.DefaultTraitValueMaxCount;
-        Assert(traitValues?.Count > 0 && traitValues?.Count <= maxTraitValueCount,
-            "Invalid attribute trait values count.");
+        Assert(traitValueCounts > 0 && traitValueCounts <= maxTraitValueCount,
+            $"Invalid attribute trait values count.Max count is {maxTraitValueCount}");
     }
 
     /// <summary>
@@ -356,17 +356,55 @@ public partial class SchrodingerContract
     /// <param name="updateTraitTypeMap">trait type list after changed</param>
     /// <returns></returns>
     private bool CheckAndRemoveAttributeSet(string tick, AttributeInfos traitTypeMap, AttributeSet attribute,
-        out AttributeSet toRemove, out AttributeInfos updateTraitTypeMap)
+        out AttributeInfos updateTraitTypeMap)
     {
         updateTraitTypeMap = traitTypeMap;
-        toRemove = null;
         if (attribute.Values != null && attribute.Values.Data.Count != 0) return true;
         // remove trait type and trait values.
         Assert(traitTypeMap.Data.Remove(attribute.TraitType), "Remove failed.");
         State.TraitValueMap[tick].Remove(attribute.TraitType.Name);
-        toRemove = attribute;
         updateTraitTypeMap = traitTypeMap;
         return false;
+    }
+
+    private void CheckAttributePerGen(int attributesPerGen, int maxGen)
+    {
+        var config = State.Config?.Value;
+        var maxAttributePerGen = config?.MaxAttributesPerGen ?? SchrodingerContractConstants.DefaultMaxAttributePerGen;
+        Assert(attributesPerGen > 0 && attributesPerGen <= maxGen,
+            "Invalid attributes per gen.");
+        Assert(attributesPerGen <= maxAttributePerGen, "Attributes per generation need smaller than max.");
+    }
+
+    private void CheckAttributeInfo(AttributeInfo attributeInfo)
+    {
+        var attributeMaxLength =
+            State.Config?.Value?.AttributeMaxLength ?? SchrodingerContractConstants.DefaultAttributeMaxLength;
+        Assert(IsStringValid(attributeInfo.Name), "Invalid trait type name.");
+        Assert(attributeInfo.Name.Length <= attributeMaxLength, "Invalid trait type name length.");
+        CheckAttributeWeight(attributeInfo.Weight);
+    }
+
+
+    private void CheckAttributeWeight(long weight)
+    {
+        Assert(weight >= 0 && weight < SchrodingerContractConstants.DefaultMaxAttributeWeight, "Invalid weight.");
+    }
+
+    // if attribute exists return true.
+    private bool CheckTraitTypeExist(string tick, string traitTypeName)
+    {
+        var value = State.TraitValueMap[tick][traitTypeName];
+        return value != null;
+    }
+
+    private void CheckTraitTypeRepeated(string tick, string traitTypeName)
+    {
+        var fixedTraitTypeMap = State.FixedTraitTypeMap[tick].Data;
+        foreach (var traitType in fixedTraitTypeMap)
+        {
+            Assert(traitType.Name != traitTypeName, "Trait type repeated.");
+        }
     }
 
     #endregion
@@ -436,37 +474,6 @@ public partial class SchrodingerContract
                crossGenerationConfig.CrossGenerationProbability <= SchrodingerContractConstants.Denominator,
             "Invalid cross generation probability.");
         Assert(crossGenerationConfig.Weights.Count == crossGenerationConfig.Gen, "Invalid cross generation weights.");
-    }
-
-    private void CheckAttributePerGen(int attributesPerGen, int maxGen)
-    {
-        var config = State.Config?.Value;
-        var maxAttributePerGen = config?.MaxAttributesPerGen ?? SchrodingerContractConstants.DefaultMaxAttributePerGen;
-        Assert(attributesPerGen > 0 && attributesPerGen <= maxGen,
-            "Invalid attributes per gen.");
-        Assert(attributesPerGen <= maxAttributePerGen, "Attributes per generation need smaller than max.");
-    }
-
-    private void CheckAttributeInfo(AttributeInfo attributeInfo)
-    {
-        var attributeMaxLength =
-            State.Config?.Value?.AttributeMaxLength ?? SchrodingerContractConstants.DefaultAttributeMaxLength;
-        Assert(IsStringValid(attributeInfo.Name), "Invalid trait type name.");
-        Assert(attributeInfo.Name.Length <= attributeMaxLength, "Invalid trait type name length.");
-        CheckAttributeWeight(attributeInfo.Weight);
-    }
-
-
-    private void CheckAttributeWeight(long weight)
-    {
-        Assert(weight > 0 && weight <= SchrodingerContractConstants.DefaultMaxAttributeWeight, "Invalid weight.");
-    }
-
-    // if attribute exists return true.
-    private bool CheckTraitTypeExist(string traitTypeName, AttributeInfos traitTypeMap)
-    {
-        var existingTraitType = traitTypeMap.Data.FirstOrDefault(f => f.Name == traitTypeName);
-        return existingTraitType != null;
     }
 
     #endregion
