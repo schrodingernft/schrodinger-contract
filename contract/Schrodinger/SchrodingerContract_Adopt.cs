@@ -357,6 +357,7 @@ public partial class SchrodingerContract
     {
         var hash = ComputeConfirmInputHash(input);
         var publicKey = Context.RecoverPublicKey(input.Signature.ToByteArray(), hash.ToByteArray());
+        Assert(publicKey != null, "Invalid signature.");
 
         return Address.FromPublicKey(publicKey);
     }
