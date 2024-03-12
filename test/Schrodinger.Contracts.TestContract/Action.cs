@@ -1,6 +1,8 @@
 using System.Collections.Generic;
 using System.Linq;
 using AElf.CSharp.Core;
+using Google.Protobuf;
+using Google.Protobuf.Collections;
 using Google.Protobuf.WellKnownTypes;
 using Schrodinger.Contracts.Contract;
 
@@ -27,10 +29,10 @@ public class TestContract : TestContractContainer.TestContractBase
     private AttributeLists SetAttributeList(string tick, long maxGen, AttributeLists sourceAttributeList,
         int attributesPerGen, out List<AttributeSet> toRemoveFixed, out List<AttributeSet> toRemoveRandom)
     {
-        CheckAttributeList(sourceAttributeList);
+        var fixedAttributes = sourceAttributeList?.FixedAttributes;
+        var randomAttributes = sourceAttributeList?.RandomAttributes;
+        CheckAttributeList(fixedAttributes, randomAttributes);
         // distinct by trait type name
-        var fixedAttributes = sourceAttributeList?.FixedAttributes.ToList();
-        var randomAttributes = sourceAttributeList?.RandomAttributes.ToList();
         CheckAttributeListDuplicate(fixedAttributes);
         CheckAttributeListDuplicate(randomAttributes);
         var fixedAttributeSet = SetFixedAttributeSets(tick, fixedAttributes, out toRemoveFixed);
@@ -41,7 +43,6 @@ public class TestContract : TestContractContainer.TestContractBase
             FixedAttributes = { fixedAttributeSet },
             RandomAttributes = { randomAttributeSet }
         };
-        CheckAttributeList(result);
         return result;
     }
 
@@ -52,7 +53,7 @@ public class TestContract : TestContractContainer.TestContractBase
     /// <param name="sourceAttributeSets"> to set attribute sets</param>
     /// <param name="toRemove">out to removed attribute sets.</param>
     /// <returns></returns>
-    private List<AttributeSet> SetFixedAttributeSets(string tick, List<AttributeSet> sourceAttributeSets,
+    private List<AttributeSet> SetFixedAttributeSets(string tick, RepeatedField<AttributeSet> sourceAttributeSets,
         out List<AttributeSet> toRemove)
     {
         toRemove = new List<AttributeSet>();
@@ -73,7 +74,7 @@ public class TestContract : TestContractContainer.TestContractBase
     /// <param name="attributesPerGen"></param>
     /// <param name="toRemove">out to removed attribute sets.</param>
     /// <returns></returns>
-    private List<AttributeSet> SetRandomAttributeSet(string tick, List<AttributeSet> sourceAttributeSets, long maxGen,
+    private List<AttributeSet> SetRandomAttributeSet(string tick, RepeatedField<AttributeSet> sourceAttributeSets, long maxGen,
         int attributesPerGen, out List<AttributeSet> toRemove)
     {
         toRemove = new List<AttributeSet>();
@@ -81,7 +82,7 @@ public class TestContract : TestContractContainer.TestContractBase
         traitTypeMap = SetAttributeSet(tick, traitTypeMap, sourceAttributeSets, out var updateRandomAttributeSets,
             out toRemove, true);
         State.RandomTraitTypeMap[tick] = traitTypeMap;
-        CheckRandomAttributeList(traitTypeMap.Data.ToList(), maxGen, attributesPerGen);
+        CheckRandomAttributeList(traitTypeMap.Data, maxGen, attributesPerGen);
         return updateRandomAttributeSets;
     }
 
@@ -128,7 +129,7 @@ public class TestContract : TestContractContainer.TestContractBase
     /// <param name="isRandom">if is random trait type</param>
     /// <returns></returns>
     private AttributeInfos SetAttributeSet(string tick, AttributeInfos traitTypeMap,
-        List<AttributeSet> sourceAttributeSets, out List<AttributeSet> updateAttributeSets,
+        RepeatedField<AttributeSet> sourceAttributeSets, out List<AttributeSet> updateAttributeSets,
         out List<AttributeSet> toRemove, bool isRandom = false)
     {
         updateAttributeSets = new List<AttributeSet>();
@@ -163,58 +164,48 @@ public class TestContract : TestContractContainer.TestContractBase
         Assert(sourceTraitValues != null && sourceTraitValues.Data.Count > 0, "Invalid attribute trait values.");
         var uniqueSet = new HashSet<string>();
         var traitValueMap = State.TraitValueMap[tick][traitTypeName] ?? new AttributeInfos();
-        var data = traitValueMap.Data.ToList();
+        var data = traitValueMap.Data;
         data.Clear();
-        foreach (var sourceTraitValue in sourceTraitValues.Data.ToList())
+        foreach (var sourceTraitValue in sourceTraitValues.Data)
         {
             if (!uniqueSet.Add(sourceTraitValue.Name)) continue;
             CheckAttributeInfo(sourceTraitValue);
             data.Add(sourceTraitValue);
         }
+
         CheckTraitValueCount(data);
         State.TraitValueMap[tick][traitTypeName] = traitValueMap;
         return traitValueMap;
     }
-    
 
     #endregion
 
     #region Attribute param check
 
-    private void CheckAttributeListDuplicate(List<AttributeSet> attributeSets)
+    private void CheckAttributeListDuplicate(RepeatedField<AttributeSet> attributeSets)
     {
         var unique = new HashSet<string>();
         foreach (var set in attributeSets)
         {
             Assert(unique.Add(set.TraitType.Name), "Duplicate attribute type.");
         }
-        // var hasDuplicates = attributeSets.GroupBy(x => x.TraitType.Name).Any(g => g.ToList().Count > 1);
-        // Assert(!hasDuplicates, "Duplicate attribute type.");
     }
 
-    private void CheckAttributeList(AttributeLists attributeList)
+    private void CheckAttributeList(RepeatedField<AttributeSet> fixedAttributeSets,
+        RepeatedField<AttributeSet> randomAttributeSets)
     {
-        Assert(
-            attributeList != null &&
-            attributeList.FixedAttributes != null && attributeList.FixedAttributes.Count > 0 &&
-            attributeList.RandomAttributes != null && attributeList.RandomAttributes.Count > 0,
-            "Invalid input attribute list.");
-        CheckAttributeTraitTypeListCount(attributeList.FixedAttributes.ToList(),
-            attributeList.RandomAttributes.ToList());
+        Assert(fixedAttributeSets != null && randomAttributeSets != null, "Invalid input attribute list.");
+        var fixedCount = fixedAttributeSets.Count;
+        var randomCount = randomAttributeSets.Count;
+        var traitTypeMaxCount = TestContractConstants.DefaultMaxAttributeTraitTypeCount;
+        Assert(fixedCount > 0 && randomCount > 0 && fixedCount.Add(randomCount) <= traitTypeMaxCount, "Invalid input attribute list count.");
     }
 
-    private void CheckRandomAttributeList(List<AttributeInfo> randomAttributes, long maxGen,
+    private void CheckRandomAttributeList(RepeatedField<AttributeInfo> randomAttributes, long maxGen,
         int attributesPerGen)
     {
         Assert(randomAttributes?.Count >= ((long)attributesPerGen).Mul(maxGen),
             "Invalid random attribute list count.");
-    }
-
-    private void CheckAttributeTraitTypeListCount(List<AttributeSet> fixAttributes,
-        List<AttributeSet> randomAttributes)
-    {
-        var traitTypeMaxCount = TestContractConstants.DefaultMaxAttributeTraitTypeCount;
-        Assert(fixAttributes.Count.Add(randomAttributes.Count) <= traitTypeMaxCount);
     }
 
     /// <summary>
@@ -223,16 +214,17 @@ public class TestContract : TestContractContainer.TestContractBase
     /// </summary>
     /// <param name="fixedAttributes"></param>
     /// <param name="randomAttributes"></param>
-    private void CheckForDuplicateTraitTypes(List<AttributeSet> fixedAttributes, List<AttributeSet> randomAttributes)
-    {
-        CheckAttributeListDuplicate(fixedAttributes);
-        CheckAttributeListDuplicate(randomAttributes);
-    }
+    // private void CheckForDuplicateTraitTypes(List<AttributeSet> fixedAttributes, List<AttributeSet> randomAttributes)
+    // {
+    //     CheckAttributeListDuplicate(fixedAttributes);
+    //     CheckAttributeListDuplicate(randomAttributes);
+    // }
 
-    private void CheckTraitValueCount(List<AttributeInfo> traitValues)
+    private void CheckTraitValueCount(RepeatedField<AttributeInfo> traitValues)
     {
         var maxTraitValueCount = TestContractConstants.DefaultTraitValueMaxCount;
-        Assert(traitValues?.Count > 0 && traitValues?.Count <= maxTraitValueCount,
+        var count = traitValues.Count;
+        Assert(count > 0 && count <= maxTraitValueCount,
             "Invalid attribute trait values count.");
     }
 
@@ -258,7 +250,7 @@ public class TestContract : TestContractContainer.TestContractBase
         updateTraitTypeMap = traitTypeMap;
         return false;
     }
-    
+
     private void CheckAttributePerGen(int attributesPerGen, int maxGen)
     {
         var maxAttributePerGen = TestContractConstants.DefaultMaxAttributePerGen;
@@ -274,7 +266,7 @@ public class TestContract : TestContractContainer.TestContractBase
         Assert(attributeInfo.Name.Length <= attributeMaxLength, "Invalid trait type name length.");
         CheckAttributeWeight(attributeInfo.Weight);
     }
-    
+
     private bool IsStringValid(string input)
     {
         return !string.IsNullOrWhiteSpace(input);
