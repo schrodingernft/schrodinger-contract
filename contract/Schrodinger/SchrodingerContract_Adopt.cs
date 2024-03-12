@@ -22,7 +22,7 @@ public partial class SchrodingerContract
         var inscriptionInfo = State.InscriptionInfoMap[tick];
         Assert(inscriptionInfo != null, "Tick not deployed.");
 
-        var adoptId = GenerateAdoptId(input);
+        var adoptId = GenerateAdoptId(tick);
         Assert(State.AdoptInfoMap[adoptId] == null, "Adopt id already exists.");
 
         GetParentInfo(inscriptionInfo, input.Parent, out var parentGen, out var parentAttributes);
@@ -90,9 +90,10 @@ public partial class SchrodingerContract
         Assert(IsStringValid(input.Domain), "Invalid input domain.");
     }
 
-    private Hash GenerateAdoptId(AdoptInput input)
+    private Hash GenerateAdoptId(string tick)
     {
-        return HashHelper.ConcatAndCompute(HashHelper.ComputeFrom(input), Context.TransactionId);
+        return HashHelper.ConcatAndCompute(HashHelper.ComputeFrom(tick),
+            HashHelper.ComputeFrom(State.SymbolCountMap[tick]));
     }
 
     private void GetParentInfo(InscriptionInfo inscriptionInfo, string parentSymbol, out int parentGen,
@@ -196,7 +197,8 @@ public partial class SchrodingerContract
         var gens = Enumerable.Range(1, crossGenerationConfig.Gen).ToList();
 
         var result =
-            parentGen.Add(GetRandomItems(randomHash, nameof(GenerateGen), gens, crossGenerationConfig.Weights.Select(ReverseWeight).ToList(),
+            parentGen.Add(GetRandomItems(randomHash, nameof(GenerateGen), gens,
+                crossGenerationConfig.Weights.Select(ReverseWeight).ToList(),
                 1).FirstOrDefault());
         return result >= inscriptionInfo.MaxGen ? inscriptionInfo.MaxGen : result;
     }
@@ -208,7 +210,7 @@ public partial class SchrodingerContract
 
     private long ReverseWeight(long weight)
     {
-        return SchrodingerContractConstants.DefaultMaxAttributeWeight.Div(weight);
+        return SchrodingerContractConstants.DefaultMaxAttributeWeight.Sub(weight);
     }
 
     private bool IsCrossGenerationHappened(long probability, Hash randomHash)
@@ -255,8 +257,9 @@ public partial class SchrodingerContract
             {
                 TraitType = t.Name,
                 Value = GetRandomItems(randomHash, nameof(t.Name),
-                    State.TraitValueMap[tick][t.Name].Data.Select(a => a.Name).ToList(),
-                    State.TraitValueMap[tick][t.Name].Data.Select(a => ReverseWeight(a.Weight)).ToList(), 1).FirstOrDefault()
+                        State.TraitValueMap[tick][t.Name].Data.Select(a => a.Name).ToList(),
+                        State.TraitValueMap[tick][t.Name].Data.Select(a => ReverseWeight(a.Weight)).ToList(), 1)
+                    .FirstOrDefault()
             }));
 
             amount = amount.Sub(amount);
