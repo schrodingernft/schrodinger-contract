@@ -307,7 +307,7 @@ public partial class SchrodingerContract
     {
         Assert(input != null, "Invalid input.");
         Assert(input.AdoptId != null, "Invalid input adopt id.");
-        Assert(IsStringValid(input.Signature), "Invalid input signature.");
+        Assert(IsByteStringValid(input.Signature), "Invalid input signature.");
 
         CheckImageSize(input.Image);
 
@@ -356,7 +356,7 @@ public partial class SchrodingerContract
     private Address RecoverAddressFromSignature(ConfirmInput input)
     {
         var hash = ComputeConfirmInputHash(input);
-        var publicKey = Context.RecoverPublicKey(ByteStringHelper.FromHexString(input.Signature).ToByteArray(), hash.ToByteArray());
+        var publicKey = Context.RecoverPublicKey(input.Signature.ToByteArray(), hash.ToByteArray());
         Assert(publicKey != null, "Invalid signature.");
 
         return Address.FromPublicKey(publicKey);
