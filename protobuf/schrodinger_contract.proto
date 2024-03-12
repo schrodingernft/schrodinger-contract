@@ -282,6 +282,11 @@ message Config {
   int32 max_attributes_per_gen = 8;
 }
 
+message ItemWithWeight {
+  string item = 1;
+  int64 weight = 2;
+}
+
 // log event
 message CollectionDeployed {
   option (aelf.is_event) = true;

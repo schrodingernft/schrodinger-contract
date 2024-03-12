@@ -194,12 +194,16 @@ public partial class SchrodingerContract
             return newGen >= inscriptionInfo.MaxGen ? inscriptionInfo.MaxGen : newGen;
         }
 
-        var gens = Enumerable.Range(1, crossGenerationConfig.Gen).ToList();
+        var gens = Enumerable.Range(1, crossGenerationConfig.Gen).Select(g => new ItemWithWeight
+        {
+            Item = g.ToString(),
+            Weight = ReverseWeight(crossGenerationConfig.Weights[g - 1])
+        }).ToList();
 
-        var result =
-            parentGen.Add(GetRandomItems(randomHash, nameof(GenerateGen), gens,
-                crossGenerationConfig.Weights.Select(ReverseWeight).ToList(),
-                1).FirstOrDefault());
+        var selected = int.TryParse(GetRandomItems(randomHash, nameof(GenerateGen), gens, 1).FirstOrDefault(),
+            out var gen);
+
+        var result = parentGen.Add(selected ? gen : 0);
         return result >= inscriptionInfo.MaxGen ? inscriptionInfo.MaxGen : result;
     }
 
@@ -220,10 +224,10 @@ public partial class SchrodingerContract
         return random <= probability;
     }
 
-    private List<T> GetRandomItems<T>(Hash randomHash, string seed, List<T> items, List<long> weights, int count)
+    private List<string> GetRandomItems(Hash randomHash, string seed, List<ItemWithWeight> items, int count)
     {
-        var selectedItems = new List<T>(count);
-        var totalWeights = weights.Sum();
+        var selectedItems = new List<string>();
+        var totalWeights = items.Select(i => i.Weight).Sum();
 
         while (selectedItems.Count < count && items.Count > 0)
         {
@@ -231,12 +235,12 @@ public partial class SchrodingerContract
             var sum = 0L;
             for (var i = 0; i < items.Count; i++)
             {
-                sum = sum.Add(weights[i]);
+                sum = sum.Add(items[i].Weight);
 
                 if (random >= sum) continue;
 
-                selectedItems.Add(items[i]);
-                totalWeights = totalWeights.Add(weights[i]);
+                selectedItems.Add(items[i].Item);
+                totalWeights = totalWeights.Add(items[i].Weight);
                 items.RemoveAt(i);
                 break;
             }
@@ -257,12 +261,15 @@ public partial class SchrodingerContract
             {
                 TraitType = t.Name,
                 Value = GetRandomItems(randomHash, nameof(t.Name),
-                        State.TraitValueMap[tick][t.Name].Data.Select(a => a.Name).ToList(),
-                        State.TraitValueMap[tick][t.Name].Data.Select(a => ReverseWeight(a.Weight)).ToList(), 1)
+                        State.TraitValueMap[tick][t.Name].Data.Select(a => new ItemWithWeight
+                        {
+                            Item = a.Name,
+                            Weight = ReverseWeight(a.Weight)
+                        }).ToList(), 1)
                     .FirstOrDefault()
             }));
 
-            amount = amount.Sub(amount);
+            amount = amount.Sub(1);
         }
         else
         {
@@ -275,16 +282,22 @@ public partial class SchrodingerContract
 
         // select trait types randomly
         var randomTraitTypes = GetRandomItems(randomHash, nameof(GenerateAttributes),
-            traitTypes.Select(t => t.Name).ToList(), traitTypes.Select(t => ReverseWeight(t.Weight)).ToList(),
-            amount.Mul(attributesPerGen));
+            traitTypes.Select(t => new ItemWithWeight
+            {
+                Item = t.Name,
+                Weight = ReverseWeight(t.Weight)
+            }).ToList(), amount);
 
         // select trait values randomly
         attributes.Data.AddRange(randomTraitTypes.Select(t => new Attribute
         {
             TraitType = t,
             Value = GetRandomItems(randomHash, nameof(t),
-                State.TraitValueMap[tick][t].Data.Select(a => a.Name).ToList(),
-                State.TraitValueMap[tick][t].Data.Select(a => ReverseWeight(a.Weight)).ToList(), 1).FirstOrDefault()
+                State.TraitValueMap[tick][t].Data.Select(a => new ItemWithWeight
+                {
+                    Item = a.Name,
+                    Weight = ReverseWeight(a.Weight)
+                }).ToList(), 1).FirstOrDefault()
         }));
 
         return attributes;
