@@ -28,9 +28,10 @@ public static class SchrodingerContractConstants
     public const long DefaultImageMaxCount = 10;
     public const long DefaultTraitValueMaxCount = 100;
     public const long DefaultAttributeMaxLength = 80;
-    public const long DefaultMaxAttributeWeight = 1000;
+    public const long DefaultMaxAttributeWeight = 10000;
     public const int DefaultMaxAttributePerGen = 1;
     public const int DefaultMaxAttributeTraitTypeCount = 50;
+    public const int DefaultFixedTraitTypeMaxCount = 5;
 
     public const string ELFSymbol = "ELF";
 

@@ -1,37 +1,54 @@
+using System.Collections.Generic;
+using System.Linq;
 using AElf.Sdk.CSharp;
+using Google.Protobuf.Collections;
 using Google.Protobuf.WellKnownTypes;
 
 namespace Schrodinger;
 
 public partial class SchrodingerContract
 {
-    public override Empty SetAttributes(SetAttributesInput input)
+    public override Empty SetFixedAttributes(SetAttributesInput input)
     {
-        Assert(IsStringValid(input.Tick), "Invalid input.");
-        var inscription = CheckInscriptionExistAndPermission(input.Tick);
-        var attributeList = SetAttributeList(input.Tick, inscription.MaxGen, input.Attributes,
-            inscription.AttributesPerGen, out var toRemoveFixed, out var toRemoveRandom);
-        Context.Fire(new AttributesSet
-        {
-            Tick = input.Tick,
-            RemovedFixedAttributes = new AttributeSets
-            {
-                Data = { toRemoveFixed }
-            },
-            RemovedRandomAttributes = new AttributeSets
-            {
-                Data = { toRemoveRandom }
-            },
-            AddedFixedAttributes = new AttributeSets
-            {
-                Data = { attributeList.FixedAttributes }
-            },
-            AddedRandomAttributes = new AttributeSets
-            {
-                Data = { attributeList.RandomAttributes }
-            }
-        });
+        CheckParamsAndGetInscription(input);
+        var inputTraitType = input.AttributeSet.TraitType;
+        var traitTypeName = inputTraitType.Name;
+        var inputTraitValues = input.AttributeSet.Values;
+
+        var traitTypes = State.FixedTraitTypeMap[input.Tick] ?? new AttributeInfos();
+        var traitValues = State.TraitValueMap[input.Tick][traitTypeName];
+        traitTypes = ChangeAttributeSet(input.Tick, traitTypes, traitValues, inputTraitType, inputTraitValues,
+            out var toRemove);
+        CheckAndGetFixedAttributesCount<AttributeInfo>(traitTypes.Data.ToList());
+        FireLogEvent(inputTraitType, inputTraitValues, toRemove);
         return new Empty();
+    }
+    
+    public override Empty SetRandomAttributes(SetAttributesInput input)
+    {
+        var inscription = CheckParamsAndGetInscription(input);
+        var inputTraitType = input.AttributeSet.TraitType;
+        var traitTypeName = inputTraitType.Name;
+        var inputTraitValues = input.AttributeSet.Values;
+
+        var traitTypes = State.RandomTraitTypeMap[input.Tick] ?? new AttributeInfos();
+        var traitValues = State.TraitValueMap[input.Tick][traitTypeName];
+        traitTypes = ChangeAttributeSet(input.Tick, traitTypes, traitValues, inputTraitType,
+            inputTraitValues, out var toRemove, true);
+        var list = traitTypes.Data.ToList();
+        CheckAndGetRandomAttributesCount<AttributeInfo>(list);
+        CheckRandomAttributeList(list, inscription.MaxGen, inscription.AttributesPerGen);
+        FireLogEvent(inputTraitType, inputTraitValues, toRemove,true);
+        return new Empty();
+    }
+
+    private void FireLogEvent(AttributeInfo traitType, AttributeInfos traitValue, AttributeInfo toRemove,
+        bool isRandom = false)
+    {
+        var logEvent = toRemove == null
+            ? GetAddedAttributes(isRandom, traitType, traitValue)
+            : GetRemovedAttributes(isRandom, toRemove, traitValue);
+        Context.Fire(logEvent);
     }
 
     public override Empty SetImageCount(SetImageCountInput input)
