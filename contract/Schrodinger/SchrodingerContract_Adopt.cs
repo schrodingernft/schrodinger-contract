@@ -51,7 +51,7 @@ public partial class SchrodingerContract
             inscriptionInfo.Recipient, inscriptionInfo.Ancestor);
 
         var randomHash = GetRandomHash();
-        adoptInfo.Gen = GenerateGen(inscriptionInfo, parentGen, randomHash);
+        adoptInfo.Gen = GenerateGen(inscriptionInfo, parentGen, randomHash, tick);
         adoptInfo.Attributes = GenerateAttributes(parentAttributes, tick, inscriptionInfo.AttributesPerGen,
             adoptInfo.Gen.Sub(adoptInfo.ParentGen), randomHash);
         adoptInfo.Symbol = GenerateSymbol(tick);
@@ -176,7 +176,7 @@ public partial class SchrodingerContract
         });
     }
 
-    private int GenerateGen(InscriptionInfo inscriptionInfo, int parentGen, Hash randomHash)
+    private int GenerateGen(InscriptionInfo inscriptionInfo, int parentGen, Hash randomHash, string tick)
     {
         var crossGenerationConfig = inscriptionInfo.CrossGenerationConfig;
 
@@ -197,11 +197,13 @@ public partial class SchrodingerContract
         var gens = Enumerable.Range(1, crossGenerationConfig.Gen).Select(g => new ItemWithWeight
         {
             Item = g.ToString(),
-            Weight = ReverseWeight(crossGenerationConfig.Weights[g - 1])
+            Weight = crossGenerationConfig.Weights[g - 1]
         }).ToList();
 
-        var selected = int.TryParse(GetRandomItems(randomHash, nameof(GenerateGen), gens, 1).FirstOrDefault(),
-            out var gen);
+        var selected =
+            int.TryParse(
+                GetRandomItems(randomHash, nameof(GenerateGen), gens, 1, State.GenTotalWeightsMap[tick])
+                    .FirstOrDefault(), out var gen);
 
         var result = parentGen.Add(selected ? gen : 0);
         return result >= inscriptionInfo.MaxGen ? inscriptionInfo.MaxGen : result;
@@ -212,32 +214,32 @@ public partial class SchrodingerContract
         return HashHelper.ConcatAndCompute(randomHash, HashHelper.ComputeFrom(seed));
     }
 
-    private long ReverseWeight(long weight)
-    {
-        return SchrodingerContractConstants.DefaultMaxAttributeWeight.Sub(weight);
-    }
-
     private bool IsCrossGenerationHappened(long probability, Hash randomHash)
     {
-        var random = Context.ConvertHashToInt64(CalculateRandomHash(randomHash, nameof(IsCrossGenerationHappened)), 0,
+        var random = Context.ConvertHashToInt64(CalculateRandomHash(randomHash, nameof(IsCrossGenerationHappened)), 1,
             SchrodingerContractConstants.Denominator);
         return random <= probability;
     }
 
-    private List<string> GetRandomItems(Hash randomHash, string seed, List<ItemWithWeight> items, int count)
+    private List<string> GetRandomItems(Hash randomHash, string seed, List<ItemWithWeight> items, int count,
+        long totalWeights)
     {
         var selectedItems = new List<string>();
-        var totalWeights = items.Select(i => i.Weight).Sum();
+
+        if (totalWeights == 0)
+        {
+            totalWeights = items.Select(i => i.Weight).Sum();
+        }
 
         while (selectedItems.Count < count && items.Count > 0)
         {
-            var random = Context.ConvertHashToInt64(CalculateRandomHash(randomHash, seed), 0, totalWeights);
+            var random = Context.ConvertHashToInt64(CalculateRandomHash(randomHash, seed), 1, totalWeights);
             var sum = 0L;
             for (var i = 0; i < items.Count; i++)
             {
                 sum = sum.Add(items[i].Weight);
 
-                if (random >= sum) continue;
+                if (random > sum) continue;
 
                 selectedItems.Add(items[i].Item);
                 totalWeights = totalWeights.Add(items[i].Weight);
@@ -261,11 +263,8 @@ public partial class SchrodingerContract
             {
                 TraitType = t.Name,
                 Value = GetRandomItems(randomHash, nameof(t.Name),
-                        State.TraitValueMap[tick][t.Name].Data.Select(a => new ItemWithWeight
-                        {
-                            Item = a.Name,
-                            Weight = ReverseWeight(a.Weight)
-                        }).ToList(), 1)
+                        GenerateItemsWithWeight(State.TraitValueMap[tick][t.Name].Data), 1,
+                        State.TraitValueTotalWeightsMap[tick][t.Name])
                     .FirstOrDefault()
             }));
 
@@ -282,25 +281,33 @@ public partial class SchrodingerContract
 
         // select trait types randomly
         var randomTraitTypes = GetRandomItems(randomHash, nameof(GenerateAttributes),
-            traitTypes.Select(t => new ItemWithWeight
-            {
-                Item = t.Name,
-                Weight = ReverseWeight(t.Weight)
-            }).ToList(), amount);
+            GenerateItemsWithWeight(traitTypes), amount, State.TraitTypeTotalWeightsMap[tick]);
 
         // select trait values randomly
         attributes.Data.AddRange(randomTraitTypes.Select(t => new Attribute
         {
             TraitType = t,
-            Value = GetRandomItems(randomHash, nameof(t),
-                State.TraitValueMap[tick][t].Data.Select(a => new ItemWithWeight
-                {
-                    Item = a.Name,
-                    Weight = ReverseWeight(a.Weight)
-                }).ToList(), 1).FirstOrDefault()
+            Value = GetRandomItems(randomHash, nameof(t), GenerateItemsWithWeight(State.TraitValueMap[tick][t].Data), 1,
+                State.TraitValueTotalWeightsMap[tick][t]).FirstOrDefault()
         }));
 
         return attributes;
+    }
+
+    private List<ItemWithWeight> GenerateItemsWithWeight(IEnumerable<AttributeInfo> attributeInfos)
+    {
+        var result = new List<ItemWithWeight>();
+
+        foreach (var attributeInfo in attributeInfos)
+        {
+            result.Add(new ItemWithWeight
+            {
+                Item = attributeInfo.Name,
+                Weight = attributeInfo.Weight
+            });
+        }
+
+        return result;
     }
 
     public override Empty Confirm(ConfirmInput input)
