@@ -9,6 +9,7 @@ public static class SchrodingerContractConstants
     public const string TokenNameSuffix = "GEN";
     public const string AncestorNameSuffix = "GEN0";
     public const int DefaultSymbolIndexStart = 2;
+    public const string AncestorGen = "0";
 
     // external info
     public const string InscriptionDeployKey = "__inscription_deploy";
@@ -16,7 +17,6 @@ public static class SchrodingerContractConstants
     public const string InscriptionImageKey = "__inscription_image";
     public const string AttributesKey = "__nft_attributes";
     public const string InscriptionType = "aelf";
-    public const int InscriptionAmt = 1;
     public const string DeployOp = "deploy";
     public const string AdoptOp = "adopt";
     public const string Amt = "1";

@@ -84,6 +84,7 @@ public partial class SchrodingerContractTests
             Decimals = 0,
             IssueChainId = _mainChainId
         });
+        
         var tokenInfo = await TokenContractStub.GetTokenInfo.CallAsync(new GetTokenInfoInput
         {
             Symbol = $"{_tick}-0"
@@ -97,7 +98,7 @@ public partial class SchrodingerContractTests
     {
         await DeployCollectionTest();
         await Initialize();
-        await SchrodingerContractStub.Deploy.SendAsync(new DeployInput()
+        var result = await SchrodingerContractStub.Deploy.SendAsync(new DeployInput()
         {
             Tick = _tick,
             AttributesPerGen = 1,
@@ -117,6 +118,7 @@ public partial class SchrodingerContractTests
                 IsWeightEnabled = false
             }
         });
+        var log = GetLogEvent<Deployed>(result.TransactionResult);
         var inscription = await SchrodingerContractStub.GetInscriptionInfo.CallAsync(new StringValue
         {
             Value = _tick

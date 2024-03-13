@@ -40,6 +40,7 @@ public partial class SchrodingerContract : SchrodingerContractContainer.Schrodin
         Assert(input.AttributeMaxLength > 0, "Invalid input attribute max length.");
         Assert(input.MaxAttributesPerGen > 0, "Invalid input max attributes per gen.");
         Assert(IsAddressValid(input.Signatory), "Invalid input signatory.");
+        Assert(input.FixedTraitTypeMaxCount > 0, "Invalid input fixed trait type max count.");
 
         State.Config.Value = new Config
         {
@@ -50,7 +51,8 @@ public partial class SchrodingerContract : SchrodingerContractContainer.Schrodin
             TraitValueMaxCount = input.TraitValueMaxCount,
             AttributeMaxLength = input.AttributeMaxLength,
             MaxAttributesPerGen = input.MaxAttributesPerGen,
-            Signatory = input.Signatory
+            Signatory = input.Signatory,
+            FixedTraitTypeMaxCount = input.FixedTraitTypeMaxCount
         };
     }
 

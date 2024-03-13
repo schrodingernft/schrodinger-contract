@@ -34,6 +34,7 @@ public partial class SchrodingerContract
         Assert(input.AttributeMaxLength > 0, "Invalid attribute max length.");
         Assert(IsAddressValid(input.Signatory), "Invalid signatory.");
         Assert(input.MaxAttributesPerGen > 0, "Invalid max attributes per generation.");
+        Assert(input.FixedTraitTypeMaxCount > 0, "Invalid fixed trait type max count.");
     }
 
     public override Empty SetMaxGenerationConfig(Int32Value input)
@@ -99,23 +100,27 @@ public partial class SchrodingerContract
         Assert(input.TraitValueMaxCount > 0, "Invalid trait value max count.");
         Assert(input.AttributeMaxLength > 0, "Invalid attribute max length.");
         Assert(input.MaxAttributesPerGen > 0, "Invalid max attributes per generation.");
+        Assert(input.FixedTraitTypeMaxCount > 0, "Invalid fixed trait type max count.");
 
         if (State.Config.Value.TraitTypeMaxCount == input.TraitTypeMaxCount &&
             State.Config.Value.TraitValueMaxCount == input.TraitValueMaxCount &&
             State.Config.Value.AttributeMaxLength == input.AttributeMaxLength &&
-            State.Config.Value.MaxAttributesPerGen == input.MaxAttributesPerGen) return new Empty();
+            State.Config.Value.MaxAttributesPerGen == input.MaxAttributesPerGen &&
+            State.Config.Value.FixedTraitTypeMaxCount == input.FixedTraitTypeMaxCount) return new Empty();
 
         State.Config.Value.TraitTypeMaxCount = input.TraitTypeMaxCount;
         State.Config.Value.TraitValueMaxCount = input.TraitValueMaxCount;
         State.Config.Value.AttributeMaxLength = input.AttributeMaxLength;
         State.Config.Value.MaxAttributesPerGen = input.MaxAttributesPerGen;
+        State.Config.Value.FixedTraitTypeMaxCount = input.FixedTraitTypeMaxCount;
 
         Context.Fire(new AttributeConfigSet
         {
             TraitTypeMaxCount = input.TraitTypeMaxCount,
             TraitValueMaxCount = input.TraitValueMaxCount,
             AttributeMaxLength = input.AttributeMaxLength,
-            MaxAttributesPerGen = input.MaxAttributesPerGen
+            MaxAttributesPerGen = input.MaxAttributesPerGen,
+            FixedTraitTypeMaxCount = input.FixedTraitTypeMaxCount
         });
 
         return new Empty();

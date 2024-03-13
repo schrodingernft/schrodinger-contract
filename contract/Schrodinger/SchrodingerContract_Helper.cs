@@ -76,7 +76,8 @@ public partial class SchrodingerContract
             Op = SchrodingerContractConstants.DeployOp,
             Tick = tick,
             Max = totalSupply.ToString(),
-            Lim = totalSupply.ToString()
+            Lim = totalSupply.ToString(),
+            Gen = SchrodingerContractConstants.AncestorGen
         };
         dic[SchrodingerContractConstants.InscriptionDeployKey] = info.ToString();
 

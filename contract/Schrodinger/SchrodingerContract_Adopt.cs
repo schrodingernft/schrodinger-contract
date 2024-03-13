@@ -7,7 +7,6 @@ using AElf.Sdk.CSharp;
 using AElf.Types;
 using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
-using Points.Contracts.Point;
 
 namespace Schrodinger;
 
@@ -439,7 +438,7 @@ public partial class SchrodingerContract
         });
     }
 
-    public override Empty Reset(ResetInput input)
+    public override Empty Reroll(RerollInput input)
     {
         CheckInitialized();
 
@@ -452,15 +451,15 @@ public partial class SchrodingerContract
         var inscriptionInfo = State.InscriptionInfoMap[tick];
 
         Assert(inscriptionInfo != null, "Tick not deployed.");
-        Assert(inscriptionInfo.Ancestor != input.Symbol, "Can not reset gen0.");
+        Assert(inscriptionInfo.Ancestor != input.Symbol, "Can not reroll gen0.");
 
         ProcessToken(input.Symbol, input.Amount, input.Amount, input.Amount, Context.Sender,
             inscriptionInfo.Ancestor);
 
         JoinPointsContract(input.Domain);
-        SettlePointsContract(nameof(Reset));
+        SettlePointsContract(nameof(Reroll));
 
-        Context.Fire(new TokenReset
+        Context.Fire(new Rerolled
         {
             Symbol = input.Symbol,
             Ancestor = inscriptionInfo.Ancestor,
@@ -469,29 +468,5 @@ public partial class SchrodingerContract
         });
 
         return new Empty();
-    }
-
-    private void JoinPointsContract(string domain)
-    {
-        if (State.JoinRecord[Context.Sender]) return;
-
-        State.JoinRecord[Context.Sender] = true;
-
-        State.PointsContract.Join.Send(new JoinInput
-        {
-            DappId = State.PointsContractDAppId.Value,
-            Domain = domain,
-            Registrant = Context.Sender
-        });
-    }
-
-    private void SettlePointsContract(string actionName)
-    {
-        State.PointsContract.Settle.Send(new SettleInput
-        {
-            DappId = State.PointsContractDAppId.Value,
-            ActionName = actionName,
-            UserAddress = Context.Sender
-        });
     }
 }

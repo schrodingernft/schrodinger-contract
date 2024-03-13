@@ -132,14 +132,14 @@ public partial class SchrodingerContractTests
                 Amount = amount
             });
 
-            var result = await SchrodingerContractStub.Reset.SendAsync(new ResetInput
+            var result = await SchrodingerContractStub.Reroll.SendAsync(new RerollInput
             {
                 Symbol = symbol,
                 Amount = amount,
                 Domain = "test"
             });
 
-            var log = GetLogEvent<TokenReset>(result.TransactionResult);
+            var log = GetLogEvent<Rerolled>(result.TransactionResult);
         }
 
         {
