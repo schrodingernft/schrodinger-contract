@@ -191,11 +191,9 @@ public partial class SchrodingerContract
     private void SetAttributeSet(string tick, AttributeInfos traitTypeMap,
         List<AttributeSet> sourceAttributeSets, bool isRandom = false)
     {
-        var weight = State.TraitTypeTotalWeightsMap[tick];
         foreach (var sourceAttributeSet in sourceAttributeSets)
         {
             var traitType = sourceAttributeSet.TraitType;
-            weight += traitType.Weight;
             if (isRandom)
             {
                 CheckTraitTypeExist(tick, traitType.Name);
@@ -210,7 +208,6 @@ public partial class SchrodingerContract
             SetTraitValues(tick, traitType.Name, sourceAttributeSet.Values);
             traitTypeMap.Data.Add(traitType);
         }
-        State.TraitTypeTotalWeightsMap[tick] = weight;
     }
 
     /// <param name="tick"></param>
@@ -333,7 +330,6 @@ public partial class SchrodingerContract
     {
         toRemove = null;
         var traitTypeName = toAddTraitType.Name;
-        var weight = State.TraitTypeTotalWeightsMap[tick];
         if (traitValues != null)
         {
             // trait type exist
@@ -346,7 +342,6 @@ public partial class SchrodingerContract
                     if (traitType.Name != traitTypeName) continue;
                     traitTypes.Data.Remove(traitType);
                     toRemove = traitType;
-                    weight -= traitType.Weight;
                     break;
                 }
             }
@@ -366,11 +361,9 @@ public partial class SchrodingerContract
 
             CheckAttributeInfo(toAddTraitType);
             traitTypes.Data.Add(toAddTraitType);
-            weight += toAddTraitType.Weight;
             Assert(toAddTraitValues != null && toAddTraitValues.Data.Count > 0, "Invalid input trait values.");
             SetTraitValues(tick, traitTypeName, toAddTraitValues);
         }
-        State.TraitTypeTotalWeightsMap[tick] = weight;
         return traitTypes;
     }
 

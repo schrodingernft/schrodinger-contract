@@ -31,9 +31,6 @@ public partial class SchrodingerContractState : ContractState
     // tick -> count, start from 2
     public MappedState<string, long> SymbolCountMap { get; set; }
 
-    // tick -> trait type weights
-    public MappedState<string, long> TraitTypeTotalWeightsMap { get; set; }
-
     // tick -> trait type -> value weights
     public MappedState<string, string, long> TraitValueTotalWeightsMap { get; set; }
 
