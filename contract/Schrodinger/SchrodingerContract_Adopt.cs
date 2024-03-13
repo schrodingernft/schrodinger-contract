@@ -263,10 +263,9 @@ public partial class SchrodingerContract
             attributes.Data.AddRange(State.FixedTraitTypeMap[tick].Data.Select(t => new Attribute
             {
                 TraitType = t.Name,
-                Value = GetRandomItems(randomHash, nameof(t.Name),
-                        GenerateItemsWithWeight(State.TraitValueMap[tick][t.Name].Data), 1,
-                        State.TraitValueTotalWeightsMap[tick][t.Name])
-                    .FirstOrDefault()
+                Value = GetRandomItems(randomHash, t.Name,
+                    GenerateItemsWithWeight(State.TraitValueMap[tick][t.Name].Data), 1,
+                    State.TraitValueTotalWeightsMap[tick][t.Name]).FirstOrDefault()
             }));
 
             amount = amount.Sub(1);
@@ -288,7 +287,7 @@ public partial class SchrodingerContract
         attributes.Data.AddRange(randomTraitTypes.Select(t => new Attribute
         {
             TraitType = t,
-            Value = GetRandomItems(randomHash, nameof(t), GenerateItemsWithWeight(State.TraitValueMap[tick][t].Data), 1,
+            Value = GetRandomItems(randomHash, t, GenerateItemsWithWeight(State.TraitValueMap[tick][t].Data), 1,
                 State.TraitValueTotalWeightsMap[tick][t]).FirstOrDefault()
         }));
 
