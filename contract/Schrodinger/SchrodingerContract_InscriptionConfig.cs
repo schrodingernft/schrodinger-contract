@@ -197,4 +197,23 @@ public partial class SchrodingerContract
         });
         return new Empty();
     }
+
+    public override Empty SetSignatory(SetSignatoryInput input)
+    {
+        Assert(input != null, "Invalid input.");
+        Assert(IsStringValid(input.Tick), "Invalid input tick.");
+        Assert(IsAddressValid(input.Signatory), "Invalid signatory address.");
+        
+        if (State.SignatoryMap[input.Tick] == input.Signatory) return new Empty();
+        
+        State.SignatoryMap[input.Tick] = input.Signatory;
+        
+        Context.Fire(new SignatorySet
+        {
+            Tick = input.Tick,
+            Signatory = input.Signatory
+        });
+        
+        return new Empty();
+    }
 }

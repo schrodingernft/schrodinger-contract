@@ -26,6 +26,8 @@ public partial class SchrodingerContract
             AttributesPerGen = input.AttributesPerGen
         };
         State.InscriptionInfoMap[tick] = inscription;
+        State.SignatoryMap[tick] = input.Signatory;
+        
         var attributeList =
             SetAttributeList(tick, inscription.MaxGen, input.AttributeLists, inscription.AttributesPerGen);
         // Generate external info

@@ -34,6 +34,9 @@ public partial class SchrodingerContractState : ContractState
     // tick -> trait type -> value weights
     public MappedState<string, string, long> TraitValueTotalWeightsMap { get; set; }
     public MappedState<string, long> GenTotalWeightsMap { get; set; }
+    
+    // tick -> signatory
+    public MappedState<string, Address> SignatoryMap { get; set; }
 
     // config
     public SingletonState<Config> Config { get; set; }

@@ -30,6 +30,8 @@ service SchrodingerContract {
   rpc SetImageCount (SetImageCountInput) returns (google.protobuf.Empty) {}
   rpc SetInscriptionAdmin (SetInscriptionAdminInput) returns (google.protobuf.Empty) {}
   rpc SetCrossGenerationConfig (SetCrossGenerationConfigInput) returns (google.protobuf.Empty) {}
+  rpc SetSignatory (SetSignatoryInput) returns (google.protobuf.Empty) {}
+  rpc GetSignatory (google.protobuf.StringValue) returns (aelf.Address) {option (aelf.is_view) = true;}
   rpc GetInscriptionInfo (google.protobuf.StringValue) returns (InscriptionInfo) {option (aelf.is_view) = true;}
   rpc GetTick (google.protobuf.StringValue) returns (google.protobuf.StringValue) {option (aelf.is_view) = true;}
   rpc GetParent (google.protobuf.StringValue) returns (google.protobuf.StringValue) {option (aelf.is_view) = true;}
@@ -38,7 +40,7 @@ service SchrodingerContract {
   rpc GetAttributeValues (GetAttributeValuesInput) returns (AttributeInfos) {option (aelf.is_view) = true;}
   rpc GetAdoptInfo (aelf.Hash) returns (AdoptInfo) {option (aelf.is_view) = true;}
   rpc GetTokenInfo (google.protobuf.StringValue) returns (GetTokenInfoOutput) {option (aelf.is_view) = true;}
-
+  
   // contract
   rpc SetConfig (Config) returns (google.protobuf.Empty) {}
   rpc SetAdmin(aelf.Address) returns (google.protobuf.Empty) {}
@@ -96,6 +98,7 @@ message DeployInput {
   aelf.Address admin = 14;
   int32 attributes_per_gen = 15;
   string domain = 16;
+  aelf.Address signatory = 17;
 }
 
 message DeployInscriptionInfo {
@@ -291,6 +294,12 @@ message ItemWithWeight {
   string item = 1;
   int64 weight = 2;
 }
+
+message SetSignatoryInput {
+  string tick = 1;
+  aelf.Address signatory = 2;
+}
+
 // log event
 message Joined {
   option (aelf.is_event) = true;
@@ -466,4 +475,10 @@ message AdminSet {
   option (aelf.is_event) = true;
   aelf.Address old_admin = 1;
   aelf.Address new_admin = 2;
+}
+
+message SignatorySet {
+  option (aelf.is_event) = true;
+  string tick = 1;
+  aelf.Address signatory = 2;
 }

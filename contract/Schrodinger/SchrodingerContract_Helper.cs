@@ -430,6 +430,8 @@ public partial class SchrodingerContract
         CheckImageSize(input.Image);
         CheckImageCount(input.ImageCount);
         CheckAndSetCrossGenerationConfig(input.Tick, input.CrossGenerationConfig, input.MaxGeneration);
+        
+        Assert(IsAddressValid(input.Signatory), "Invalid input signatory.");
     }
 
     private void CheckRate(long lossRate, long commissionRate)

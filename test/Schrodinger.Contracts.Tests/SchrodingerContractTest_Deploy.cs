@@ -110,7 +110,8 @@ public partial class SchrodingerContractTests
                 Gen = 0,
                 CrossGenerationProbability = 10000,
                 IsWeightEnabled = false
-            }
+            },
+            Signatory = DefaultAddress
         });
         var log = GetLogEvent<Deployed>(result.TransactionResult);
         var inscription = await SchrodingerContractStub.GetInscriptionInfo.CallAsync(new StringValue

@@ -323,12 +323,16 @@ public partial class SchrodingerContract
         Assert(adoptInfo.Adopter == Context.Sender, "No permission.");
 
         Assert(!adoptInfo.IsConfirmed, "Adopt id already confirmed.");
-        Assert(RecoverAddressFromSignature(input) == State.Config.Value.Signatory, "Not authorized.");
 
         adoptInfo.IsConfirmed = true;
         State.SymbolAdoptIdMap[adoptInfo.Symbol] = adoptInfo.AdoptId;
 
         var tick = GetTickFromSymbol(adoptInfo.Parent);
+
+        Assert(RecoverAddressFromSignature(input) == (State.SignatoryMap[tick] ?? State.Config.Value.Signatory),
+            "Not authorized.");
+
+
         var inscriptionInfo = State.InscriptionInfoMap[tick];
 
         var externalInfo = GenerateAdoptExternalInfo(tick, input.Image, adoptInfo.OutputAmount, adoptInfo.Gen,

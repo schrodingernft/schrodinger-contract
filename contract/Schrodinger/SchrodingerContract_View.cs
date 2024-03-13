@@ -26,6 +26,11 @@ public partial class SchrodingerContract
         return State.Config.Value;
     }
 
+    public override Address GetSignatory(StringValue input)
+    {
+        return State.SignatoryMap[input.Value];
+    }
+
     #region inscription
 
     public override InscriptionInfo GetInscriptionInfo(StringValue input)
