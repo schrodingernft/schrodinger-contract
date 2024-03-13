@@ -247,7 +247,7 @@ public partial class SchrodingerContract
         State.TraitValueTotalWeightsMap[tick][traitTypeName] = weight;
     }
 
-    private InscriptionInfo CheckParamsAndGetInscription(SetAttributesInput input)
+    private InscriptionInfo CheckParamsAndGetInscription(SetAttributeInput input)
     {
         Assert(IsStringValid(input.Tick), "Invalid input.");
         var inscription = CheckInscriptionExistAndPermission(input.Tick);

@@ -8,7 +8,7 @@ namespace Schrodinger;
 
 public partial class SchrodingerContract
 {
-    public override Empty SetFixedAttributes(SetAttributesInput input)
+    public override Empty SetFixedAttribute(SetAttributeInput input)
     {
         CheckParamsAndGetInscription(input);
         var inputTraitType = input.AttributeSet.TraitType;
@@ -25,7 +25,7 @@ public partial class SchrodingerContract
         return new Empty();
     }
 
-    public override Empty SetRandomAttributes(SetAttributesInput input)
+    public override Empty SetRandomAttribute(SetAttributeInput input)
     {
         var inscription = CheckParamsAndGetInscription(input);
         var inputTraitType = input.AttributeSet.TraitType;

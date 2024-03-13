@@ -187,7 +187,7 @@ public partial class SchrodingerContractTests
     {
         await DeployTest();
         var attribute = GetFixedAttributeLists();
-        var result = await SchrodingerContractStub.SetFixedAttributes.SendAsync(new SetAttributesInput
+        var result = await SchrodingerContractStub.SetFixedAttribute.SendAsync(new SetAttributeInput
         {
             Tick = _tick,
             AttributeSet = attribute
@@ -216,7 +216,7 @@ public partial class SchrodingerContractTests
     {
         await DeployTest();
         var attribute = GetRandomAttributeLists();
-        var result = await SchrodingerContractStub.SetRandomAttributes.SendAsync(new SetAttributesInput
+        var result = await SchrodingerContractStub.SetRandomAttribute.SendAsync(new SetAttributeInput
         {
             Tick = _tick,
             AttributeSet = attribute
@@ -246,7 +246,7 @@ public partial class SchrodingerContractTests
     public async Task SetFixedAttributeListTest_Remove()
     {
         await DeployTest();
-        var result = await SchrodingerContractStub.SetFixedAttributes.SendAsync(new SetAttributesInput
+        var result = await SchrodingerContractStub.SetFixedAttribute.SendAsync(new SetAttributeInput
         {
             Tick = _tick,
             AttributeSet = new AttributeSet
@@ -286,7 +286,7 @@ public partial class SchrodingerContractTests
             new AttributeInfo { Name = "Ape", Weight = 95 },
             new AttributeInfo { Name = "Zombie", Weight = 95 }
         };
-        await SchrodingerContractStub.SetFixedAttributes.SendAsync(new SetAttributesInput
+        await SchrodingerContractStub.SetFixedAttribute.SendAsync(new SetAttributeInput
         {
             Tick = _tick,
             AttributeSet = new AttributeSet

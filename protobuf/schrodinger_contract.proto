@@ -21,8 +21,8 @@ service SchrodingerContract {
   rpc Reroll (RerollInput) returns (google.protobuf.Empty) {}
 
   // token
-  rpc SetFixedAttributes (SetAttributesInput) returns (google.protobuf.Empty) {}
-  rpc SetRandomAttributes (SetAttributesInput) returns (google.protobuf.Empty) {}
+  rpc SetFixedAttribute (SetAttributeInput) returns (google.protobuf.Empty) {}
+  rpc SetRandomAttribute (SetAttributeInput) returns (google.protobuf.Empty) {}
   rpc SetAttributesPerGen (SetAttributesPerGenInput) returns (google.protobuf.Empty) {}
   rpc SetMaxGeneration (SetMaxGenerationInput) returns (google.protobuf.Empty) {}
   rpc SetRates (SetRatesInput) returns (google.protobuf.Empty) {}
@@ -194,7 +194,7 @@ message RerollInput {
   string domain = 3;          // for point contract
 }
 
-message SetAttributesInput {
+message SetAttributeInput {
   string tick = 1;
   AttributeSet attribute_set = 2;
 }
