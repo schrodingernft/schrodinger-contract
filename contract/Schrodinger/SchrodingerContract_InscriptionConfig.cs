@@ -203,6 +203,8 @@ public partial class SchrodingerContract
         Assert(input != null, "Invalid input.");
         Assert(IsStringValid(input.Tick), "Invalid input tick.");
         Assert(IsAddressValid(input.Signatory), "Invalid signatory address.");
+
+        CheckInscriptionExistAndPermission(input.Tick);
         
         if (State.SignatoryMap[input.Tick] == input.Signatory) return new Empty();
         
