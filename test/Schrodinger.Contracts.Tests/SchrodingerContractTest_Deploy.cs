@@ -185,7 +185,7 @@ public partial class SchrodingerContractTests
     {
         await DeployTest();
         var attribute = GetFixedAttributeLists();
-        await SchrodingerContractStub.SetFixedAttributes.SendAsync(new SetAttributesInput
+        var result = await SchrodingerContractStub.SetFixedAttributes.SendAsync(new SetAttributesInput
         {
             Tick = _tick,
             AttributeSet = attribute
@@ -203,6 +203,10 @@ public partial class SchrodingerContractTests
         attributeList.FixedAttributes[3].Values.Data[1].Weight.ShouldBe(95);
         attributeList.FixedAttributes[3].Values.Data[2].Name.ShouldBe("Zombie");
         attributeList.FixedAttributes[3].Values.Data[2].Weight.ShouldBe(95);
+        
+        var log = GetLogEvent<AttributesSet>(result.TransactionResult);
+        log.AddedFixedAttributes.Data.Count.ShouldBe(1);
+
     }
     
     [Fact]

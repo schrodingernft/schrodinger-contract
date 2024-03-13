@@ -17,13 +17,14 @@ public partial class SchrodingerContract
 
         var traitTypes = State.FixedTraitTypeMap[input.Tick] ?? new AttributeInfos();
         var traitValues = State.TraitValueMap[input.Tick][traitTypeName];
-        traitTypes = ChangeAttributeSet(input.Tick, traitTypes, traitValues, inputTraitType, inputTraitValues,
+        traitTypes = UpdateAttributeSet(input.Tick, traitTypes, traitValues, inputTraitType, inputTraitValues,
             out var toRemove);
-        CheckAndGetFixedAttributesCount<AttributeInfo>(traitTypes.Data.ToList());
+        var fixCount = CheckAndGetFixedAttributesCount<AttributeInfo>(traitTypes.Data.ToList());
+        CheckTraitTypeCount(fixCount, State.RandomTraitTypeMap[input.Tick]?.Data.Count ?? 0);
         FireLogEvent(inputTraitType, inputTraitValues, toRemove);
         return new Empty();
     }
-    
+
     public override Empty SetRandomAttributes(SetAttributesInput input)
     {
         var inscription = CheckParamsAndGetInscription(input);
@@ -33,12 +34,13 @@ public partial class SchrodingerContract
 
         var traitTypes = State.RandomTraitTypeMap[input.Tick] ?? new AttributeInfos();
         var traitValues = State.TraitValueMap[input.Tick][traitTypeName];
-        traitTypes = ChangeAttributeSet(input.Tick, traitTypes, traitValues, inputTraitType,
+        traitTypes = UpdateAttributeSet(input.Tick, traitTypes, traitValues, inputTraitType,
             inputTraitValues, out var toRemove, true);
         var list = traitTypes.Data.ToList();
-        CheckAndGetRandomAttributesCount<AttributeInfo>(list);
+        var randomCount = CheckAndGetRandomAttributesCount<AttributeInfo>(list);
         CheckRandomAttributeList(list, inscription.MaxGen, inscription.AttributesPerGen);
-        FireLogEvent(inputTraitType, inputTraitValues, toRemove,true);
+        CheckTraitTypeCount(State.FixedTraitTypeMap[input.Tick]?.Data.Count ?? 0, randomCount);
+        FireLogEvent(inputTraitType, inputTraitValues, toRemove, true);
         return new Empty();
     }
 
@@ -143,7 +145,7 @@ public partial class SchrodingerContract
         Assert(IsStringValid(input.Tick), "Invalid input.");
         var inscription = CheckInscriptionExistAndPermission(input.Tick);
         var crossGenerationConfig = input.Config;
-        CheckCrossGenerationConfig(crossGenerationConfig, inscription.MaxGen);
+        CheckAndSetCrossGenerationConfig(input.Tick, crossGenerationConfig, inscription.MaxGen);
         inscription.CrossGenerationConfig = crossGenerationConfig;
         State.InscriptionInfoMap[input.Tick] = inscription;
         Context.Fire(new CrossGenerationConfigSet

@@ -191,10 +191,11 @@ public partial class SchrodingerContract
     private void SetAttributeSet(string tick, AttributeInfos traitTypeMap,
         List<AttributeSet> sourceAttributeSets, bool isRandom = false)
     {
-        var fixedTraitTypeMap = State.FixedTraitTypeMap[tick]?.Data;
+        var weight = State.TraitTypeTotalWeightsMap[tick];
         foreach (var sourceAttributeSet in sourceAttributeSets)
         {
             var traitType = sourceAttributeSet.TraitType;
+            weight += traitType.Weight;
             if (isRandom)
             {
                 CheckTraitTypeExist(tick, traitType.Name);
@@ -204,11 +205,12 @@ public partial class SchrodingerContract
                                      SchrodingerContractConstants.DefaultAttributeMaxLength;
             Assert(!string.IsNullOrWhiteSpace(traitType.Name), "Invalid trait type name.");
             Assert(traitType.Name.Length <= attributeMaxLength, "Invalid trait type name length.");
-            Assert(traitType.Weight >= 0 && traitType.Weight <= SchrodingerContractConstants.DefaultMaxAttributeWeight,
+            Assert(traitType.Weight >= 0 && traitType.Weight <= SchrodingerContractConstants.DefaultMaxWeight,
                 "Invalid weight.");
             SetTraitValues(tick, traitType.Name, sourceAttributeSet.Values);
             traitTypeMap.Data.Add(traitType);
         }
+        State.TraitTypeTotalWeightsMap[tick] = weight;
     }
 
     /// <param name="tick"></param>
@@ -232,7 +234,7 @@ public partial class SchrodingerContract
                 config?.AttributeMaxLength ?? SchrodingerContractConstants.DefaultAttributeMaxLength;
             Assert(!string.IsNullOrWhiteSpace(sourceTraitValue.Name), "Invalid trait type name.");
             Assert(sourceTraitValue.Name.Length <= attributeMaxLength, "Invalid trait type name length.");
-            Assert(weight >= 0 && weight <= SchrodingerContractConstants.DefaultMaxAttributeWeight, "Invalid weight.");
+            Assert(weight >= 0 && weight <= SchrodingerContractConstants.DefaultMaxWeight, "Invalid weight.");
             data.Add(sourceTraitValue);
         }
 
@@ -325,32 +327,38 @@ public partial class SchrodingerContract
         return inscription;
     }
 
-    private AttributeInfos ChangeAttributeSet(string tick, AttributeInfos traitTypes, AttributeInfos traitValues,
+    private AttributeInfos UpdateAttributeSet(string tick, AttributeInfos traitTypes, AttributeInfos traitValues,
         AttributeInfo toAddTraitType, AttributeInfos toAddTraitValues, out AttributeInfo toRemove,
         bool isRandom = false)
     {
         toRemove = null;
         var traitTypeName = toAddTraitType.Name;
+        var weight = State.TraitTypeTotalWeightsMap[tick];
         if (traitValues != null)
         {
+            // trait type exist
             if (toAddTraitValues == null || toAddTraitValues.Data.Count <= 0)
             {
+                // remove trait type
                 State.TraitValueMap[tick].Remove(traitTypeName);
                 foreach (var traitType in traitTypes.Data)
                 {
                     if (traitType.Name != traitTypeName) continue;
                     traitTypes.Data.Remove(traitType);
                     toRemove = traitType;
+                    weight -= traitType.Weight;
                     break;
                 }
             }
             else
             {
+                // update trait values
                 SetTraitValues(tick, traitTypeName, toAddTraitValues);
             }
         }
         else
         {
+            // trait type not exist,add.
             if (isRandom)
             {
                 CheckTraitTypeRepeated(tick, traitTypeName);
@@ -358,10 +366,11 @@ public partial class SchrodingerContract
 
             CheckAttributeInfo(toAddTraitType);
             traitTypes.Data.Add(toAddTraitType);
+            weight += toAddTraitType.Weight;
             Assert(toAddTraitValues != null && toAddTraitValues.Data.Count > 0, "Invalid input trait values.");
             SetTraitValues(tick, traitTypeName, toAddTraitValues);
         }
-
+        State.TraitTypeTotalWeightsMap[tick] = weight;
         return traitTypes;
     }
 
@@ -393,11 +402,16 @@ public partial class SchrodingerContract
         Assert(fixedAttributeSets != null && randomAttributeSets != null, "Invalid input attribute list.");
         var fixedCount = CheckAndGetFixedAttributesCount<AttributeSet>(fixedAttributeSets);
         var randomCount = CheckAndGetRandomAttributesCount<AttributeSet>(randomAttributeSets);
+        CheckTraitTypeCount(fixedCount, randomCount);
+        CheckAttributeListDuplicate(fixedAttributeSets);
+        CheckAttributeListDuplicate(randomAttributeSets);
+    }
+
+    private void CheckTraitTypeCount(int fixedCount, int randomCount)
+    {
         var traitTypeMaxCount = State.Config?.Value?.TraitTypeMaxCount ??
                                 SchrodingerContractConstants.DefaultMaxAttributeTraitTypeCount;
         Assert(fixedCount.Add(randomCount) <= traitTypeMaxCount, "Fixed and random list exceed.");
-        CheckAttributeListDuplicate(fixedAttributeSets);
-        CheckAttributeListDuplicate(randomAttributeSets);
     }
 
     private int CheckAndGetFixedAttributesCount<T>(List<T> traitTypes)
@@ -438,13 +452,13 @@ public partial class SchrodingerContract
             State.Config?.Value?.AttributeMaxLength ?? SchrodingerContractConstants.DefaultAttributeMaxLength;
         Assert(IsStringValid(attributeInfo.Name), "Invalid trait type name.");
         Assert(attributeInfo.Name.Length <= attributeMaxLength, "Invalid trait type name length.");
-        CheckAttributeWeight(attributeInfo.Weight);
+        CheckWeight(attributeInfo.Weight);
     }
 
 
-    private void CheckAttributeWeight(long weight)
+    private void CheckWeight(long weight)
     {
-        Assert(weight >= 0 && weight <= SchrodingerContractConstants.DefaultMaxAttributeWeight, "Invalid weight.");
+        Assert(weight >= 0 && weight <= SchrodingerContractConstants.DefaultMaxWeight, "Invalid weight.");
     }
 
     // if attribute exists return true.
@@ -480,7 +494,7 @@ public partial class SchrodingerContract
         CheckAttributePerGen(input.AttributesPerGen, input.MaxGeneration);
         CheckImageSize(input.Image);
         CheckImageCount(input.ImageCount);
-        CheckCrossGenerationConfig(input.CrossGenerationConfig, input.MaxGeneration);
+        CheckAndSetCrossGenerationConfig(input.Tick,input.CrossGenerationConfig, input.MaxGeneration);
     }
 
     private void CheckRate(long lossRate, long commissionRate)
@@ -522,7 +536,7 @@ public partial class SchrodingerContract
         Assert(imageCount > 0 && imageCount <= maxImageCount, "Invalid image count.");
     }
 
-    private void CheckCrossGenerationConfig(CrossGenerationConfig crossGenerationConfig, int maxGen)
+    private void CheckAndSetCrossGenerationConfig(string tick,CrossGenerationConfig crossGenerationConfig, int maxGen)
     {
         Assert(crossGenerationConfig.Gen >= 0 && crossGenerationConfig.Gen <= maxGen,
             "Invalid cross generation config gen.");
@@ -530,6 +544,14 @@ public partial class SchrodingerContract
                crossGenerationConfig.CrossGenerationProbability <= SchrodingerContractConstants.Denominator,
             "Invalid cross generation probability.");
         Assert(crossGenerationConfig.Weights.Count == crossGenerationConfig.Gen, "Invalid cross generation weights.");
+        var totalWeights = 0L;
+        foreach (var weight in crossGenerationConfig.Weights)
+        {
+            CheckWeight(weight);
+            totalWeights += weight;
+        }
+
+        State.GenTotalWeightsMap[tick] = totalWeights;
     }
 
     #endregion
