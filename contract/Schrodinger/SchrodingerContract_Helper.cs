@@ -191,21 +191,26 @@ public partial class SchrodingerContract
     private void SetAttributeSet(string tick, AttributeInfos traitTypeMap,
         List<AttributeSet> sourceAttributeSets, bool isRandom = false)
     {
+        var fixedTraitTypeMap = State.FixedTraitTypeMap[tick]?.Data;
+        var config = State.Config?.Value;
         foreach (var sourceAttributeSet in sourceAttributeSets)
         {
             var traitType = sourceAttributeSet.TraitType;
             if (isRandom)
             {
-                CheckTraitTypeExist(tick, traitType.Name);
+                foreach (var fixedTraitType in fixedTraitTypeMap)
+                {
+                    Assert(fixedTraitType.Name != traitType.Name, "Trait type repeated.");
+                }
             }
 
-            var attributeMaxLength = State.Config?.Value.AttributeMaxLength ??
+            var attributeMaxLength = config?.AttributeMaxLength ??
                                      SchrodingerContractConstants.DefaultAttributeMaxLength;
             Assert(!string.IsNullOrWhiteSpace(traitType.Name), "Invalid trait type name.");
             Assert(traitType.Name.Length <= attributeMaxLength, "Invalid trait type name length.");
             Assert(traitType.Weight >= 0 && traitType.Weight <= SchrodingerContractConstants.DefaultMaxWeight,
                 "Invalid weight.");
-            SetTraitValues(tick, traitType.Name, sourceAttributeSet.Values);
+            SetTraitValues(tick, traitType.Name, sourceAttributeSet.Values, config);
             traitTypeMap.Data.Add(traitType);
         }
     }
@@ -214,7 +219,7 @@ public partial class SchrodingerContract
     /// <param name="traitTypeName"></param>
     /// <param name="sourceTraitValues"> input trait values</param>
     /// <returns>after changed,example remove duplicates</returns>
-    private void SetTraitValues(string tick, string traitTypeName, AttributeInfos sourceTraitValues)
+    private void SetTraitValues(string tick, string traitTypeName, AttributeInfos sourceTraitValues, Config config)
     {
         Assert(sourceTraitValues != null && sourceTraitValues.Data.Count > 0, "Invalid attribute trait values.");
         var uniqueSet = new HashSet<string>();
@@ -222,7 +227,6 @@ public partial class SchrodingerContract
         traitValueMap.Data.Clear();
         var data = traitValueMap.Data.ToList();
         var weight = 0L;
-        var config = State.Config?.Value;
         foreach (var sourceTraitValue in sourceTraitValues.Data)
         {
             weight += sourceTraitValue.Weight;
@@ -243,77 +247,6 @@ public partial class SchrodingerContract
         State.TraitValueTotalWeightsMap[tick][traitTypeName] = weight;
     }
 
-    private AttributesSet GetRemovedAttributes(bool isRandom, AttributeInfo toRemove, AttributeInfos traitValue)
-    {
-        var logEvent = new AttributesSet();
-        if (isRandom)
-        {
-            logEvent.RemovedRandomAttributes = new AttributeSets
-            {
-                Data =
-                {
-                    new AttributeSet
-                    {
-                        TraitType = toRemove,
-                        Values = traitValue
-                    }
-                }
-            };
-        }
-        else
-        {
-            logEvent.RemovedFixedAttributes = new AttributeSets
-            {
-                Data =
-                {
-                    new AttributeSet
-                    {
-                        TraitType = toRemove,
-                        Values = traitValue
-                    }
-                }
-            };
-        }
-
-        return logEvent;
-    }
-
-    private AttributesSet GetAddedAttributes(bool isRandom, AttributeInfo traitType,
-        AttributeInfos traitValue)
-    {
-        var logEvent = new AttributesSet();
-        if (isRandom)
-        {
-            logEvent.AddedRandomAttributes = new AttributeSets
-            {
-                Data =
-                {
-                    new AttributeSet
-                    {
-                        TraitType = traitType,
-                        Values = traitValue
-                    }
-                }
-            };
-        }
-        else
-        {
-            logEvent.AddedFixedAttributes = new AttributeSets
-            {
-                Data =
-                {
-                    new AttributeSet
-                    {
-                        TraitType = traitType,
-                        Values = traitValue
-                    }
-                }
-            };
-        }
-
-        return logEvent;
-    }
-
     private InscriptionInfo CheckParamsAndGetInscription(SetAttributesInput input)
     {
         Assert(IsStringValid(input.Tick), "Invalid input.");
@@ -329,6 +262,7 @@ public partial class SchrodingerContract
         bool isRandom = false)
     {
         toRemove = null;
+        var config = State.Config?.Value;
         var traitTypeName = toAddTraitType.Name;
         if (traitValues != null)
         {
@@ -348,7 +282,7 @@ public partial class SchrodingerContract
             else
             {
                 // update trait values
-                SetTraitValues(tick, traitTypeName, toAddTraitValues);
+                SetTraitValues(tick, traitTypeName, toAddTraitValues, config);
             }
         }
         else
@@ -362,7 +296,7 @@ public partial class SchrodingerContract
             CheckAttributeInfo(toAddTraitType);
             traitTypes.Data.Add(toAddTraitType);
             Assert(toAddTraitValues != null && toAddTraitValues.Data.Count > 0, "Invalid input trait values.");
-            SetTraitValues(tick, traitTypeName, toAddTraitValues);
+            SetTraitValues(tick, traitTypeName, toAddTraitValues, config);
         }
 
         return traitTypes;
@@ -394,9 +328,16 @@ public partial class SchrodingerContract
         List<AttributeSet> randomAttributeSets)
     {
         Assert(fixedAttributeSets != null && randomAttributeSets != null, "Invalid input attribute list.");
-        var fixedCount = CheckAndGetFixedAttributesCount<AttributeSet>(fixedAttributeSets);
-        var randomCount = CheckAndGetRandomAttributesCount<AttributeSet>(randomAttributeSets);
-        CheckTraitTypeCount(fixedCount, randomCount);
+        var fixedCount = fixedAttributeSets.Count;
+        var randomCount = randomAttributeSets.Count;
+        var config = State.Config?.Value;
+        var traitTypeMaxCount = config?.TraitTypeMaxCount ??
+                                SchrodingerContractConstants.DefaultMaxAttributeTraitTypeCount;
+        var fixedTraitTypeMaxCount = config?.FixedTraitTypeMaxCount ??
+                                     SchrodingerContractConstants.DefaultFixedTraitTypeMaxCount;
+        Assert(fixedCount > 0 && fixedCount <= fixedTraitTypeMaxCount, "Invalid input fixed attribute list count.");
+        Assert(randomCount > 0, "Invalid input random attribute list count.");
+        Assert(fixedCount.Add(randomCount) <= traitTypeMaxCount, "Fixed and random list exceed.");
         CheckAttributeListDuplicate(fixedAttributeSets);
         CheckAttributeListDuplicate(randomAttributeSets);
     }

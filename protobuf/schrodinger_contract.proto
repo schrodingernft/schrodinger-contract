@@ -379,15 +379,6 @@ message RandomAttributeSet {
   AttributeSet added_attribute = 3;
 }
 
-message AttributesSet {
-  option (aelf.is_event) = true;
-  string tick = 1;
-  AttributeSets removed_fixed_attributes = 2;
-  AttributeSets added_fixed_attributes = 3;
-  AttributeSets removed_random_attributes = 4;
-  AttributeSets added_random_attributes = 5;
-}
-
 message AttributesPerGenerationSet {
   option (aelf.is_event) = true;
   string tick = 1;

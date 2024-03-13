@@ -206,9 +206,9 @@ public partial class SchrodingerContractTests
         attributeList.FixedAttributes[3].Values.Data[2].Name.ShouldBe("Zombie");
         attributeList.FixedAttributes[3].Values.Data[2].Weight.ShouldBe(95);
         
-        var log = GetLogEvent<AttributesSet>(result.TransactionResult);
-        log.AddedFixedAttributes.Data.Count.ShouldBe(1);
-
+        var log = GetLogEvent<FixedAttributeSet>(result.TransactionResult);
+        log.AddedAttribute.TraitType.Name.ShouldBe("Breed");
+        log.AddedAttribute.Values.Data.Count.ShouldBe(3);
     }
     
     [Fact]
@@ -216,7 +216,7 @@ public partial class SchrodingerContractTests
     {
         await DeployTest();
         var attribute = GetRandomAttributeLists();
-        await SchrodingerContractStub.SetRandomAttributes.SendAsync(new SetAttributesInput
+        var result = await SchrodingerContractStub.SetRandomAttributes.SendAsync(new SetAttributesInput
         {
             Tick = _tick,
             AttributeSet = attribute
@@ -236,13 +236,17 @@ public partial class SchrodingerContractTests
         attributeList.RandomAttributes[4].Values.Data[1].Weight.ShouldBe(10);
         attributeList.RandomAttributes[4].Values.Data[2].Name.ShouldBe("Brogues");
         attributeList.RandomAttributes[4].Values.Data[2].Weight.ShouldBe(9);
+        
+        var log = GetLogEvent<RandomAttributeSet>(result.TransactionResult);
+        log.AddedAttribute.TraitType.Name.ShouldBe("Shoes");
+        log.AddedAttribute.Values.Data.Count.ShouldBe(3);
     }
     
     [Fact]
     public async Task SetFixedAttributeListTest_Remove()
     {
         await DeployTest();
-        await SchrodingerContractStub.SetFixedAttributes.SendAsync(new SetAttributesInput
+        var result = await SchrodingerContractStub.SetFixedAttributes.SendAsync(new SetAttributesInput
         {
             Tick = _tick,
             AttributeSet = new AttributeSet
@@ -266,6 +270,10 @@ public partial class SchrodingerContractTests
         attributeList.FixedAttributes[1].Values.Data[1].Weight.ShouldBe(10);
         attributeList.FixedAttributes[1].Values.Data[2].Name.ShouldBe("Medium");
         attributeList.FixedAttributes[1].Values.Data[2].Weight.ShouldBe(9);
+        
+        var log = GetLogEvent<FixedAttributeSet>(result.TransactionResult);
+        log.RemovedAttribute.TraitType.Name.ShouldBe("Clothes");
+        log.RemovedAttribute.Values.ShouldBeNull();
     }
     
     [Fact]
