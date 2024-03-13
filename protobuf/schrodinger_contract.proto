@@ -15,7 +15,6 @@ service SchrodingerContract {
 
   // core
   rpc Initialize(InitializeInput) returns (google.protobuf.Empty) {}
-  rpc DeployCollection (DeployCollectionInput) returns (google.protobuf.Empty) {}
   rpc Deploy (DeployInput) returns (google.protobuf.Empty) {}
   rpc Adopt (AdoptInput) returns (google.protobuf.Empty) {}
   rpc Confirm (ConfirmInput) returns (google.protobuf.Empty) {}
@@ -70,12 +69,6 @@ message InitializeInput {
   int64 attribute_max_length = 9;
   aelf.Address signatory = 10;                // eoa address of server
   int32 max_attributes_per_gen = 11;
-}
-
-message DeployCollectionInput {
-  string tick = 1;
-  string image = 2;
-  string seed_symbol = 3;
 }
 
 message DeployInput {
@@ -270,6 +263,7 @@ message SetAttributeConfigInput {
   int64 trait_value_max_count = 2;
   int64 attribute_max_length = 3;
   int32 max_attributes_per_gen = 4;
+  int64 fixed_trait_type_max_count = 5;
 }
 
 message Config {
@@ -441,6 +435,7 @@ message AttributeConfigSet {
   int64 trait_value_max_count = 2;
   int64 attribute_max_length = 3;
   int32 max_attributes_per_gen = 4;
+  int64 fixed_trait_type_max_count = 5;
 }
 
 message SignatoryConfigSet {

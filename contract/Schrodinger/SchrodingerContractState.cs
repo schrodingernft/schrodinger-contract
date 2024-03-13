@@ -33,6 +33,7 @@ public partial class SchrodingerContractState : ContractState
 
     // tick -> trait type -> value weights
     public MappedState<string, string, long> TraitValueTotalWeightsMap { get; set; }
+    public MappedState<string, long> GenTotalWeightsMap { get; set; }
 
     // config
     public SingletonState<Config> Config { get; set; }
@@ -40,9 +41,4 @@ public partial class SchrodingerContractState : ContractState
     // point contract
     public MappedState<Address, bool> JoinRecord { get; set; }
     public SingletonState<Hash> PointsContractDAppId { get; set; }
-
-    // tick -> trait type -> weights
-    public MappedState<string, string, long> AttributeTotalWeightsMap { get; set; }
-
-    public MappedState<string, long> GenTotalWeightsMap { get; set; }
 }

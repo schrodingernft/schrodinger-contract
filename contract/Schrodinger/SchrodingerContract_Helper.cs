@@ -7,7 +7,6 @@ using AElf.CSharp.Core;
 using AElf.Sdk.CSharp;
 using AElf.Types;
 using Google.Protobuf;
-using Google.Protobuf.Collections;
 
 namespace Schrodinger;
 
@@ -240,7 +239,7 @@ public partial class SchrodingerContract
         Assert(count > 0 && count <= maxTraitValueCount, "Invalid attribute trait values count.");
         traitValueMap.Data.AddRange(data);
         State.TraitValueMap[tick][traitTypeName] = traitValueMap;
-        State.AttributeTotalWeightsMap[tick][traitTypeName] = weight;
+        State.TraitValueTotalWeightsMap[tick][traitTypeName] = weight;
     }
 
     private AttributesSet GetRemovedAttributes(bool isRandom, AttributeInfo toRemove, AttributeInfos traitValue)
@@ -364,6 +363,7 @@ public partial class SchrodingerContract
             Assert(toAddTraitValues != null && toAddTraitValues.Data.Count > 0, "Invalid input trait values.");
             SetTraitValues(tick, traitTypeName, toAddTraitValues);
         }
+
         return traitTypes;
     }
 
@@ -487,7 +487,7 @@ public partial class SchrodingerContract
         CheckAttributePerGen(input.AttributesPerGen, input.MaxGeneration);
         CheckImageSize(input.Image);
         CheckImageCount(input.ImageCount);
-        CheckAndSetCrossGenerationConfig(input.Tick,input.CrossGenerationConfig, input.MaxGeneration);
+        CheckAndSetCrossGenerationConfig(input.Tick, input.CrossGenerationConfig, input.MaxGeneration);
     }
 
     private void CheckRate(long lossRate, long commissionRate)
@@ -529,7 +529,7 @@ public partial class SchrodingerContract
         Assert(imageCount > 0 && imageCount <= maxImageCount, "Invalid image count.");
     }
 
-    private void CheckAndSetCrossGenerationConfig(string tick,CrossGenerationConfig crossGenerationConfig, int maxGen)
+    private void CheckAndSetCrossGenerationConfig(string tick, CrossGenerationConfig crossGenerationConfig, int maxGen)
     {
         Assert(crossGenerationConfig.Gen >= 0 && crossGenerationConfig.Gen <= maxGen,
             "Invalid cross generation config gen.");

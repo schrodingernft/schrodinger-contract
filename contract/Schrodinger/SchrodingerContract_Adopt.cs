@@ -283,7 +283,7 @@ public partial class SchrodingerContract
 
         // select trait types randomly
         var randomTraitTypes = GetRandomItems(randomHash, nameof(GenerateAttributes),
-            GenerateItemsWithWeight(traitTypes), amount, State.TraitTypeTotalWeightsMap[tick]);
+            GenerateItemsWithWeight(traitTypes), amount, 0);
 
         // select trait values randomly
         attributes.Data.AddRange(randomTraitTypes.Select(t => new Attribute
