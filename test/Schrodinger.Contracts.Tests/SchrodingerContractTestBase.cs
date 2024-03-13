@@ -47,7 +47,7 @@ public class SchrodingerContractTestBase : DAppContractTestBase<SchrodingerContr
 
         ZeroContractStub = GetContractStub<ACS0Container.ACS0Stub>(BasicContractZeroAddress, DefaultKeyPair);
 
-        var code = System.IO.File.ReadAllBytes(typeof(SchrodingerMainContract).Assembly.Location);
+        var code = File.ReadAllBytes(typeof(SchrodingerMainContract).Assembly.Location);
         var contractOperation = new ContractOperation
         {
             ChainId = 9992731,
@@ -67,9 +67,9 @@ public class SchrodingerContractTestBase : DAppContractTestBase<SchrodingerContr
             }));
 
         SchrodingerContractAddress = Address.Parser.ParseFrom(result.TransactionResult.ReturnValue);
-        SchrodingerMainContractStub = GetContractStub<SchrodingerMainContractContainer.SchrodingerMainContractStub>(SchrodingerContractAddress,
-            DefaultKeyPair);
-        
+        SchrodingerMainContractStub = GetContractStub<SchrodingerMainContractContainer.SchrodingerMainContractStub>(
+            SchrodingerContractAddress, DefaultKeyPair);
+
         TokenContractStub =
             GetContractStub<TokenContractContainer.TokenContractStub>(TokenContractAddress, DefaultKeyPair);
         TokenContractUserStub =
@@ -98,10 +98,10 @@ public class SchrodingerContractTestBase : DAppContractTestBase<SchrodingerContr
         var signature = CryptoHelper.SignWithPrivateKey(privateKey, dataHash.ToByteArray());
         return ByteStringHelper.FromHexString(signature.ToHex());
     }
-    
+
     internal async Task UpdateContract()
     {
-        var code = await System.IO.File.ReadAllBytesAsync(typeof(SchrodingerContract).Assembly.Location);
+        var code = await File.ReadAllBytesAsync(typeof(SchrodingerContract).Assembly.Location);
         var contractOperation = new ContractOperation
         {
             ChainId = 9992731,
@@ -111,7 +111,7 @@ public class SchrodingerContractTestBase : DAppContractTestBase<SchrodingerContr
             Version = 2
         };
         contractOperation.Signature = GenerateContractSignature(DefaultKeyPair.PrivateKey, contractOperation);
-        
+
         var file = await File.ReadAllBytesAsync(typeof(SchrodingerContract).Assembly.Location);
         await ZeroContractStub.UpdateSmartContract.SendAsync(new ContractUpdateInput
         {
@@ -119,7 +119,7 @@ public class SchrodingerContractTestBase : DAppContractTestBase<SchrodingerContr
             Address = SchrodingerContractAddress,
             ContractOperation = contractOperation
         });
-        
+
         SchrodingerContractStub =
             GetContractStub<SchrodingerContractContainer.SchrodingerContractStub>(SchrodingerContractAddress,
                 DefaultKeyPair);

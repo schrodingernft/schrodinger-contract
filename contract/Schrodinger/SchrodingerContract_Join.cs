@@ -28,7 +28,7 @@ public partial class SchrodingerContract
         {
             return;
         }
-        
+
         if (State.JoinRecord[Context.Sender]) return;
 
         State.JoinRecord[Context.Sender] = true;
@@ -39,7 +39,7 @@ public partial class SchrodingerContract
             Domain = domain,
             Registrant = Context.Sender
         });
-        
+
         Context.Fire(new Joined
         {
             Domain = domain,

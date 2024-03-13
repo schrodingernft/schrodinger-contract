@@ -57,7 +57,7 @@ service SchrodingerContract {
   rpc GetPointsContract(google.protobuf.Empty) returns (aelf.Address) {}
 
   rpc Join(JoinInput) returns (google.protobuf.Empty) {}
-  rpc GetJoinRecord (aelf.Address) returns (google.protobuf.BoolValue){  option (aelf.is_view) = true; }
+  rpc GetJoinRecord (aelf.Address) returns (google.protobuf.BoolValue){option (aelf.is_view) = true;}
 }
 
 message JoinInput {

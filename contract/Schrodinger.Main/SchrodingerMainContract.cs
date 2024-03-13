@@ -9,7 +9,7 @@ using SchrodingerMain;
 
 namespace Schrodinger.Main;
 
-public partial class SchrodingerMainContract : SchrodingerMainContractContainer.SchrodingerMainContractBase
+public class SchrodingerMainContract : SchrodingerMainContractContainer.SchrodingerMainContractBase
 {
     public override Empty Initialize(InitializeInput input)
     {

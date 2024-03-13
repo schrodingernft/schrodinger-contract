@@ -1,7 +1,5 @@
-using System.Collections.Generic;
 using System.Linq;
 using AElf.Sdk.CSharp;
-using Google.Protobuf.Collections;
 using Google.Protobuf.WellKnownTypes;
 
 namespace Schrodinger;
@@ -21,7 +19,7 @@ public partial class SchrodingerContract
             out var toRemove);
         var fixCount = CheckAndGetFixedAttributesCount<AttributeInfo>(traitTypes.Data.ToList());
         CheckTraitTypeCount(fixCount, State.RandomTraitTypeMap[input.Tick]?.Data.Count ?? 0);
-        FireFixedAttributeSetLogEvent(toRemove,input.AttributeSet);
+        FireFixedAttributeSetLogEvent(toRemove, input.AttributeSet);
         return new Empty();
     }
 
@@ -40,14 +38,14 @@ public partial class SchrodingerContract
         var randomCount = CheckAndGetRandomAttributesCount<AttributeInfo>(list);
         CheckRandomAttributeList(list, inscription.MaxGen, inscription.AttributesPerGen);
         CheckTraitTypeCount(State.FixedTraitTypeMap[input.Tick]?.Data.Count ?? 0, randomCount);
-        FireRandomAttributeSetLogEvent(toRemove,input.AttributeSet);
+        FireRandomAttributeSetLogEvent(toRemove, input.AttributeSet);
         return new Empty();
     }
 
-    private void FireRandomAttributeSetLogEvent(AttributeInfo toRemove,AttributeSet attributeSet)
+    private void FireRandomAttributeSetLogEvent(AttributeInfo toRemove, AttributeSet attributeSet)
     {
         var logEvent = new RandomAttributeSet();
-        if (toRemove != null) 
+        if (toRemove != null)
         {
             logEvent.RemovedAttribute = new AttributeSet
             {
@@ -58,10 +56,11 @@ public partial class SchrodingerContract
         {
             logEvent.AddedAttribute = attributeSet;
         }
+
         Context.Fire(logEvent);
     }
-    
-    private void FireFixedAttributeSetLogEvent(AttributeInfo toRemove,AttributeSet attributeSet)
+
+    private void FireFixedAttributeSetLogEvent(AttributeInfo toRemove, AttributeSet attributeSet)
     {
         var logEvent = new FixedAttributeSet();
         if (toRemove != null)
@@ -75,6 +74,7 @@ public partial class SchrodingerContract
         {
             logEvent.AddedAttribute = attributeSet;
         }
+
         Context.Fire(logEvent);
     }
 

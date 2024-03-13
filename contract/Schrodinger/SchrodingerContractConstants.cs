@@ -7,7 +7,6 @@ public static class SchrodingerContractConstants
     public const string AncestorSymbolSuffix = "1";
     public const char Separator = '-';
     public const string TokenNameSuffix = "GEN";
-    public const string AncestorNameSuffix = "GEN0";
     public const int DefaultSymbolIndexStart = 2;
     public const string AncestorGen = "0";
 
@@ -32,10 +31,7 @@ public static class SchrodingerContractConstants
     public const int DefaultMaxAttributePerGen = 1;
     public const int DefaultMaxAttributeTraitTypeCount = 50;
     public const int DefaultFixedTraitTypeMaxCount = 5;
-
-    public const string ELFSymbol = "ELF";
-
+    
     // math
-    public const long Hundred = 100;
     public const long Denominator = 10000;
 }

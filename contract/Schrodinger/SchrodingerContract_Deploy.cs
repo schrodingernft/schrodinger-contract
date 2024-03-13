@@ -26,7 +26,8 @@ public partial class SchrodingerContract
             AttributesPerGen = input.AttributesPerGen
         };
         State.InscriptionInfoMap[tick] = inscription;
-        var attributeList = SetAttributeList(tick, inscription.MaxGen, input.AttributeLists, inscription.AttributesPerGen);
+        var attributeList =
+            SetAttributeList(tick, inscription.MaxGen, input.AttributeLists, inscription.AttributesPerGen);
         // Generate external info
         var externalInfo = GenerateExternalInfo(tick, input.Image, input.TotalSupply);
         CreateInscription(tick, inscription.Decimals, input.TotalSupply, externalInfo, input.Issuer);

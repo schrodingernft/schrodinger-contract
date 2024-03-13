@@ -1,14 +1,8 @@
 using System.Collections.Generic;
-using System.IO;
 using System.Threading.Tasks;
 using AElf;
 using AElf.Contracts.MultiToken;
-using AElf.Standards.ACS0;
-using AElf.Types;
-using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
-using Schrodinger.Main;
-using SchrodingerMain;
 using Shouldly;
 using Xunit;
 
@@ -32,7 +26,7 @@ public partial class SchrodingerContractTests
             ImageMaxSize = 10240
         });
     }
-    
+
     private async Task Initialize()
     {
         await UpdateContract();
@@ -64,7 +58,7 @@ public partial class SchrodingerContractTests
             Signatory = DefaultAddress,
             FixedTraitTypeMaxCount = 5
         });
-        
+
         await SchrodingerContractStub.SetPointsContract.SendAsync(TestPointsContractAddress);
         await SchrodingerContractStub.SetPointsContractDAppId.SendAsync(HashHelper.ComputeFrom("PointsContractDappId"));
     }
@@ -74,7 +68,7 @@ public partial class SchrodingerContractTests
     {
         await InitializeSchrodingerMain();
         await BuySeed();
-        
+
         await SchrodingerMainContractStub.Deploy.SendAsync(new SchrodingerMain.DeployInput
         {
             Tick = _tick,
@@ -84,7 +78,7 @@ public partial class SchrodingerContractTests
             Decimals = 0,
             IssueChainId = _mainChainId
         });
-        
+
         var tokenInfo = await TokenContractStub.GetTokenInfo.CallAsync(new GetTokenInfoInput
         {
             Symbol = $"{_tick}-0"
@@ -92,7 +86,7 @@ public partial class SchrodingerContractTests
         tokenInfo.Symbol.ShouldBe($"{_tick}-0");
         tokenInfo.Owner.ShouldBe(SchrodingerContractAddress);
     }
-    
+
     [Fact]
     public async Task DeployTest()
     {
@@ -205,12 +199,12 @@ public partial class SchrodingerContractTests
         attributeList.FixedAttributes[3].Values.Data[1].Weight.ShouldBe(95);
         attributeList.FixedAttributes[3].Values.Data[2].Name.ShouldBe("Zombie");
         attributeList.FixedAttributes[3].Values.Data[2].Weight.ShouldBe(95);
-        
+
         var log = GetLogEvent<FixedAttributeSet>(result.TransactionResult);
         log.AddedAttribute.TraitType.Name.ShouldBe("Breed");
         log.AddedAttribute.Values.Data.Count.ShouldBe(3);
     }
-    
+
     [Fact]
     public async Task SetRandomAttributeListTest()
     {
@@ -236,12 +230,12 @@ public partial class SchrodingerContractTests
         attributeList.RandomAttributes[4].Values.Data[1].Weight.ShouldBe(10);
         attributeList.RandomAttributes[4].Values.Data[2].Name.ShouldBe("Brogues");
         attributeList.RandomAttributes[4].Values.Data[2].Weight.ShouldBe(9);
-        
+
         var log = GetLogEvent<RandomAttributeSet>(result.TransactionResult);
         log.AddedAttribute.TraitType.Name.ShouldBe("Shoes");
         log.AddedAttribute.Values.Data.Count.ShouldBe(3);
     }
-    
+
     [Fact]
     public async Task SetFixedAttributeListTest_Remove()
     {
@@ -270,12 +264,12 @@ public partial class SchrodingerContractTests
         attributeList.FixedAttributes[1].Values.Data[1].Weight.ShouldBe(10);
         attributeList.FixedAttributes[1].Values.Data[2].Name.ShouldBe("Medium");
         attributeList.FixedAttributes[1].Values.Data[2].Weight.ShouldBe(9);
-        
+
         var log = GetLogEvent<FixedAttributeSet>(result.TransactionResult);
         log.RemovedAttribute.TraitType.Name.ShouldBe("Clothes");
         log.RemovedAttribute.Values.ShouldBeNull();
     }
-    
+
     [Fact]
     public async Task SetFixedAttributeListTest_Update()
     {
@@ -315,7 +309,7 @@ public partial class SchrodingerContractTests
         attributeList.FixedAttributes[2].Values.Data[2].Name.ShouldBe("Zombie");
         attributeList.FixedAttributes[2].Values.Data[2].Weight.ShouldBe(95);
     }
-    
+
     // [Fact]
     // public async Task SetAttributeList_Remove_Test()
     // {
@@ -360,5 +354,4 @@ public partial class SchrodingerContractTests
     //     attributeList.RandomAttributes[2].Values.Data[2].Name.ShouldBe("Brogues");
     //     attributeList.RandomAttributes[2].Values.Data[2].Weight.ShouldBe(60);
     // }
-    
 }

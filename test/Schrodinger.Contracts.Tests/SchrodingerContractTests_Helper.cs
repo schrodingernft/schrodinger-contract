@@ -46,7 +46,7 @@ public partial class SchrodingerContractTests
 
         return output.Balance;
     }
-    
+
     private async Task BuySeed()
     {
         await TokenContractStub.Create.SendAsync(new CreateInput
@@ -111,6 +111,7 @@ public partial class SchrodingerContractTests
     }
 
     #region Attribute
+
     private AttributeLists GetAttributeLists()
     {
         var traitValues1 = new List<AttributeInfo>
@@ -251,7 +252,7 @@ public partial class SchrodingerContractTests
             RandomAttributes = { randomAttributes }
         };
     }
-    
+
     private AttributeLists GetAttributeLists_remove_duplicated_values()
     {
         var traitValues1 = new List<AttributeInfo>
@@ -260,7 +261,6 @@ public partial class SchrodingerContractTests
             new AttributeInfo { Name = "Ape", Weight = 20 },
             new AttributeInfo { Name = "Zombie", Weight = 95 },
             new AttributeInfo { Name = "Ape", Weight = 35 },
-
         };
         var traitValues2 = new List<AttributeInfo>
         {
@@ -268,7 +268,6 @@ public partial class SchrodingerContractTests
             new AttributeInfo { Name = "Clogs", Weight = 10 },
             new AttributeInfo { Name = "Brogues", Weight = 60 },
             new AttributeInfo { Name = "Brogues", Weight = 10 }
-
         };
         var fixedAttributes = new List<AttributeSet>()
         {
@@ -322,7 +321,7 @@ public partial class SchrodingerContractTests
             RandomAttributes = { randomAttributes }
         };
     }
-    
+
     private AttributeLists GetAttributeLists_other()
     {
         var traitValues1 = new List<AttributeInfo>
@@ -373,7 +372,7 @@ public partial class SchrodingerContractTests
             RandomAttributes = { randomAttributes }
         };
     }
-    
+
     private AttributeSet GetFixedAttributeLists()
     {
         var traitValues1 = new List<AttributeInfo>
@@ -397,7 +396,7 @@ public partial class SchrodingerContractTests
             };
         return fixedAttributes;
     }
-    
+
     private AttributeSet GetRandomAttributeLists()
     {
         var traitValues2 = new List<AttributeInfo>
@@ -421,5 +420,6 @@ public partial class SchrodingerContractTests
             };
         return randomAttributes;
     }
+
     #endregion
 }
