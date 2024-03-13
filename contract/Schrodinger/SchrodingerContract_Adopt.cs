@@ -202,7 +202,7 @@ public partial class SchrodingerContract
 
         var selected =
             int.TryParse(
-                GetRandomItems(randomHash, nameof(GenerateGen), gens, 1, State.GenTotalWeightsMap[tick])
+                GetRandomItems(randomHash, nameof(GenerateGen), gens, 1, 0)
                     .FirstOrDefault(), out var gen);
 
         var result = parentGen.Add(selected ? gen : 0);
@@ -231,9 +231,11 @@ public partial class SchrodingerContract
             totalWeights = items.Select(i => i.Weight).Sum();
         }
 
+        var hash = CalculateRandomHash(randomHash, seed);
+
         while (selectedItems.Count < count && items.Count > 0)
         {
-            var random = Context.ConvertHashToInt64(CalculateRandomHash(randomHash, seed), 1, totalWeights);
+            var random = Context.ConvertHashToInt64(hash, 1, totalWeights);
             var sum = 0L;
             for (var i = 0; i < items.Count; i++)
             {

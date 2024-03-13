@@ -6,7 +6,7 @@ public static class SchrodingerContractConstants
     public const string CollectionSymbolSuffix = "0";
     public const string AncestorSymbolSuffix = "1";
     public const char Separator = '-';
-    public const string TokenNameSuffix = "GEN-";
+    public const string TokenNameSuffix = "GEN";
     public const string AncestorNameSuffix = "GEN0";
     public const int DefaultSymbolIndexStart = 2;
 
