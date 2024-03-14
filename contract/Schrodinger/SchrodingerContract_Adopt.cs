@@ -120,12 +120,12 @@ public partial class SchrodingerContract
     {
         // calculate amount
         lossAmount = inputAmount.Mul(inscriptionInfo.LossRate).Div(SchrodingerContractConstants.Denominator);
-        if (lossAmount == 0) lossAmount = lossAmount.Add(1);
+        if (lossAmount == 0 && inscriptionInfo.LossRate != 0) lossAmount = lossAmount.Add(1);
 
         outputAmount = inputAmount.Sub(lossAmount);
 
         commissionAmount = lossAmount.Mul(inscriptionInfo.CommissionRate).Div(SchrodingerContractConstants.Denominator);
-        if (commissionAmount == 0) commissionAmount++;
+        if (commissionAmount == 0 && inscriptionInfo.CommissionRate != 0) commissionAmount = commissionAmount.Add(1);
 
         lossAmount = lossAmount.Sub(commissionAmount);
     }
