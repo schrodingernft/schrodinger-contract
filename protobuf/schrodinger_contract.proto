@@ -99,6 +99,7 @@ message DeployInput {
   int32 attributes_per_gen = 15;
   string domain = 16;
   aelf.Address signatory = 17;
+  string image_uri = 18;
 }
 
 message DeployInscriptionInfo {
@@ -188,6 +189,7 @@ message Attribute {
 message ConfirmInput {
   aelf.Hash adopt_id = 1;
   string image = 2;           // base64
+  string image_uri = 3;
   bytes signature = 10000;    // signed by server
 }
 
@@ -328,6 +330,8 @@ message Deployed {
   int64 loss_rate = 17;
   int64 commission_rate = 18;
   int32 attributes_per_gen = 19;
+  aelf.Address signatory = 20;
+  string image_uri = 21;
 }
 
 message Adopted {
@@ -364,6 +368,7 @@ message Confirmed {
   ExternalInfos external_infos = 11;
   string token_name = 12;
   aelf.Address deployer = 13;
+  string image_uri = 14;
 }
 
 message Rerolled {

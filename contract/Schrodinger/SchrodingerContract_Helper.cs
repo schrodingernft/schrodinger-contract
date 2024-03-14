@@ -62,12 +62,13 @@ public partial class SchrodingerContract
 
     #region Deploy
 
-    private ExternalInfo GenerateExternalInfo(string tick, string image, long totalSupply)
+    private ExternalInfo GenerateExternalInfo(string tick, string image, long totalSupply, string imageUri)
     {
         var externalInfo = new ExternalInfo();
         var dic = new Dictionary<string, string>
         {
-            [SchrodingerContractConstants.InscriptionImageKey] = image
+            [SchrodingerContractConstants.InscriptionImageKey] = image,
+            [SchrodingerContractConstants.InscriptionImageUriKey] = imageUri
         };
 
         var info = new DeployInscriptionInfo
@@ -432,6 +433,7 @@ public partial class SchrodingerContract
         CheckAndSetCrossGenerationConfig(input.Tick, input.CrossGenerationConfig, input.MaxGeneration);
         
         Assert(IsAddressValid(input.Signatory), "Invalid input signatory.");
+        Assert(IsStringValid(input.ImageUri), "Invalid input image uri.");
     }
 
     private void CheckRate(long lossRate, long commissionRate)

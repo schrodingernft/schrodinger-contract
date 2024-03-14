@@ -76,7 +76,8 @@ public partial class SchrodingerContractTests
             SeedSymbol = "SEED-1",
             TokenName = _tokenName,
             Decimals = 0,
-            IssueChainId = _mainChainId
+            IssueChainId = _mainChainId,
+            ImageUri = "uri"
         });
 
         var tokenInfo = await TokenContractStub.GetTokenInfo.CallAsync(new GetTokenInfoInput
@@ -107,11 +108,14 @@ public partial class SchrodingerContractTests
             TotalSupply = 21000000,
             CrossGenerationConfig = new CrossGenerationConfig
             {
-                Gen = 0,
+                Gen = 2,
                 CrossGenerationProbability = 10000,
-                IsWeightEnabled = false
+                IsWeightEnabled = true,
+                Weights = { 10, 10 },
+                CrossGenerationFixed = false
             },
-            Signatory = DefaultAddress
+            Signatory = DefaultAddress,
+            ImageUri = "uri"
         });
         var log = GetLogEvent<Deployed>(result.TransactionResult);
         var inscription = await SchrodingerContractStub.GetInscriptionInfo.CallAsync(new StringValue

@@ -38,6 +38,7 @@ public class SchrodingerMainContract : SchrodingerMainContractContainer.Schrodin
         Assert(!string.IsNullOrEmpty(input.Tick) && !string.IsNullOrEmpty(input.TokenName), "Invalid input.");
         Assert(input.Decimals >= 0, "Invalid input decimals.");
         Assert(input.IssueChainId > 0, "Invalid input issue chain id.");
+        Assert(IsStringValid(input.ImageUri), "Invalid input image uri.");
 
         CheckImageSize(input.Image);
 
@@ -48,7 +49,7 @@ public class SchrodingerMainContract : SchrodingerMainContractContainer.Schrodin
             To = Context.Self,
             Amount = 1,
         });
-        var externalInfo = GenerateExternalInfo(input.Tick, input.Image, input.IssueChainId);
+        var externalInfo = GenerateExternalInfo(input.Tick, input.Image, input.IssueChainId, input.ImageUri);
         CreateInscriptionCollection(input.Tick, externalInfo, input.TokenName, input.Decimals, input.IssueChainId);
         Context.Fire(new CollectionDeployed
         {
@@ -63,7 +64,8 @@ public class SchrodingerMainContract : SchrodingerMainContractContainer.Schrodin
             Issuer = Context.Sender,
             Owner = Context.Self,
             TokenName = input.TokenName,
-            Decimals = input.Decimals
+            Decimals = input.Decimals,
+            ImageUri = input.ImageUri
         });
         return new Empty();
     }
@@ -105,13 +107,14 @@ public class SchrodingerMainContract : SchrodingerMainContractContainer.Schrodin
             $"{tick}{SchrodingerMainContractConstants.Separator}{SchrodingerMainContractConstants.CollectionSymbolSuffix}";
     }
 
-    private ExternalInfo GenerateExternalInfo(string tick, string image, int issueChainId)
+    private ExternalInfo GenerateExternalInfo(string tick, string image, int issueChainId, string imageUri)
     {
         var externalInfo = new ExternalInfo();
         var dic = new Dictionary<string, string>
         {
             [SchrodingerMainContractConstants.InscriptionImageKey] = image,
-            [SchrodingerMainContractConstants.InscriptionCreateChainIdKey] = issueChainId.ToString()
+            [SchrodingerMainContractConstants.InscriptionCreateChainIdKey] = issueChainId.ToString(),
+            [SchrodingerMainContractConstants.InscriptionImageUriKey] = imageUri
         };
 
         var info = new DeployInscriptionInfo

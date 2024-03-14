@@ -14,6 +14,7 @@ public static class SchrodingerContractConstants
     public const string InscriptionDeployKey = "__inscription_deploy";
     public const string InscriptionAdoptKey = "__inscription_adopt";
     public const string InscriptionImageKey = "__inscription_image";
+    public const string InscriptionImageUriKey = "__nft_image_uri";
     public const string AttributesKey = "__nft_attributes";
     public const string InscriptionType = "aelf";
     public const string DeployOp = "deploy";
@@ -33,5 +34,6 @@ public static class SchrodingerContractConstants
     public const int DefaultFixedTraitTypeMaxCount = 5;
     
     // math
+    public const int Ten = 10;
     public const long Denominator = 10000;
 }

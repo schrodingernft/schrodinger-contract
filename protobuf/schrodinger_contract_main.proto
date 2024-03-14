@@ -34,6 +34,7 @@ message DeployInput {
   string token_name = 4;
   int32 decimals = 5;
   int32 issue_chain_id = 6;
+  string image_uri = 7;
 }
 
 message ExternalInfos {
@@ -60,4 +61,5 @@ message CollectionDeployed {
   aelf.Address deployer = 7;
   string token_name = 8;
   int32 decimals = 9;
+  string image_uri = 10;
 }

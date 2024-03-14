@@ -11,6 +11,7 @@ public static class SchrodingerMainContractConstants
     // external info
     public const string InscriptionDeployKey = "__inscription_deploy";
     public const string InscriptionImageKey = "__inscription_image";
+    public const string InscriptionImageUriKey = "__nft_image_uri";
     public const string InscriptionCreateChainIdKey = "__nft_create_chain_id";
     public const string InscriptionType = "aelf";
     public const string DeployOp = "deploy";
