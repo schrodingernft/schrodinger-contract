@@ -9,4 +9,5 @@ public partial class SchrodingerMainContractState : ContractState
     public SingletonState<bool> Initialized { get; set; }
     public SingletonState<Address> Admin { get; set; }
     public SingletonState<long> ImageMaxSize { get; set; }
+    public SingletonState<Address> SchrodingerContractAddress { get; set; }
 }
