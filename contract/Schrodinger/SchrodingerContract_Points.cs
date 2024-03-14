@@ -70,15 +70,15 @@ public partial class SchrodingerContract
 
     public override Empty BatchSettle(BatchSettleInput input)
     {
-        var userPointList = input.UserPointList.Select(userPoint => new Points.Contracts.Point.UserPoint
+        var userPointsList = input.UserPointsList.Select(userPoint => new Points.Contracts.Point.UserPoints
         {
-            UserAddress = userPoint.UserAddress, UserPoints = userPoint.UserPoints,
+            UserAddress = userPoint.UserAddress, UserPoints_ = userPoint.UserPoints_,
         }).ToList();
         State.PointsContract.BatchSettle.Send(new Points.Contracts.Point.BatchSettleInput
         {
             ActionName = input.ActionName,
             DappId = State.PointsContractDAppId.Value,
-            UserPointList = { userPointList }
+            UserPointsList = { userPointsList }
         });
         return new Empty();
     }
