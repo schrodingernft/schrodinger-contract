@@ -61,7 +61,7 @@ public partial class SchrodingerContract
         adoptInfo.TokenName = GenerateTokenName(adoptInfo.Symbol, adoptInfo.Gen);
 
         JoinPointsContract(input.Domain);
-        SettlePointsContract(nameof(Adopt));
+        SettlePoints(nameof(Adopt), adoptInfo.InputAmount, inscriptionInfo.Decimals);
 
         Context.Fire(new Adopted
         {
@@ -468,7 +468,7 @@ public partial class SchrodingerContract
             inscriptionInfo.Ancestor);
 
         JoinPointsContract(input.Domain);
-        SettlePointsContract(nameof(Reroll));
+        SettlePoints(nameof(Reroll), input.Amount, inscriptionInfo.Decimals);
 
         Context.Fire(new Rerolled
         {

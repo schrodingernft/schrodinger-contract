@@ -10,30 +10,32 @@ import "google/protobuf/timestamp.proto";
 option csharp_namespace = "Points.Contracts.Point";
 
 service PointsContract {
-  option (aelf.base) = "acs12.proto";
-  option (aelf.csharp_state) = "Points.Contracts.Point.PointsContractState";
+    option (aelf.base) = "acs12.proto";
+    option (aelf.csharp_state) = "Points.Contracts.Point.PointsContractState";
 
-  // Initialize.
-  rpc Initialize(InitializeInput) returns (google.protobuf.Empty) {}
-  rpc SetAdmin(aelf.Address) returns (google.protobuf.Empty) {}
-  rpc GetAdmin (google.protobuf.Empty) returns (aelf.Address){ option (aelf.is_view) = true; }
-  rpc SetReservedDomainList(SetReservedDomainListInput) returns (google.protobuf.Empty){}
-  rpc GetReservedDomainList(google.protobuf.Empty) returns (GetReservedDomainListOutput){option (aelf.is_view) = true;}
-  rpc CreatePoint(CreatePointInput) returns (google.protobuf.Empty) {}
-  rpc SetMaxApplyDomainCount(google.protobuf.Int32Value) returns (google.protobuf.Empty){}
-  
-  rpc Join(JoinInput) returns (google.protobuf.Empty) {}
-   rpc Settle(SettleInput) returns (google.protobuf.Empty) {}
-  rpc GetPointsBalance(GetPointsBalanceInput) returns (GetPointsBalanceOutput) { option (aelf.is_view) = true; }
-  // rpc SetDappInformation(SetDappInformationInput) returns (google.protobuf.Empty) {}
-  rpc AddDapp(AddDappInput) returns (google.protobuf.Empty) {}
-  rpc GetDappInformation(GetDappInformationInput) returns (GetDappInformationOutput) { option (aelf.is_view) = true; }
-  rpc SetDappPointsRules(SetDappPointsRulesInput) returns (google.protobuf.Empty) {}
-  rpc SetSelfIncreasingPointsRules(SetSelfIncreasingPointsRulesInput) returns (google.protobuf.Empty) {}
-  rpc GetSelfIncreasingPointsRule(GetSelfIncreasingPointsRuleInput) returns (GetSelfIncreasingPointsRuleOutput) { option (aelf.is_view) = true; }
-  rpc ApplyToBeAdvocate(ApplyToBeAdvocateInput) returns (google.protobuf.Empty) {}
-  rpc GetDomainApplyInfo(google.protobuf.StringValue) returns (DomainRelationshipInfo){option (aelf.is_view) = true;}
-  rpc GetMaxApplyCount(google.protobuf.Empty) returns (google.protobuf.Int32Value){option (aelf.is_view) = true;}
+    // Initialize.
+    rpc Initialize(InitializeInput) returns (google.protobuf.Empty) {}
+    rpc SetAdmin(aelf.Address) returns (google.protobuf.Empty) {}
+    rpc GetAdmin (google.protobuf.Empty) returns (aelf.Address){ option (aelf.is_view) = true; }
+    rpc SetReservedDomainList(SetReservedDomainListInput) returns (google.protobuf.Empty){}
+    rpc GetReservedDomainList(google.protobuf.Empty) returns (GetReservedDomainListOutput){option (aelf.is_view) = true;}
+    rpc CreatePoint(CreatePointInput) returns (google.protobuf.Empty) {}
+    rpc SetMaxApplyDomainCount(google.protobuf.Int32Value) returns (google.protobuf.Empty){}
+
+    rpc Join(JoinInput) returns (google.protobuf.Empty) {}
+    rpc Settle(SettleInput) returns (google.protobuf.Empty) {}
+    rpc BatchSettle(BatchSettleInput) returns (google.protobuf.Empty) {}
+
+    rpc GetPointsBalance(GetPointsBalanceInput) returns (GetPointsBalanceOutput) { option (aelf.is_view) = true; }
+    // rpc SetDappInformation(SetDappInformationInput) returns (google.protobuf.Empty) {}
+    rpc AddDapp(AddDappInput) returns (google.protobuf.Empty) {}
+    rpc GetDappInformation(GetDappInformationInput) returns (GetDappInformationOutput) { option (aelf.is_view) = true; }
+    rpc SetDappPointsRules(SetDappPointsRulesInput) returns (google.protobuf.Empty) {}
+    rpc SetSelfIncreasingPointsRules(SetSelfIncreasingPointsRulesInput) returns (google.protobuf.Empty) {}
+    rpc GetSelfIncreasingPointsRule(GetSelfIncreasingPointsRuleInput) returns (GetSelfIncreasingPointsRuleOutput) { option (aelf.is_view) = true; }
+    rpc ApplyToBeAdvocate(ApplyToBeAdvocateInput) returns (google.protobuf.Empty) {}
+    rpc GetDomainApplyInfo(google.protobuf.StringValue) returns (DomainRelationshipInfo){option (aelf.is_view) = true;}
+    rpc GetMaxApplyCount(google.protobuf.Empty) returns (google.protobuf.Int32Value){option (aelf.is_view) = true;}
 }
 
 // NEW
@@ -42,7 +44,7 @@ message InitializeInput {
 }
 
 message JoinInput {
-    aelf.Hash dapp_id = 1; 
+    aelf.Hash dapp_id = 1;
     string domain = 2; // 
     aelf.Address registrant = 3;
 }
@@ -68,9 +70,10 @@ message PointsRuleList {
 message PointsRule {
     string action_name = 1;
     string point_name = 2;
-    int64 user_points = 3; 
-    int64 kol_points = 4; 
-    int64 inviter_points = 5; 
+    int64 user_points = 3;
+    int64 kol_points_percent = 4;
+    int64 inviter_points_percent = 5;
+    bool enable_proportional_calculation = 6;
 }
 
 enum IncomeSourceType {
@@ -106,7 +109,7 @@ message PointsChangedDetail {
     IncomeSourceType income_source_type = 3;
     string domain = 4;
     string action_name = 5;
-    string points_name = 6;  
+    string points_name = 6;
     int64 increase_amount = 7;
     int64 balance = 8;
 }
@@ -115,6 +118,18 @@ message SettleInput {
     aelf.Address user_address = 1;
     string action_name = 2;
     aelf.Hash dapp_id = 3;
+    int64 user_points = 4;
+}
+
+message BatchSettleInput {
+    string action_name = 1;
+    aelf.Hash dapp_id = 2;
+    repeated UserPoint user_point_list = 3;
+}
+
+message UserPoint {
+    aelf.Address user_address = 1;
+    int64 user_points = 2;
 }
 
 message GetPointsBalanceInput {
@@ -150,12 +165,12 @@ message SetDappPointsRulesInput {
 
 message DappAdded {
     option (aelf.is_event) = true;
-    aelf.Hash dapp_id = 1; 
+    aelf.Hash dapp_id = 1;
     DappInfo dapp_info = 2;
 }
 
 message GetDappInformationInput {
-    aelf.Hash dapp_id = 1; 
+    aelf.Hash dapp_id = 1;
 }
 
 message GetDappInformationOutput {
@@ -172,9 +187,9 @@ message SelfIncreasingPointsRulesChanged {
     option (aelf.is_event) = true;
     aelf.Hash dapp_id = 1;
     string point_name = 2;
-    int64 user_points = 3; 
-    int64 kol_points = 4; 
-    int64 inviter_points = 5; 
+    int64 user_points = 3;
+    int64 kol_points = 4;
+    int64 inviter_points = 5;
     int32 frequency = 6;
 }
 
@@ -224,8 +239,8 @@ message ReservedDomainList {
 
 message DomainRelationshipInfo {
     string domain = 1;
-    aelf.Address invitee = 2; 
-    aelf.Address inviter = 3; 
+    aelf.Address invitee = 2;
+    aelf.Address inviter = 3;
 }
 
 message CreatePointInput {
