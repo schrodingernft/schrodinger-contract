@@ -42,7 +42,6 @@ public partial class SchrodingerContractTests
             TraitValueMaxCount = 100,
             AttributeMaxLength = 80,
             MaxAttributesPerGen = 5,
-            Signatory = DefaultAddress,
             FixedTraitTypeMaxCount = 5,
             ImageUriMaxSize = 64
         });
@@ -56,7 +55,6 @@ public partial class SchrodingerContractTests
             TraitValueMaxCount = 100,
             AttributeMaxLength = 80,
             MaxAttributesPerGen = 5,
-            Signatory = DefaultAddress,
             FixedTraitTypeMaxCount = 5,
             ImageUriMaxSize = 64
         });

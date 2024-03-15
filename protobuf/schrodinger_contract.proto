@@ -49,7 +49,6 @@ service SchrodingerContract {
   rpc SetImageMaxSize (google.protobuf.Int64Value) returns (google.protobuf.Empty) {}
   rpc SetImageMaxCount (google.protobuf.Int64Value) returns (google.protobuf.Empty) {}
   rpc SetAttributeConfig (SetAttributeConfigInput) returns (google.protobuf.Empty) {}
-  rpc SetSignatoryConfig (aelf.Address) returns (google.protobuf.Empty) {}
   rpc GetConfig (google.protobuf.Empty) returns (Config) {option (aelf.is_view) = true;}
   rpc SetImageUriMaxSize (google.protobuf.Int64Value) returns (google.protobuf.Empty) {}
   rpc GetImageUriMaxSize (google.protobuf.Empty) returns (google.protobuf.Int64Value) {option (aelf.is_view) = true;}
@@ -78,10 +77,9 @@ message InitializeInput {
   int64 trait_type_max_count = 7;
   int64 trait_value_max_count = 8;
   int64 attribute_max_length = 9;
-  aelf.Address signatory = 10;                // eoa address of server
-  int32 max_attributes_per_gen = 11;
-  int64 fixed_trait_type_max_count = 12;
-  int64 image_uri_max_size = 13;
+  int32 max_attributes_per_gen = 10;
+  int64 fixed_trait_type_max_count = 11;
+  int64 image_uri_max_size = 12;
 }
 
 message DeployInput {
@@ -290,10 +288,9 @@ message Config {
   int64 trait_type_max_count = 4;
   int64 trait_value_max_count = 5;
   int64 attribute_max_length = 6;
-  aelf.Address signatory = 7;
-  int32 max_attributes_per_gen = 8;
-  int64 fixed_trait_type_max_count = 9;
-  int64 image_uri_max_size = 10;
+  int32 max_attributes_per_gen = 7;
+  int64 fixed_trait_type_max_count = 8;
+  int64 image_uri_max_size = 9;
 }
 
 message ItemWithWeight {
@@ -467,11 +464,6 @@ message AttributeConfigSet {
   int64 attribute_max_length = 3;
   int32 max_attributes_per_gen = 4;
   int64 fixed_trait_type_max_count = 5;
-}
-
-message SignatoryConfigSet {
-  option (aelf.is_event) = true;
-  aelf.Address signatory = 1;
 }
 
 message AdminSet {
