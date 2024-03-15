@@ -18,7 +18,7 @@ public partial class SchrodingerContractTests
         long amount;
 
         await DeployTest();
-        await SetPointsProportion();
+        // await SetPointsProportion();
 
         {
             var balance = await GetTokenBalance(Gen0, DefaultAddress);
@@ -69,11 +69,10 @@ public partial class SchrodingerContractTests
             {
                 AdoptId = adoptId,
                 Image = "test",
-                ImageUri = "test"
             };
 
             confirmInput.Signature = GenerateSignature(DefaultKeyPair.PrivateKey, confirmInput.AdoptId,
-                confirmInput.Image, confirmInput.ImageUri);
+                confirmInput.Image);
 
             var result = await SchrodingerContractStub.Confirm.SendAsync(confirmInput);
 
@@ -116,11 +115,10 @@ public partial class SchrodingerContractTests
             {
                 AdoptId = adoptId,
                 Image = "test",
-                ImageUri = "test"
             };
 
             confirmInput.Signature = GenerateSignature(DefaultKeyPair.PrivateKey, confirmInput.AdoptId,
-                confirmInput.Image, confirmInput.ImageUri);
+                confirmInput.Image);
 
             var result = await SchrodingerContractStub.Confirm.SendAsync(confirmInput);
 

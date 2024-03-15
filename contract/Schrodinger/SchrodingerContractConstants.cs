@@ -39,4 +39,7 @@ public static class SchrodingerContractConstants
     
     // points
     public const int DefaultMaxProportionListCount = 10;
+    public const long DefaultAdoptProportion = 131400000000;
+    public const long DefaultRerollProportion = 191900000000;
+    public const long DefaultProportion = 100000000;
 }

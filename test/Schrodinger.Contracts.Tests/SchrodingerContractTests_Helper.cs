@@ -24,13 +24,12 @@ public partial class SchrodingerContractTests
         return logEvent;
     }
 
-    private ByteString GenerateSignature(byte[] privateKey, Hash adoptId, string image, string imageUri)
+    private ByteString GenerateSignature(byte[] privateKey, Hash adoptId, string image)
     {
         var data = new ConfirmInput
         {
             AdoptId = adoptId,
             Image = image,
-            ImageUri = imageUri
         };
         var dataHash = HashHelper.ComputeFrom(data);
         var signature = CryptoHelper.SignWithPrivateKey(privateKey, dataHash.ToByteArray());

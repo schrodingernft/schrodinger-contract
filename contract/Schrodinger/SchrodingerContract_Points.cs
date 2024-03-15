@@ -1,5 +1,3 @@
-using System;
-using System.Collections.Generic;
 using System.Linq;
 using AElf.CSharp.Core;
 using AElf.Sdk.CSharp;
@@ -53,12 +51,12 @@ public partial class SchrodingerContract
 
     private void SettlePoints(string actionName, long amount, int inscriptionDecimal)
     {
-        var proportion = State.PointsProportion[actionName];
-        Assert(proportion > 0, "Invalid action name.");
+        var proportion = GetProportion(actionName);
+        
         var points = new BigIntValue(amount).Mul(new BigIntValue(proportion));
         var userPointsValue = new BigIntValue(points).Div(new BigIntValue(10).Pow(inscriptionDecimal));
-
         Assert(long.TryParse(userPointsValue.Value,out var userPoints),"Invalid points.");
+        
         State.PointsContract.Settle.Send(new SettleInput
         {
             DappId = State.PointsContractDAppId.Value,
@@ -68,8 +66,22 @@ public partial class SchrodingerContract
         });
     }
 
+    private long GetProportion(string actionName)
+    {
+        var proportion = State.PointsProportion[actionName];
+        proportion = actionName switch
+        {
+            nameof(Adopt) => proportion == 0 ? SchrodingerContractConstants.DefaultAdoptProportion : proportion,
+            nameof(Reroll) => proportion == 0 ? SchrodingerContractConstants.DefaultRerollProportion : proportion,
+            _ => proportion == 0 ? SchrodingerContractConstants.DefaultProportion : proportion
+        };
+        return proportion;
+    }
+
+
     public override Empty BatchSettle(BatchSettleInput input)
     {
+        Assert(input.UserPointsList != null && input.UserPointsList.Count > 0, "Invalid input.");
         var userPointsList = input.UserPointsList.Select(userPoint => new Points.Contracts.Point.UserPoints
         {
             UserAddress = userPoint.UserAddress, UserPoints_ = userPoint.UserPoints_,

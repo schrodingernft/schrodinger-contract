@@ -115,7 +115,6 @@ public partial class SchrodingerContractTests
                 CrossGenerationFixed = false
             },
             Signatory = DefaultAddress,
-            ImageUri = "uri"
         });
         var log = GetLogEvent<Deployed>(result.TransactionResult);
         var inscription = await SchrodingerContractStub.GetInscriptionInfo.CallAsync(new StringValue
