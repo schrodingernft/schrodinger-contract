@@ -25,7 +25,7 @@ public static class SchrodingerContractConstants
     public const int DefaultMinGen = 1;
     public const int DefaultMaxGen = 10;
     public const long DefaultImageMaxSize = 10240; // 10kb
-    public const long DefaultImageUriMaxSize = 64; // 10kb
+    public const long DefaultImageUriMaxSize = 64;
     public const long DefaultImageMaxCount = 10;
     public const long DefaultTraitValueMaxCount = 100;
     public const long DefaultAttributeMaxLength = 80;
