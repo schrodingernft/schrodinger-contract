@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using System.Linq;
 using AElf.Sdk.CSharp;
 using Google.Protobuf.WellKnownTypes;
@@ -33,7 +34,7 @@ public partial class SchrodingerContract
         var traitTypes = State.RandomTraitTypeMap[input.Tick] ?? new AttributeInfos();
         var traitValues = State.TraitValueMap[input.Tick][traitTypeName];
         traitTypes = UpdateAttributeSet(input.Tick, traitTypes, traitValues, inputTraitType,
-            inputTraitValues, out var toRemove, true);
+            inputTraitValues, out var toRemove);
         var list = traitTypes.Data.ToList();
         var randomCount = CheckAndGetRandomAttributesCount<AttributeInfo>(list);
         CheckRandomAttributeList(list, inscription.MaxGen, inscription.AttributesPerGen);
@@ -193,17 +194,17 @@ public partial class SchrodingerContract
         Assert(IsAddressValid(input.Signatory), "Invalid signatory address.");
 
         CheckInscriptionExistAndPermission(input.Tick);
-        
+
         if (State.SignatoryMap[input.Tick] == input.Signatory) return new Empty();
-        
+
         State.SignatoryMap[input.Tick] = input.Signatory;
-        
+
         Context.Fire(new SignatorySet
         {
             Tick = input.Tick,
             Signatory = input.Signatory
         });
-        
+
         return new Empty();
     }
 }
