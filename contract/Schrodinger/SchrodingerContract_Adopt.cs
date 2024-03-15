@@ -49,7 +49,7 @@ public partial class SchrodingerContract
         adoptInfo.InputAmount = input.Amount;
         adoptInfo.OutputAmount = outputAmount;
 
-        ProcessToken(input.Parent, input.Amount, lossAmount, commissionAmount, inscriptionInfo.Recipient,
+        ProcessAdoptTransfer(input.Parent, input.Amount, lossAmount, commissionAmount, inscriptionInfo.Recipient,
             inscriptionInfo.Ancestor, parentGen);
 
         var randomHash = GetRandomHash();
@@ -133,7 +133,7 @@ public partial class SchrodingerContract
         lossAmount = lossAmount.Sub(commissionAmount);
     }
 
-    private void ProcessToken(string symbol, long inputAmount, long lossAmount, long outputAmount, Address to,
+    private void ProcessAdoptTransfer(string symbol, long inputAmount, long lossAmount, long outputAmount, Address to,
         string ancestor, int parentGen)
     {
         // transfer parent from sender
@@ -145,15 +145,7 @@ public partial class SchrodingerContract
             Symbol = symbol
         });
 
-        if (lossAmount > 0)
-        {
-            State.TokenContract.Burn.Send(new BurnInput
-            {
-                Symbol = ancestor,
-                Amount = lossAmount
-            });
-        }
-        
+        // burn non-gen0
         if (parentGen > 0)
         {
             // burn token
@@ -164,10 +156,47 @@ public partial class SchrodingerContract
             });
         }
 
+        // burn ancestor
+        if (lossAmount > 0)
+        {
+            State.TokenContract.Burn.Send(new BurnInput
+            {
+                Symbol = ancestor,
+                Amount = lossAmount
+            });
+        }
+
         // send commission to recipient
         State.TokenContract.Transfer.Send(new TransferInput
         {
             Amount = outputAmount,
+            To = to,
+            Symbol = ancestor
+        });
+    }
+
+    private void ProcessRerollTransfer(string symbol, long amount, string ancestor, Address to)
+    {
+        // transfer token from sender
+        State.TokenContract.TransferFrom.Send(new TransferFromInput
+        {
+            Amount = amount,
+            From = Context.Sender,
+            To = Context.Self,
+            Symbol = symbol
+        });
+
+        // burn token
+        State.TokenContract.Burn.Send(new BurnInput
+        {
+            Symbol = symbol,
+            Amount = amount
+        });
+
+        // send gen0 to sender
+        State.TokenContract.Transfer.Send(new TransferInput
+        {
+            Amount = amount,
             To = to,
             Symbol = ancestor
         });
@@ -241,7 +270,7 @@ public partial class SchrodingerContract
         {
             foreach (var item in items)
             {
-                totalWeights += item.Weight;
+                totalWeights = totalWeights.Add(item.Weight);
             }
         }
 
@@ -480,8 +509,7 @@ public partial class SchrodingerContract
         Assert(inscriptionInfo != null, "Tick not deployed.");
         Assert(inscriptionInfo.Ancestor != input.Symbol, "Can not reroll gen0.");
 
-        ProcessToken(input.Symbol, input.Amount, 0, input.Amount, Context.Sender,
-            inscriptionInfo.Ancestor, 1);
+        ProcessRerollTransfer(input.Symbol, input.Amount, inscriptionInfo.Ancestor, Context.Sender);
 
         JoinPointsContract(input.Domain);
         SettlePointsContract(nameof(Reroll));
