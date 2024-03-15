@@ -81,6 +81,7 @@ public partial class SchrodingerContract
 
     public override Empty BatchSettle(BatchSettleInput input)
     {
+        CheckSettleAdminPermission();
         Assert(input.UserPointsList != null && input.UserPointsList.Count > 0, "Invalid input.");
         var userPointsList = input.UserPointsList.Select(userPoint => new Points.Contracts.Point.UserPoints
         {
