@@ -69,10 +69,11 @@ public partial class SchrodingerContractTests
             {
                 AdoptId = adoptId,
                 Image = "test",
+                ImageUri = "test"
             };
 
             confirmInput.Signature = GenerateSignature(DefaultKeyPair.PrivateKey, confirmInput.AdoptId,
-                confirmInput.Image);
+                confirmInput.Image, confirmInput.ImageUri);
 
             var result = await SchrodingerContractStub.Confirm.SendAsync(confirmInput);
 
@@ -115,10 +116,11 @@ public partial class SchrodingerContractTests
             {
                 AdoptId = adoptId,
                 Image = "test",
+                ImageUri = "test"
             };
 
             confirmInput.Signature = GenerateSignature(DefaultKeyPair.PrivateKey, confirmInput.AdoptId,
-                confirmInput.Image);
+                confirmInput.Image, confirmInput.ImageUri);
 
             var result = await SchrodingerContractStub.Confirm.SendAsync(confirmInput);
 
