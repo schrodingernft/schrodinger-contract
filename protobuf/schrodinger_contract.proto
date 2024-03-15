@@ -49,8 +49,9 @@ service SchrodingerContract {
   rpc SetImageMaxSize (google.protobuf.Int64Value) returns (google.protobuf.Empty) {}
   rpc SetImageMaxCount (google.protobuf.Int64Value) returns (google.protobuf.Empty) {}
   rpc SetAttributeConfig (SetAttributeConfigInput) returns (google.protobuf.Empty) {}
-  rpc SetSignatoryConfig (aelf.Address) returns (google.protobuf.Empty) {}
   rpc GetConfig (google.protobuf.Empty) returns (Config) {option (aelf.is_view) = true;}
+  rpc SetImageUriMaxSize (google.protobuf.Int64Value) returns (google.protobuf.Empty) {}
+  rpc GetImageUriMaxSize (google.protobuf.Empty) returns (google.protobuf.Int64Value) {option (aelf.is_view) = true;}
 
   // point contract
   rpc SetPointsContractDAppId(aelf.Hash) returns (google.protobuf.Empty) {}
@@ -81,9 +82,9 @@ message InitializeInput {
   int64 trait_type_max_count = 7;
   int64 trait_value_max_count = 8;
   int64 attribute_max_length = 9;
-  aelf.Address signatory = 10;                // eoa address of server
-  int32 max_attributes_per_gen = 11;
-  int64 fixed_trait_type_max_count = 12;
+  int32 max_attributes_per_gen = 10;
+  int64 fixed_trait_type_max_count = 11;
+  int64 image_uri_max_size = 12;
 }
 
 message DeployInput {
@@ -309,9 +310,9 @@ message Config {
   int64 trait_type_max_count = 4;
   int64 trait_value_max_count = 5;
   int64 attribute_max_length = 6;
-  aelf.Address signatory = 7;
-  int32 max_attributes_per_gen = 8;
-  int64 fixed_trait_type_max_count = 9;
+  int32 max_attributes_per_gen = 7;
+  int64 fixed_trait_type_max_count = 8;
+  int64 image_uri_max_size = 9;
 }
 
 message ItemWithWeight {
@@ -416,8 +417,7 @@ message RandomAttributeSet {
 message AttributesPerGenerationSet {
   option (aelf.is_event) = true;
   string tick = 1;
-  int32 old_attributes_per_gen = 2;
-  int32 new_attributes_per_gen = 3;
+  int32 attributes_per_gen = 2;
 }
 
 message ImageCountSet {
@@ -429,31 +429,26 @@ message ImageCountSet {
 message MaxGenerationSet {
   option (aelf.is_event) = true;
   string tick = 1;
-  int32 old_gen = 2;
-  int32 new_gen = 3;
+  int32 gen = 2;
 }
 
 message RatesSet {
   option (aelf.is_event) = true;
   string tick = 1;
-  int64 old_loss_rate = 2;
-  int64 new_loss_rate = 3;
-  int64 old_commission_rate = 4;
-  int64 new_commission_rate = 5;
+  int64 loss_rate = 2;
+  int64 commission_rate = 3;
 }
 
 message RecipientSet {
   option (aelf.is_event) = true;
   string tick = 1;
-  aelf.Address old_recipient = 2;
-  aelf.Address new_recipient = 3;
+  aelf.Address recipient = 2;
 }
 
 message InscriptionAdminSet {
   option (aelf.is_event) = true;
   string tick = 1;
-  aelf.Address old_admin = 2;
-  aelf.Address new_admin = 3;
+  aelf.Address admin = 2;
 }
 
 message CrossGenerationConfigSet {
@@ -491,19 +486,18 @@ message AttributeConfigSet {
   int64 fixed_trait_type_max_count = 5;
 }
 
-message SignatoryConfigSet {
-  option (aelf.is_event) = true;
-  aelf.Address signatory = 1;
-}
-
 message AdminSet {
   option (aelf.is_event) = true;
-  aelf.Address old_admin = 1;
-  aelf.Address new_admin = 2;
+  aelf.Address admin = 1;
 }
 
 message SignatorySet {
   option (aelf.is_event) = true;
   string tick = 1;
   aelf.Address signatory = 2;
+}
+
+message ImageUriMaxSizeSet {
+  option (aelf.is_event) = true;
+  int64 image_uri_max_size = 1;
 }

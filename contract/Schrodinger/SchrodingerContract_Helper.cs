@@ -427,7 +427,7 @@ public partial class SchrodingerContract
         CheckDeployPermission(input.Tick);
         CheckGeneration(input.MaxGeneration);
         CheckAttributePerGen(input.AttributesPerGen, input.MaxGeneration);
-        CheckImageSize(input.Image);
+        CheckImageSize(input.Image, input.ImageUri);
         CheckImageCount(input.ImageCount);
         CheckAndSetCrossGenerationConfig(input.Tick, input.CrossGenerationConfig, input.MaxGeneration);
         
@@ -458,12 +458,14 @@ public partial class SchrodingerContract
         Assert(maxGen >= SchrodingerContractConstants.DefaultMinGen && maxGen <= max, "Invalid max generation.");
     }
 
-    private void CheckImageSize(string image)
+    private void CheckImageSize(string image, string imageUri)
     {
         var config = State.Config?.Value;
         var maxImageSize = config?.ImageMaxSize ?? SchrodingerContractConstants.DefaultImageMaxSize;
+        var maxImageUriSize = config?.ImageUriMaxSize ?? SchrodingerContractConstants.DefaultImageUriMaxSize;
         Assert(IsStringValid(image) && Encoding.UTF8.GetByteCount(image) <= maxImageSize,
             "Invalid image data.");
+        Assert(IsStringValid(imageUri) && imageUri.Length <= maxImageUriSize, "Invalid image uri.");
     }
 
     private void CheckImageCount(int imageCount)

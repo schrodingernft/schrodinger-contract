@@ -31,6 +31,11 @@ public partial class SchrodingerContract
         return State.SignatoryMap[input.Value];
     }
 
+    public override Int64Value GetImageUriMaxSize(Empty input)
+    {
+        return new Int64Value { Value = State.Config.Value.ImageUriMaxSize };
+    }
+
     #region inscription
 
     public override InscriptionInfo GetInscriptionInfo(StringValue input)

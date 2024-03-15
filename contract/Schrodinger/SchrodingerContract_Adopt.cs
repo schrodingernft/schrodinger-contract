@@ -14,7 +14,6 @@ public partial class SchrodingerContract
 {
     public override Empty Adopt(AdoptInput input)
     {
-        CheckInitialized();
         ValidateAdoptInput(input);
 
         var tick = GetTickFromSymbol(input.Parent);
@@ -46,12 +45,12 @@ public partial class SchrodingerContract
 
         var minOutputAmount = new BigIntValue(SchrodingerContractConstants.Ten).Pow(inscriptionInfo.Decimals);
         Assert(outputAmount >= minOutputAmount, "Input amount not enough.");
-        
+
         adoptInfo.InputAmount = input.Amount;
         adoptInfo.OutputAmount = outputAmount;
 
-        ProcessToken(input.Parent, input.Amount, parentGen == 0 ? lossAmount : input.Amount, commissionAmount,
-            inscriptionInfo.Recipient, inscriptionInfo.Ancestor);
+        ProcessAdoptTransfer(input.Parent, input.Amount, lossAmount, commissionAmount, inscriptionInfo.Recipient,
+            inscriptionInfo.Ancestor, parentGen);
 
         var randomHash = GetRandomHash();
         adoptInfo.Gen = GenerateGen(inscriptionInfo, parentGen, randomHash, tick);
@@ -134,8 +133,8 @@ public partial class SchrodingerContract
         lossAmount = lossAmount.Sub(commissionAmount);
     }
 
-    private void ProcessToken(string symbol, long inputAmount, long burnAmount, long outputAmount, Address to,
-        string outputSymbol)
+    private void ProcessAdoptTransfer(string symbol, long inputAmount, long lossAmount, long commissionAmount,
+        Address recipient, string ancestor, int parentGen)
     {
         // transfer parent from sender
         State.TokenContract.TransferFrom.Send(new TransferFromInput
@@ -146,22 +145,60 @@ public partial class SchrodingerContract
             Symbol = symbol
         });
 
-        if (burnAmount > 0)
+        // burn non-gen0
+        if (parentGen > 0)
         {
             // burn token
             State.TokenContract.Burn.Send(new BurnInput
             {
                 Symbol = symbol,
-                Amount = burnAmount
+                Amount = inputAmount
+            });
+        }
+
+        // burn ancestor
+        if (lossAmount > 0)
+        {
+            State.TokenContract.Burn.Send(new BurnInput
+            {
+                Symbol = ancestor,
+                Amount = lossAmount
             });
         }
 
         // send commission to recipient
         State.TokenContract.Transfer.Send(new TransferInput
         {
-            Amount = outputAmount,
-            To = to,
-            Symbol = outputSymbol
+            Amount = commissionAmount,
+            To = recipient,
+            Symbol = ancestor
+        });
+    }
+
+    private void ProcessRerollTransfer(string symbol, long amount, string ancestor)
+    {
+        // transfer token from sender
+        State.TokenContract.TransferFrom.Send(new TransferFromInput
+        {
+            Amount = amount,
+            From = Context.Sender,
+            To = Context.Self,
+            Symbol = symbol
+        });
+
+        // burn token
+        State.TokenContract.Burn.Send(new BurnInput
+        {
+            Symbol = symbol,
+            Amount = amount
+        });
+
+        // send gen0 to sender
+        State.TokenContract.Transfer.Send(new TransferInput
+        {
+            Amount = amount,
+            To = Context.Sender,
+            Symbol = ancestor
         });
     }
 
@@ -182,7 +219,7 @@ public partial class SchrodingerContract
     private int GenerateGen(InscriptionInfo inscriptionInfo, int parentGen, Hash randomHash, string tick)
     {
         var crossGenerationConfig = inscriptionInfo.CrossGenerationConfig;
-        
+
         parentGen++;
 
         if (parentGen == inscriptionInfo.MaxGen || crossGenerationConfig.Gen == 0 ||
@@ -231,7 +268,10 @@ public partial class SchrodingerContract
 
         if (totalWeights == 0)
         {
-            totalWeights = items.Select(i => i.Weight).Sum();
+            foreach (var item in items)
+            {
+                totalWeights = totalWeights.Add(item.Weight);
+            }
         }
 
         var hash = CalculateRandomHash(randomHash, seed);
@@ -247,7 +287,7 @@ public partial class SchrodingerContract
                 if (random > sum) continue;
 
                 selectedItems.Add(items[i].Item);
-                totalWeights = totalWeights.Add(items[i].Weight);
+                totalWeights = totalWeights.Sub(items[i].Weight);
                 items.RemoveAt(i);
                 break;
             }
@@ -280,8 +320,17 @@ public partial class SchrodingerContract
         }
 
         // get non-selected trait types
-        var traitTypes = State.RandomTraitTypeMap[tick].Data
-            .Where(a => attributes.Data.Select(t => t.TraitType).All(t => t != a.Name)).ToList();
+        var traitTypes = new List<AttributeInfo>();
+        var existTypes = new List<string>();
+        foreach (var attribute in attributes.Data)
+        {
+            existTypes.Add(attribute.TraitType);
+        }
+
+        foreach (var info in State.RandomTraitTypeMap[tick].Data)
+        {
+            if (!existTypes.Contains(info.Name)) traitTypes.Add(info);
+        }
 
         // select trait types randomly
         var randomTraitTypes = GetRandomItems(randomHash, nameof(GenerateAttributes),
@@ -320,7 +369,7 @@ public partial class SchrodingerContract
         Assert(input.AdoptId != null, "Invalid input adopt id.");
         Assert(IsByteStringValid(input.Signature), "Invalid input signature.");
 
-        CheckImageSize(input.Image);
+        CheckImageSize(input.Image, input.ImageUri);
 
         var adoptInfo = State.AdoptInfoMap[input.AdoptId];
         Assert(adoptInfo != null, "Adopt id not exists.");
@@ -333,9 +382,7 @@ public partial class SchrodingerContract
 
         var tick = GetTickFromSymbol(adoptInfo.Parent);
 
-        Assert(RecoverAddressFromSignature(input) == (State.SignatoryMap[tick] ?? State.Config.Value.Signatory),
-            "Not authorized.");
-
+        Assert(RecoverAddressFromSignature(input) == (State.SignatoryMap[tick]), "Not authorized.");
 
         var inscriptionInfo = State.InscriptionInfoMap[tick];
 
@@ -447,8 +494,6 @@ public partial class SchrodingerContract
 
     public override Empty Reroll(RerollInput input)
     {
-        CheckInitialized();
-
         Assert(input != null, "Invalid input.");
         Assert(IsSymbolValid(input.Symbol), "Invalid input symbol.");
         Assert(input.Amount > 0, "Invalid input amount.");
@@ -460,8 +505,7 @@ public partial class SchrodingerContract
         Assert(inscriptionInfo != null, "Tick not deployed.");
         Assert(inscriptionInfo.Ancestor != input.Symbol, "Can not reroll gen0.");
 
-        ProcessToken(input.Symbol, input.Amount, input.Amount, input.Amount, Context.Sender,
-            inscriptionInfo.Ancestor);
+        ProcessRerollTransfer(input.Symbol, input.Amount, inscriptionInfo.Ancestor);
 
         JoinPointsContract(input.Domain);
         SettlePoints(nameof(Reroll), input.Amount, inscriptionInfo.Decimals);

@@ -42,8 +42,8 @@ public partial class SchrodingerContractTests
             TraitValueMaxCount = 100,
             AttributeMaxLength = 80,
             MaxAttributesPerGen = 5,
-            Signatory = DefaultAddress,
-            FixedTraitTypeMaxCount = 5
+            FixedTraitTypeMaxCount = 5,
+            ImageUriMaxSize = 64
         });
 
         await SchrodingerContractStub.SetConfig.SendAsync(new Config
@@ -55,8 +55,8 @@ public partial class SchrodingerContractTests
             TraitValueMaxCount = 100,
             AttributeMaxLength = 80,
             MaxAttributesPerGen = 5,
-            Signatory = DefaultAddress,
-            FixedTraitTypeMaxCount = 5
+            FixedTraitTypeMaxCount = 5,
+            ImageUriMaxSize = 64
         });
 
         await SchrodingerContractStub.SetPointsContract.SendAsync(TestPointsContractAddress);
@@ -115,6 +115,7 @@ public partial class SchrodingerContractTests
                 CrossGenerationFixed = false
             },
             Signatory = DefaultAddress,
+            ImageUri = "uri"
         });
         var log = GetLogEvent<Deployed>(result.TransactionResult);
         var inscription = await SchrodingerContractStub.GetInscriptionInfo.CallAsync(new StringValue
