@@ -107,7 +107,7 @@ public partial class SchrodingerContractTests
         {
             Symbol = "SEED-1",
             Amount = 1,
-            Spender = SchrodingerContractAddress
+            Spender = SchrodingerMainContractAddress
         });
     }
 

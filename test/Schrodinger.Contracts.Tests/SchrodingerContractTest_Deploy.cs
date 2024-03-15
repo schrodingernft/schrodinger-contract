@@ -23,28 +23,28 @@ public partial class SchrodingerContractTests
         await SchrodingerMainContractStub.Initialize.SendAsync(new SchrodingerMain.InitializeInput
         {
             Admin = DefaultAddress,
-            ImageMaxSize = 10240
+            ImageMaxSize = 10240,
+            SchrodingerContractAddress = SchrodingerContractAddress
         });
     }
 
     private async Task Initialize()
     {
-        await UpdateContract();
-
-        // await SchrodingerContractStub.Initialize.SendAsync(new InitializeInput
-        // {
-        //     Admin = DefaultAddress,
-        //     PointsContract = TestPointsContractAddress,
-        //     PointsContractDappId = HashHelper.ComputeFrom("PointsContractDappId"),
-        //     MaxGen = 10,
-        //     ImageMaxSize = 10240,
-        //     ImageMaxCount = 2,
-        //     TraitTypeMaxCount = 50,
-        //     TraitValueMaxCount = 100,
-        //     AttributeMaxLength = 80,
-        //     MaxAttributesPerGen = 5,
-        //     Signatory = DefaultAddress
-        // });
+        await SchrodingerContractStub.Initialize.SendAsync(new InitializeInput
+        {
+            Admin = DefaultAddress,
+            PointsContract = TestPointsContractAddress,
+            PointsContractDappId = HashHelper.ComputeFrom("PointsContractDappId"),
+            MaxGen = 10,
+            ImageMaxSize = 10240,
+            ImageMaxCount = 2,
+            TraitTypeMaxCount = 50,
+            TraitValueMaxCount = 100,
+            AttributeMaxLength = 80,
+            MaxAttributesPerGen = 5,
+            Signatory = DefaultAddress,
+            FixedTraitTypeMaxCount = 5
+        });
 
         await SchrodingerContractStub.SetConfig.SendAsync(new Config
         {

@@ -24,6 +24,9 @@ public class SchrodingerMainContract : SchrodingerMainContractContainer.Schrodin
 
         Assert(input.ImageMaxSize > 0, "Invalid input image max size.");
         State.ImageMaxSize.Value = input.ImageMaxSize;
+        
+        Assert(IsAddressValid(input.SchrodingerContractAddress), "Invalid input schrodinger contract address.");
+        State.SchrodingerContractAddress.Value = input.SchrodingerContractAddress;
 
         State.TokenContract.Value =
             Context.GetContractAddressByName(SmartContractConstants.TokenContractSystemName);
@@ -62,7 +65,7 @@ public class SchrodingerMainContract : SchrodingerMainContractContainer.Schrodin
             Deployer = Context.Sender,
             IssueChainId = input.IssueChainId,
             Issuer = Context.Sender,
-            Owner = Context.Self,
+            Owner = State.SchrodingerContractAddress.Value,
             TokenName = input.TokenName,
             Decimals = input.Decimals,
             ImageUri = input.ImageUri
@@ -83,7 +86,7 @@ public class SchrodingerMainContract : SchrodingerMainContractContainer.Schrodin
             IsBurnable = true,
             IssueChainId = issueChainId,
             ExternalInfo = externalInfo,
-            Owner = Context.Self
+            Owner = State.SchrodingerContractAddress.Value
         };
         State.TokenContract.Create.Send(createTokenInput);
     }
@@ -99,6 +102,11 @@ public class SchrodingerMainContract : SchrodingerMainContractContainer.Schrodin
     private void CheckInitialized()
     {
         Assert(State.Initialized.Value, "Not initialized.");
+    }
+    
+    private void CheckAdminPermission()
+    {
+        Assert(State.Admin.Value == Context.Sender, "Not permission.");
     }
 
     private string GetInscriptionCollectionSymbol(string tick)
@@ -172,5 +180,21 @@ public class SchrodingerMainContract : SchrodingerMainContractContainer.Schrodin
     private bool IsStringValid(string input)
     {
         return !string.IsNullOrWhiteSpace(input);
+    }
+
+    public override Empty SetSchrodingerContractAddress(Address input)
+    {
+        CheckAdminPermission();
+        
+        Assert(IsAddressValid(input), "Invalid input.");
+
+        State.SchrodingerContractAddress.Value = input;
+        
+        return new Empty();
+    }
+
+    public override Address GetSchrodingerContractAddress(Empty input)
+    {
+        return State.SchrodingerContractAddress.Value;
     }
 }
