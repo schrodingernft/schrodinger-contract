@@ -14,7 +14,6 @@ public partial class SchrodingerContract
 {
     public override Empty Adopt(AdoptInput input)
     {
-        CheckInitialized();
         ValidateAdoptInput(input);
 
         var tick = GetTickFromSymbol(input.Parent);
@@ -46,7 +45,7 @@ public partial class SchrodingerContract
 
         var minOutputAmount = new BigIntValue(SchrodingerContractConstants.Ten).Pow(inscriptionInfo.Decimals);
         Assert(outputAmount >= minOutputAmount, "Input amount not enough.");
-        
+
         adoptInfo.InputAmount = input.Amount;
         adoptInfo.OutputAmount = outputAmount;
 
@@ -182,7 +181,7 @@ public partial class SchrodingerContract
     private int GenerateGen(InscriptionInfo inscriptionInfo, int parentGen, Hash randomHash, string tick)
     {
         var crossGenerationConfig = inscriptionInfo.CrossGenerationConfig;
-        
+
         parentGen++;
 
         if (parentGen == inscriptionInfo.MaxGen || crossGenerationConfig.Gen == 0 ||
@@ -231,7 +230,10 @@ public partial class SchrodingerContract
 
         if (totalWeights == 0)
         {
-            totalWeights = items.Select(i => i.Weight).Sum();
+            foreach (var item in items)
+            {
+                totalWeights += item.Weight;
+            }
         }
 
         var hash = CalculateRandomHash(randomHash, seed);
@@ -280,8 +282,17 @@ public partial class SchrodingerContract
         }
 
         // get non-selected trait types
-        var traitTypes = State.RandomTraitTypeMap[tick].Data
-            .Where(a => attributes.Data.Select(t => t.TraitType).All(t => t != a.Name)).ToList();
+        var traitTypes = new List<AttributeInfo>();
+        var existTypes = new List<string>();
+        foreach (var attribute in attributes.Data)
+        {
+            existTypes.Add(attribute.TraitType);
+        }
+
+        foreach (var info in State.RandomTraitTypeMap[tick].Data)
+        {
+            if (!existTypes.Contains(info.Name)) traitTypes.Add(info);
+        }
 
         // select trait types randomly
         var randomTraitTypes = GetRandomItems(randomHash, nameof(GenerateAttributes),
@@ -321,7 +332,7 @@ public partial class SchrodingerContract
         Assert(IsStringValid(input.ImageUri), "Invalid input image uri.");
         Assert(IsByteStringValid(input.Signature), "Invalid input signature.");
 
-        CheckImageSize(input.Image);
+        CheckImageSize(input.Image, input.ImageUri);
 
         var adoptInfo = State.AdoptInfoMap[input.AdoptId];
         Assert(adoptInfo != null, "Adopt id not exists.");
@@ -336,7 +347,6 @@ public partial class SchrodingerContract
 
         Assert(RecoverAddressFromSignature(input) == (State.SignatoryMap[tick] ?? State.Config.Value.Signatory),
             "Not authorized.");
-
 
         var inscriptionInfo = State.InscriptionInfoMap[tick];
 
@@ -451,8 +461,6 @@ public partial class SchrodingerContract
 
     public override Empty Reroll(RerollInput input)
     {
-        CheckInitialized();
-
         Assert(input != null, "Invalid input.");
         Assert(IsSymbolValid(input.Symbol), "Invalid input symbol.");
         Assert(input.Amount > 0, "Invalid input amount.");

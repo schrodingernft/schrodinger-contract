@@ -43,7 +43,8 @@ public partial class SchrodingerContractTests
             AttributeMaxLength = 80,
             MaxAttributesPerGen = 5,
             Signatory = DefaultAddress,
-            FixedTraitTypeMaxCount = 5
+            FixedTraitTypeMaxCount = 5,
+            ImageUriMaxSize = 64
         });
 
         await SchrodingerContractStub.SetConfig.SendAsync(new Config
@@ -56,7 +57,8 @@ public partial class SchrodingerContractTests
             AttributeMaxLength = 80,
             MaxAttributesPerGen = 5,
             Signatory = DefaultAddress,
-            FixedTraitTypeMaxCount = 5
+            FixedTraitTypeMaxCount = 5,
+            ImageUriMaxSize = 64
         });
 
         await SchrodingerContractStub.SetPointsContract.SendAsync(TestPointsContractAddress);

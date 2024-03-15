@@ -35,6 +35,7 @@ public partial class SchrodingerContract
         Assert(IsAddressValid(input.Signatory), "Invalid signatory.");
         Assert(input.MaxAttributesPerGen > 0, "Invalid max attributes per generation.");
         Assert(input.FixedTraitTypeMaxCount > 0, "Invalid fixed trait type max count.");
+        Assert(input.ImageUriMaxSize > 0, "Invalid image uri max size.");
     }
 
     public override Empty SetMaxGenerationConfig(Int32Value input)
@@ -156,10 +157,27 @@ public partial class SchrodingerContract
 
         Context.Fire(new AdminSet
         {
-            OldAdmin = Context.Sender,
-            NewAdmin = input
+            Admin = input
         });
 
+        return new Empty();
+    }
+
+    public override Empty SetImageUriMaxSize(Int64Value input)
+    {
+        CheckAdminPermission();
+        
+        Assert(input != null && input.Value > 0, "Invalid input.");
+        
+        if (State.Config.Value.ImageUriMaxSize == input.Value) return new Empty();
+        
+        State.Config.Value.ImageUriMaxSize = input.Value;
+        
+        Context.Fire(new ImageUriMaxSizeSet
+        {
+            ImageUriMaxSize = input.Value
+        });
+        
         return new Empty();
     }
 }
