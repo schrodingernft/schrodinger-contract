@@ -18,6 +18,7 @@ public partial class SchrodingerContractTests
         long amount;
 
         await DeployTest();
+        // await SetPointsProportion();
 
         {
             var balance = await GetTokenBalance(Gen0, DefaultAddress);
@@ -149,4 +150,25 @@ public partial class SchrodingerContractTests
             balance.ShouldBe(0);
         }
     }
+
+    private async Task SetPointsProportion()
+    {
+        await SchrodingerContractStub.SetPointsProportionList.SendAsync(new SetPointsProportionListInput
+        {
+            Data =
+            {
+                new PointsProportion
+                {
+                    ActionName = "Adopt",
+                    Proportion = 131400000000
+                },
+                new PointsProportion
+                {
+                    ActionName = "Reroll",
+                    Proportion = 191900000000
+                }
+            }
+        });
+    }
+    
 }

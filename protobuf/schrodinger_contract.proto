@@ -56,11 +56,16 @@ service SchrodingerContract {
   // point contract
   rpc SetPointsContractDAppId(aelf.Hash) returns (google.protobuf.Empty) {}
   rpc SetPointsContract(aelf.Address) returns (google.protobuf.Empty) {}
-  rpc GetPointsContractDAppId (google.protobuf.Empty) returns (aelf.Hash){option (aelf.is_view) = true;}
-  rpc GetPointsContract(google.protobuf.Empty) returns (aelf.Address) {}
-
+  rpc SetPointsProportionList (SetPointsProportionListInput) returns (google.protobuf.Empty) {}
+  rpc SetPointsSettleAdmin (aelf.Address) returns (google.protobuf.Empty) {}
+  rpc BatchSettle (BatchSettleInput) returns (google.protobuf.Empty) {}
   rpc Join(JoinInput) returns (google.protobuf.Empty) {}
+
+  rpc GetPointsContractDAppId (google.protobuf.Empty) returns (aelf.Hash){option (aelf.is_view) = true;}
+  rpc GetPointsContract(google.protobuf.Empty) returns (aelf.Address) {option (aelf.is_view) = true;}
   rpc GetJoinRecord (aelf.Address) returns (google.protobuf.BoolValue){option (aelf.is_view) = true;}
+  rpc GetPointsProportion(google.protobuf.StringValue) returns (google.protobuf.Int64Value) {option (aelf.is_view) = true;}
+  rpc GetPointsSettleAdmin(google.protobuf.Empty) returns (aelf.Address) {option (aelf.is_view) = true;}
 }
 
 message JoinInput {
@@ -248,6 +253,25 @@ message SetCrossGenerationConfigInput {
 message GetAttributeValuesInput {
   string tick = 1;
   string trait_type = 2;
+}
+
+message SetPointsProportionListInput {
+  repeated PointsProportion data = 1;
+}
+
+message PointsProportion {
+  string action_name = 1;
+  int64 proportion = 2;
+}
+
+message BatchSettleInput {
+  string action_name = 1;
+  repeated UserPoints user_points_list = 2;
+}
+
+message UserPoints {
+  aelf.Address user_address = 1;
+  int64 user_points = 2;
 }
 
 message InscriptionInfo {

@@ -22,6 +22,11 @@ public partial class SchrodingerContract
         Assert(State.Initialized.Value, "Not initialized.");
     }
 
+    private void CheckSettleAdminPermission()
+    {
+        Assert(Context.Sender == State.PointsSettleAdmin.Value, "No permission.");
+    }
+    
     private bool IsAddressValid(Address input)
     {
         return input != null && !input.Value.IsNullOrEmpty();

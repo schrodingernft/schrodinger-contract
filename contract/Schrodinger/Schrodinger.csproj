@@ -6,6 +6,7 @@
         <PackageId>Schrodinger</PackageId>
         <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
         <Description>Schrodinger</Description>
+        <Version>1.0.21</Version>
     </PropertyGroup>
     <PropertyGroup Condition=" '$(Configuration)' == 'Debug' ">
         <CheckForOverflowUnderflow>true</CheckForOverflowUnderflow>
