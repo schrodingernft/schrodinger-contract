@@ -45,6 +45,7 @@ public partial class SchrodingerContractState : ContractState
     public MappedState<Address, bool> JoinRecord { get; set; }
     public SingletonState<Hash> PointsContractDAppId { get; set; }
     
+    // action name -> proportion
     public MappedState<string, long> PointsProportion { get; set; }
     public SingletonState<Address> PointsSettleAdmin { get; set; }
 

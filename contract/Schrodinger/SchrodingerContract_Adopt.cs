@@ -367,6 +367,7 @@ public partial class SchrodingerContract
     {
         Assert(input != null, "Invalid input.");
         Assert(input.AdoptId != null, "Invalid input adopt id.");
+        Assert(IsStringValid(input.ImageUri), "Invalid input image uri.");
         Assert(IsByteStringValid(input.Signature), "Invalid input signature.");
 
         CheckImageSize(input.Image, input.ImageUri);
@@ -387,7 +388,7 @@ public partial class SchrodingerContract
         var inscriptionInfo = State.InscriptionInfoMap[tick];
 
         var externalInfo = GenerateAdoptExternalInfo(tick, input.Image, adoptInfo.OutputAmount, adoptInfo.Gen,
-            adoptInfo.Attributes);
+            adoptInfo.Attributes, input.ImageUri);
 
         CreateInscriptionAndIssue(adoptInfo.Symbol, adoptInfo.TokenName, inscriptionInfo.Decimals,
             adoptInfo.OutputAmount, externalInfo, Context.Self, Context.Self);
@@ -409,7 +410,8 @@ public partial class SchrodingerContract
             ExternalInfos = new ExternalInfos
             {
                 Value = { externalInfo.Value }
-            }
+            },
+            ImageUri = input.ImageUri
         });
 
         return new Empty();
@@ -429,7 +431,8 @@ public partial class SchrodingerContract
         return HashHelper.ComputeFrom(new ConfirmInput
         {
             AdoptId = input.AdoptId,
-            Image = input.Image
+            Image = input.Image,
+            ImageUri = input.ImageUri
         }.ToByteArray());
     }
 
@@ -444,12 +447,13 @@ public partial class SchrodingerContract
     }
 
     private ExternalInfo GenerateAdoptExternalInfo(string tick, string image, long totalSupply, int gen,
-        Attributes attributes)
+        Attributes attributes, string imageUri)
     {
         var externalInfo = new ExternalInfo();
         var dic = new Dictionary<string, string>
         {
-            [SchrodingerContractConstants.InscriptionImageKey] = image
+            [SchrodingerContractConstants.InscriptionImageKey] = image,
+            [SchrodingerContractConstants.InscriptionImageUriKey] = imageUri
         };
 
         var info = new AdoptInscriptionInfo

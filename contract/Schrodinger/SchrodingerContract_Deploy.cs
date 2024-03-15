@@ -31,7 +31,7 @@ public partial class SchrodingerContract
         var attributeList =
             SetAttributeList(tick, inscription.MaxGen, input.AttributeLists, inscription.AttributesPerGen);
         // Generate external info
-        var externalInfo = GenerateExternalInfo(tick, input.Image, input.TotalSupply);
+        var externalInfo = GenerateExternalInfo(tick, input.Image, input.TotalSupply, input.ImageUri);
         CreateInscription(tick, inscription.Decimals, input.TotalSupply, externalInfo, input.Issuer);
         State.SymbolCountMap[tick] = SchrodingerContractConstants.DefaultSymbolIndexStart;
         JoinPointsContract(input.Domain);
@@ -60,6 +60,7 @@ public partial class SchrodingerContract
             LossRate = inscription.LossRate,
             CommissionRate = inscription.CommissionRate,
             AttributesPerGen = input.AttributesPerGen,
+            ImageUri = input.ImageUri,
             Signatory = input.Signatory
         });
         return new Empty();
