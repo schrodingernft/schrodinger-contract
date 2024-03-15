@@ -133,8 +133,8 @@ public partial class SchrodingerContract
         lossAmount = lossAmount.Sub(commissionAmount);
     }
 
-    private void ProcessAdoptTransfer(string symbol, long inputAmount, long lossAmount, long outputAmount, Address to,
-        string ancestor, int parentGen)
+    private void ProcessAdoptTransfer(string symbol, long inputAmount, long lossAmount, long commissionAmount,
+        Address recipient, string ancestor, int parentGen)
     {
         // transfer parent from sender
         State.TokenContract.TransferFrom.Send(new TransferFromInput
@@ -169,13 +169,13 @@ public partial class SchrodingerContract
         // send commission to recipient
         State.TokenContract.Transfer.Send(new TransferInput
         {
-            Amount = outputAmount,
-            To = to,
+            Amount = commissionAmount,
+            To = recipient,
             Symbol = ancestor
         });
     }
 
-    private void ProcessRerollTransfer(string symbol, long amount, string ancestor, Address to)
+    private void ProcessRerollTransfer(string symbol, long amount, string ancestor)
     {
         // transfer token from sender
         State.TokenContract.TransferFrom.Send(new TransferFromInput
@@ -197,7 +197,7 @@ public partial class SchrodingerContract
         State.TokenContract.Transfer.Send(new TransferInput
         {
             Amount = amount,
-            To = to,
+            To = Context.Sender,
             Symbol = ancestor
         });
     }
@@ -509,7 +509,7 @@ public partial class SchrodingerContract
         Assert(inscriptionInfo != null, "Tick not deployed.");
         Assert(inscriptionInfo.Ancestor != input.Symbol, "Can not reroll gen0.");
 
-        ProcessRerollTransfer(input.Symbol, input.Amount, inscriptionInfo.Ancestor, Context.Sender);
+        ProcessRerollTransfer(input.Symbol, input.Amount, inscriptionInfo.Ancestor);
 
         JoinPointsContract(input.Domain);
         SettlePointsContract(nameof(Reroll));
