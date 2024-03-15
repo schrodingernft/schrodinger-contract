@@ -382,18 +382,6 @@ public partial class SchrodingerContract
         Assert(weight >= 0 && weight <= SchrodingerContractConstants.DefaultMaxWeight, "Invalid weight.");
     }
 
-    private void CheckAttributeListDuplicate(AttributeInfos fixedAttributeInfos, AttributeInfos randomAttributeInfos,
-        AttributeInfo toAddTraitType)
-    {
-        var toCheckTraitTypes = fixedAttributeInfos.Data.Concat(randomAttributeInfos.Data).ToList();
-        toCheckTraitTypes.Add(toAddTraitType);
-        var unique = new HashSet<string>();
-        foreach (var set in toCheckTraitTypes)
-        {
-            Assert(unique.Add(set.Name), "Duplicate attribute type.");
-        }
-    }
-
     private void CheckTraitTypeExist(string traitTypeName, AttributeInfos traitTypeMap)
     {
         Assert(traitTypeMap.Data.Select(t => t.Name).Contains(traitTypeName),"Trait type not exist.");
