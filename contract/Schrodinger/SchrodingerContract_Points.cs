@@ -1,4 +1,4 @@
-using System.Linq;
+using System.Collections.Generic;
 using AElf.CSharp.Core;
 using AElf.Sdk.CSharp;
 using AElf.Types;
@@ -24,39 +24,45 @@ public partial class SchrodingerContract
         return new BoolValue { Value = State.JoinRecord[address] };
     }
 
-    private void JoinPointsContract(string domain)
+    private void JoinPointsContract(string domain, Address registrant = null)
     {
+        registrant ??= Context.Sender;
         if (!IsHashValid(State.PointsContractDAppId.Value) || State.PointsContract.Value == null)
         {
             return;
         }
 
-        if (State.JoinRecord[Context.Sender]) return;
+        if (State.JoinRecord[registrant]) return;
 
-        State.JoinRecord[Context.Sender] = true;
+        domain ??= State.PointsContract.GetDappInformation.Call(new GetDappInformationInput
+        {
+            DappId = State.PointsContractDAppId.Value
+        })?.DappInfo?.OfficialDomain;
+
+        State.JoinRecord[registrant] = true;
 
         State.PointsContract.Join.Send(new Points.Contracts.Point.JoinInput
         {
             DappId = State.PointsContractDAppId.Value,
             Domain = domain,
-            Registrant = Context.Sender
+            Registrant = registrant
         });
 
         Context.Fire(new Joined
         {
             Domain = domain,
-            Registrant = Context.Sender
+            Registrant = registrant
         });
     }
 
     private void SettlePoints(string actionName, long amount, int inscriptionDecimal)
     {
         var proportion = GetProportion(actionName);
-        
+
         var points = new BigIntValue(amount).Mul(new BigIntValue(proportion));
         var userPointsValue = new BigIntValue(points).Div(new BigIntValue(10).Pow(inscriptionDecimal));
-        Assert(long.TryParse(userPointsValue.Value,out var userPoints),"Invalid points.");
-        
+        Assert(long.TryParse(userPointsValue.Value, out var userPoints), "Invalid points.");
+
         State.PointsContract.Settle.Send(new SettleInput
         {
             DappId = State.PointsContractDAppId.Value,
@@ -83,10 +89,17 @@ public partial class SchrodingerContract
     {
         CheckSettleAdminPermission();
         Assert(input.UserPointsList != null && input.UserPointsList.Count > 0, "Invalid input.");
-        var userPointsList = input.UserPointsList.Select(userPoint => new Points.Contracts.Point.UserPoints
+        var userPointsList = new List<Points.Contracts.Point.UserPoints>();
+        foreach (var userPoints in input.UserPointsList)
         {
-            UserAddress = userPoint.UserAddress, UserPoints_ = userPoint.UserPoints_,
-        }).ToList();
+            JoinPointsContract(null, userPoints.UserAddress);
+            userPointsList.Add(new Points.Contracts.Point.UserPoints
+            {
+                UserAddress = userPoints.UserAddress,
+                UserPoints_ = userPoints.UserPoints_
+            });
+        }
+
         State.PointsContract.BatchSettle.Send(new Points.Contracts.Point.BatchSettleInput
         {
             ActionName = input.ActionName,
