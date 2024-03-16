@@ -26,7 +26,7 @@ public partial class SchrodingerContract
     {
         Assert(Context.Sender == State.PointsSettleAdmin.Value, "No permission.");
     }
-    
+
     private bool IsAddressValid(Address input)
     {
         return input != null && !input.Value.IsNullOrEmpty();
@@ -232,7 +232,9 @@ public partial class SchrodingerContract
                 config?.AttributeMaxLength ?? SchrodingerContractConstants.DefaultAttributeMaxLength;
             Assert(!string.IsNullOrWhiteSpace(sourceTraitValue.Name), "Invalid trait type name.");
             Assert(sourceTraitValue.Name.Length <= attributeMaxLength, "Invalid trait type name length.");
-            Assert(weight >= 0 && weight <= SchrodingerContractConstants.DefaultMaxWeight, "Invalid weight.");
+            Assert(
+                sourceTraitValue.Weight >= 0 &&
+                sourceTraitValue.Weight <= SchrodingerContractConstants.DefaultMaxWeight, "Invalid weight.");
             data.Add(sourceTraitValue);
         }
 
@@ -389,7 +391,7 @@ public partial class SchrodingerContract
 
     private void CheckTraitTypeExist(string traitTypeName, AttributeInfos traitTypeMap)
     {
-        Assert(traitTypeMap.Data.Select(t => t.Name).Contains(traitTypeName),"Trait type not exist.");
+        Assert(traitTypeMap.Data.Select(t => t.Name).Contains(traitTypeName), "Trait type not exist.");
     }
 
     #endregion
