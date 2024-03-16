@@ -264,7 +264,7 @@ public partial class SchrodingerContract
     private bool IsCrossGenerationHappened(long probability, Hash randomHash)
     {
         var random = Context.ConvertHashToInt64(CalculateRandomHash(randomHash, nameof(IsCrossGenerationHappened)), 1,
-            SchrodingerContractConstants.Denominator);
+            SchrodingerContractConstants.Denominator + 1);
         return random <= probability;
     }
 
@@ -285,27 +285,20 @@ public partial class SchrodingerContract
 
         while (selectedItems.Count < count && items.Count > 0)
         {
-            var selected = false;
             hash = CalculateRandomHash(hash, selectedItems.Count.ToString());
-            var random = Context.ConvertHashToInt64(hash, 1, totalWeights);
+            var random = Context.ConvertHashToInt64(hash, 1, totalWeights + 1);
             var sum = 0L;
             for (var i = 0; i < items.Count; i++)
             {
                 sum = sum.Add(items[i].Weight);
 
-                if (random > sum) continue;
+                if (random > sum && i < items.Count - 1) continue;
 
                 selectedItems.Add(items[i].Item);
                 totalWeights = totalWeights.Sub(items[i].Weight);
                 items.RemoveAt(i);
-                selected = true;
                 break;
             }
-
-            if (selected) continue;
-            selectedItems.Add(items.Last().Item);
-            totalWeights = totalWeights.Sub(items.Last().Weight);
-            items.RemoveAt(items.Count - 1);
         }
 
         return selectedItems;
