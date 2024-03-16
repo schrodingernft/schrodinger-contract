@@ -52,7 +52,7 @@ public partial class SchrodingerContract
         ProcessAdoptTransfer(input.Parent, input.Amount, lossAmount, commissionAmount, inscriptionInfo.Recipient,
             inscriptionInfo.Ancestor, parentGen);
 
-        var randomHash = GetRandomHash();
+        var randomHash = GetRandomHash(tick);
         adoptInfo.Gen = GenerateGen(inscriptionInfo, parentGen, randomHash, tick);
         adoptInfo.Attributes = GenerateAttributes(parentAttributes, tick, inscriptionInfo.AttributesPerGen,
             adoptInfo.Gen.Sub(adoptInfo.ParentGen), randomHash);
@@ -202,7 +202,7 @@ public partial class SchrodingerContract
         });
     }
 
-    private Hash GetRandomHash()
+    private Hash GetRandomHash(string tick)
     {
         if (State.ConsensusContract.Value == null)
         {
@@ -210,10 +210,12 @@ public partial class SchrodingerContract
                 Context.GetContractAddressByName(SmartContractConstants.ConsensusContractSystemName);
         }
 
-        return State.ConsensusContract.GetRandomHash.Call(new Int64Value
+        var randomHash = State.ConsensusContract.GetRandomHash.Call(new Int64Value
         {
             Value = Context.CurrentHeight
         });
+
+        return HashHelper.ConcatAndCompute(HashHelper.ComputeFrom(State.SymbolCountMap[tick]), randomHash);
     }
 
     private int GenerateGen(InscriptionInfo inscriptionInfo, int parentGen, Hash randomHash, string tick)
@@ -234,11 +236,16 @@ public partial class SchrodingerContract
             return newGen >= inscriptionInfo.MaxGen ? inscriptionInfo.MaxGen : newGen;
         }
 
-        var gens = Enumerable.Range(1, crossGenerationConfig.Gen).Select(g => new ItemWithWeight
+        var gens = new List<ItemWithWeight>();
+
+        for (var i = 1; i <= crossGenerationConfig.Gen; i++)
         {
-            Item = g.ToString(),
-            Weight = crossGenerationConfig.Weights[g - 1]
-        }).ToList();
+            gens.Add(new ItemWithWeight
+            {
+                Item = i.ToString(),
+                Weight = crossGenerationConfig.Weights[i - 1]
+            });
+        }
 
         var selected =
             int.TryParse(
@@ -278,6 +285,8 @@ public partial class SchrodingerContract
 
         while (selectedItems.Count < count && items.Count > 0)
         {
+            var selected = false;
+            hash = CalculateRandomHash(hash, selectedItems.Count.ToString());
             var random = Context.ConvertHashToInt64(hash, 1, totalWeights);
             var sum = 0L;
             for (var i = 0; i < items.Count; i++)
@@ -289,8 +298,14 @@ public partial class SchrodingerContract
                 selectedItems.Add(items[i].Item);
                 totalWeights = totalWeights.Sub(items[i].Weight);
                 items.RemoveAt(i);
+                selected = true;
                 break;
             }
+
+            if (selected) continue;
+            selectedItems.Add(items.Last().Item);
+            totalWeights = totalWeights.Sub(items.Last().Weight);
+            items.RemoveAt(items.Count - 1);
         }
 
         return selectedItems;
