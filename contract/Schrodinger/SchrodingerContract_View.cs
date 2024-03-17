@@ -70,22 +70,6 @@ public partial class SchrodingerContract
         };
     }
 
-    public override AttributeLists GetAttributes(StringValue input)
-    {
-        var result = new AttributeLists();
-        var tick = input.Value;
-        if (string.IsNullOrEmpty(tick))
-        {
-            return result;
-        }
-
-        var fixedTraitTypeMap = State.FixedTraitTypeMap[tick] ?? new AttributeInfos();
-        result.FixedAttributes.Add(GetAttributes(tick, fixedTraitTypeMap));
-        var randomTraitTypeMap = State.RandomTraitTypeMap[tick] ?? new AttributeInfos();
-        result.RandomAttributes.Add(GetAttributes(tick, randomTraitTypeMap));
-        return result;
-    }
-
     public override AttributeInfos GetAttributeTypes(StringValue input)
     {
         var result = new AttributeInfos();

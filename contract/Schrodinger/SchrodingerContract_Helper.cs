@@ -296,15 +296,6 @@ public partial class SchrodingerContract
         return traitTypes;
     }
 
-    private List<AttributeSet> GetAttributes(string tick, AttributeInfos attributeInfos)
-    {
-        return attributeInfos.Data.Select(traitType => new AttributeSet
-        {
-            TraitType = traitType,
-            Values = new AttributeInfos { Data = { State.TraitValueMap[tick][traitType.Name]?.Data } }
-        }).ToList();
-    }
-
     #endregion
 
     #region Attribute param check

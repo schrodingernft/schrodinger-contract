@@ -127,58 +127,115 @@ public partial class SchrodingerContractTests
         inscription.CommissionRate.ShouldBe(1000);
         inscription.LossRate.ShouldBe(500);
         inscription.IsWeightEnabled.ShouldBe(true);
-        var attributeList = await SchrodingerContractStub.GetAttributes.CallAsync(new StringValue
+        var attributeList = await SchrodingerContractStub.GetAttributeTypes.CallAsync(new StringValue
         {
             Value = _tick
         });
-        attributeList.FixedAttributes.Count.ShouldBe(3);
-        attributeList.RandomAttributes.Count.ShouldBe(4);
-        attributeList.FixedAttributes[0].TraitType.Name.ShouldBe("Background");
-        attributeList.FixedAttributes[1].TraitType.Name.ShouldBe("Eyes");
-        attributeList.FixedAttributes[2].TraitType.Name.ShouldBe("Clothes");
-        attributeList.FixedAttributes[0].Values.Data.Count.ShouldBe(3);
-        attributeList.FixedAttributes[0].Values.Data[0].Name.ShouldBe("Black");
-        attributeList.FixedAttributes[0].Values.Data[0].Weight.ShouldBe(8);
-        attributeList.FixedAttributes[0].Values.Data[1].Name.ShouldBe("white");
-        attributeList.FixedAttributes[0].Values.Data[1].Weight.ShouldBe(2);
-        attributeList.FixedAttributes[0].Values.Data[2].Name.ShouldBe("Red");
-        attributeList.FixedAttributes[0].Values.Data[2].Weight.ShouldBe(14);
-        attributeList.FixedAttributes[1].Values.Data.Count.ShouldBe(3);
-        attributeList.FixedAttributes[1].Values.Data[0].Name.ShouldBe("Big");
-        attributeList.FixedAttributes[1].Values.Data[0].Weight.ShouldBe(5);
-        attributeList.FixedAttributes[1].Values.Data[1].Name.ShouldBe("Small");
-        attributeList.FixedAttributes[1].Values.Data[1].Weight.ShouldBe(10);
-        attributeList.FixedAttributes[1].Values.Data[2].Name.ShouldBe("Medium");
-        attributeList.FixedAttributes[1].Values.Data[2].Weight.ShouldBe(9);
-        attributeList.FixedAttributes[2].Values.Data.Count.ShouldBe(3);
-        attributeList.FixedAttributes[2].Values.Data[0].Name.ShouldBe("Hoddie");
-        attributeList.FixedAttributes[2].Values.Data[0].Weight.ShouldBe(127);
-        attributeList.FixedAttributes[2].Values.Data[1].Name.ShouldBe("Kimono");
-        attributeList.FixedAttributes[2].Values.Data[1].Weight.ShouldBe(127);
-        attributeList.FixedAttributes[2].Values.Data[2].Name.ShouldBe("Student");
-        attributeList.FixedAttributes[2].Values.Data[2].Weight.ShouldBe(127);
-        attributeList.RandomAttributes[0].TraitType.Name.ShouldBe("Hat");
-        attributeList.RandomAttributes[0].Values.Data.Count.ShouldBe(3);
-        attributeList.RandomAttributes[0].Values.Data[0].Name.ShouldBe("Halo");
-        attributeList.RandomAttributes[0].Values.Data[0].Weight.ShouldBe(170);
-        attributeList.RandomAttributes[0].Values.Data[1].Name.ShouldBe("Tiara");
-        attributeList.RandomAttributes[0].Values.Data[1].Weight.ShouldBe(38);
-        attributeList.RandomAttributes[0].Values.Data[2].Name.ShouldBe("Crown");
-        attributeList.RandomAttributes[0].Values.Data[2].Weight.ShouldBe(100);
-        attributeList.RandomAttributes[1].Values.Data.Count.ShouldBe(3);
-        attributeList.RandomAttributes[1].Values.Data[0].Name.ShouldBe("Pizza");
-        attributeList.RandomAttributes[1].Values.Data[0].Weight.ShouldBe(310);
-        attributeList.RandomAttributes[1].Values.Data[1].Name.ShouldBe("Rose");
-        attributeList.RandomAttributes[1].Values.Data[1].Weight.ShouldBe(210);
-        attributeList.RandomAttributes[1].Values.Data[2].Name.ShouldBe("Roar");
-        attributeList.RandomAttributes[1].Values.Data[2].Weight.ShouldBe(160);
-        attributeList.RandomAttributes[2].Values.Data.Count.ShouldBe(3);
-        attributeList.RandomAttributes[2].Values.Data[0].Name.ShouldBe("Alien");
-        attributeList.RandomAttributes[2].Values.Data[0].Weight.ShouldBe(400);
-        attributeList.RandomAttributes[2].Values.Data[1].Name.ShouldBe("Elf");
-        attributeList.RandomAttributes[2].Values.Data[1].Weight.ShouldBe(10);
-        attributeList.RandomAttributes[2].Values.Data[2].Name.ShouldBe("Star");
-        attributeList.RandomAttributes[2].Values.Data[2].Weight.ShouldBe(199);
+        attributeList.Data.Count.ShouldBe(7);
+        attributeList.Data[0].Name.ShouldBe("Background");
+        attributeList.Data[0].Weight.ShouldBe(170);
+        var attributeValues = await SchrodingerContractStub.GetAttributeValues.CallAsync(new GetAttributeValuesInput
+        {
+            Tick = _tick,
+            TraitType = attributeList.Data[0].Name
+        });
+        attributeValues.Data.Count.ShouldBe(3);
+        attributeValues.Data[0].Name.ShouldBe("Black");
+        attributeValues.Data[0].Weight.ShouldBe(8);
+        attributeValues.Data[1].Name.ShouldBe("white");
+        attributeValues.Data[1].Weight.ShouldBe(2);
+        attributeValues.Data[2].Name.ShouldBe("Red");
+        attributeValues.Data[2].Weight.ShouldBe(14);
+        attributeList.Data[1].Name.ShouldBe("Eyes");
+        attributeList.Data[1].Weight.ShouldBe(100);
+        attributeValues = await SchrodingerContractStub.GetAttributeValues.CallAsync(new GetAttributeValuesInput
+        {
+            Tick = _tick,
+            TraitType = attributeList.Data[1].Name
+        });
+        attributeValues.Data.Count.ShouldBe(3);
+        attributeValues.Data[0].Name.ShouldBe("Big");
+        attributeValues.Data[0].Weight.ShouldBe(5);
+        attributeValues.Data[1].Name.ShouldBe("Small");
+        attributeValues.Data[1].Weight.ShouldBe(10);
+        attributeValues.Data[2].Name.ShouldBe("Medium");
+        attributeValues.Data[2].Weight.ShouldBe(9);
+        
+        attributeList.Data[2].Name.ShouldBe("Clothes");
+        attributeList.Data[2].Weight.ShouldBe(200);
+        attributeValues = await SchrodingerContractStub.GetAttributeValues.CallAsync(new GetAttributeValuesInput
+        {
+            Tick = _tick,
+            TraitType = attributeList.Data[2].Name
+        });
+        attributeValues.Data.Count.ShouldBe(3);
+        attributeValues.Data[0].Name.ShouldBe("Hoddie");
+        attributeValues.Data[0].Weight.ShouldBe(127);
+        attributeValues.Data[1].Name.ShouldBe("Kimono");
+        attributeValues.Data[1].Weight.ShouldBe(127);
+        attributeValues.Data[2].Name.ShouldBe("Student");
+        attributeValues.Data[2].Weight.ShouldBe(127);
+        
+        attributeList.Data[3].Name.ShouldBe("Hat"); 
+        attributeList.Data[3].Weight.ShouldBe(170);
+        attributeValues = await SchrodingerContractStub.GetAttributeValues.CallAsync(new GetAttributeValuesInput
+        {
+            Tick = _tick,
+            TraitType = attributeList.Data[3].Name
+        });
+        attributeValues.Data.Count.ShouldBe(3);
+        attributeValues.Data[0].Name.ShouldBe("Halo");
+        attributeValues.Data[0].Weight.ShouldBe(170);
+        attributeValues.Data[1].Name.ShouldBe("Tiara");
+        attributeValues.Data[1].Weight.ShouldBe(38);
+        attributeValues.Data[2].Name.ShouldBe("Crown");
+        attributeValues.Data[2].Weight.ShouldBe(100);
+        
+        attributeList.Data[4].Name.ShouldBe("Mouth");
+        attributeList.Data[4].Weight.ShouldBe(200);
+        attributeValues = await SchrodingerContractStub.GetAttributeValues.CallAsync(new GetAttributeValuesInput
+        {
+            Tick = _tick,
+            TraitType = attributeList.Data[4].Name
+        });
+        attributeValues.Data.Count.ShouldBe(3);
+        attributeValues.Data[0].Name.ShouldBe("Pizza");
+        attributeValues.Data[0].Weight.ShouldBe(310);
+        attributeValues.Data[1].Name.ShouldBe("Rose");
+        attributeValues.Data[1].Weight.ShouldBe(210);
+        attributeValues.Data[2].Name.ShouldBe("Roar");
+        attributeValues.Data[2].Weight.ShouldBe(160);
+
+        attributeList.Data[5].Name.ShouldBe("Pet");
+        attributeList.Data[5].Weight.ShouldBe(300);
+        attributeValues = await SchrodingerContractStub.GetAttributeValues.CallAsync(new GetAttributeValuesInput
+        {
+            Tick = _tick,
+            TraitType = attributeList.Data[5].Name
+        });
+        attributeValues.Data.Count.ShouldBe(3);
+        attributeValues.Data[0].Name.ShouldBe("Alien");
+        attributeValues.Data[0].Weight.ShouldBe(400);
+        attributeValues.Data[1].Name.ShouldBe("Elf");
+        attributeValues.Data[1].Weight.ShouldBe(10);
+        attributeValues.Data[2].Name.ShouldBe("Star");
+        attributeValues.Data[2].Weight.ShouldBe(199);
+        
+        attributeList.Data[6].Name.ShouldBe("Face");
+        attributeList.Data[6].Weight.ShouldBe(450);
+        attributeValues = await SchrodingerContractStub.GetAttributeValues.CallAsync(new GetAttributeValuesInput
+        {
+            Tick = _tick,
+            TraitType = attributeList.Data[6].Name
+        });
+        attributeValues.Data.Count.ShouldBe(3);
+        attributeValues.Data[0].Name.ShouldBe("Sad");
+        attributeValues.Data[0].Weight.ShouldBe(600);
+        attributeValues.Data[1].Name.ShouldBe("Happy");
+        attributeValues.Data[1].Weight.ShouldBe(120);
+        attributeValues.Data[2].Name.ShouldBe("Angry");
+        attributeValues.Data[2].Weight.ShouldBe(66);
+        
     }
 
     [Fact]
@@ -191,19 +248,26 @@ public partial class SchrodingerContractTests
             Tick = _tick,
             AttributeSet = attribute
         });
-        var attributeList = await SchrodingerContractStub.GetAttributes.CallAsync(new StringValue
+        var attributeList = await SchrodingerContractStub.GetAttributeTypes.CallAsync(new StringValue
         {
             Value = _tick
         });
-        attributeList.FixedAttributes.Count.ShouldBe(4);
-        attributeList.RandomAttributes.Count.ShouldBe(4);
-        attributeList.FixedAttributes[3].Values.Data.Count.ShouldBe(3);
-        attributeList.FixedAttributes[3].Values.Data[0].Name.ShouldBe("Alien");
-        attributeList.FixedAttributes[3].Values.Data[0].Weight.ShouldBe(760);
-        attributeList.FixedAttributes[3].Values.Data[1].Name.ShouldBe("Ape");
-        attributeList.FixedAttributes[3].Values.Data[1].Weight.ShouldBe(95);
-        attributeList.FixedAttributes[3].Values.Data[2].Name.ShouldBe("Zombie");
-        attributeList.FixedAttributes[3].Values.Data[2].Weight.ShouldBe(95);
+        attributeList.Data.Count.ShouldBe(8);
+        attributeList.Data[3].Name.ShouldBe("Breed");
+        attributeList.Data[3].Weight.ShouldBe(170);
+        var values = await SchrodingerContractStub.GetAttributeValues.CallAsync(new GetAttributeValuesInput
+        {
+            Tick = _tick,
+            TraitType = attributeList.Data[3].Name
+        });
+        values.Data.Count.ShouldBe(3);
+        values.Data[0].Name.ShouldBe("Alien");
+        values.Data[0].Weight.ShouldBe(760);
+        values.Data[1].Name.ShouldBe("Ape");
+        values.Data[1].Weight.ShouldBe(95);
+        values.Data[2].Name.ShouldBe("Zombie");
+        values.Data[2].Weight.ShouldBe(95);
+        
 
         var log = GetLogEvent<FixedAttributeSet>(result.TransactionResult);
         log.AddedAttribute.TraitType.Name.ShouldBe("Breed");
@@ -220,21 +284,26 @@ public partial class SchrodingerContractTests
             Tick = _tick,
             AttributeSet = attribute
         });
-        var attributeList = await SchrodingerContractStub.GetAttributes.CallAsync(new StringValue
+        var attributeList = await SchrodingerContractStub.GetAttributeTypes.CallAsync(new StringValue
         {
             Value = _tick
         });
 
-        attributeList.FixedAttributes.Count.ShouldBe(3);
-        attributeList.RandomAttributes.Count.ShouldBe(5);
-        attributeList.RandomAttributes[4].TraitType.Name.ShouldBe("Shoes");
-        attributeList.RandomAttributes[4].Values.Data.Count.ShouldBe(3);
-        attributeList.RandomAttributes[4].Values.Data[0].Name.ShouldBe("Boots");
-        attributeList.RandomAttributes[4].Values.Data[0].Weight.ShouldBe(5);
-        attributeList.RandomAttributes[4].Values.Data[1].Name.ShouldBe("Clogs");
-        attributeList.RandomAttributes[4].Values.Data[1].Weight.ShouldBe(10);
-        attributeList.RandomAttributes[4].Values.Data[2].Name.ShouldBe("Brogues");
-        attributeList.RandomAttributes[4].Values.Data[2].Weight.ShouldBe(9);
+        attributeList.Data.Count.ShouldBe(8);
+        attributeList.Data[7].Name.ShouldBe("Shoes");
+        attributeList.Data[7].Weight.ShouldBe(170);
+        var values = await SchrodingerContractStub.GetAttributeValues.CallAsync(new GetAttributeValuesInput
+        {
+            Tick = _tick,
+            TraitType = attributeList.Data[7].Name
+        });
+        values.Data.Count.ShouldBe(3);
+        values.Data[0].Name.ShouldBe("Boots");
+        values.Data[0].Weight.ShouldBe(5);
+        values.Data[1].Name.ShouldBe("Clogs");
+        values.Data[1].Weight.ShouldBe(10);
+        values.Data[2].Name.ShouldBe("Brogues");
+        values.Data[2].Weight.ShouldBe(9);
 
         var log = GetLogEvent<RandomAttributeSet>(result.TransactionResult);
         log.AddedAttribute.TraitType.Name.ShouldBe("Shoes");
@@ -256,19 +325,16 @@ public partial class SchrodingerContractTests
                 }
             }
         });
-        var attributeList = await SchrodingerContractStub.GetAttributes.CallAsync(new StringValue
+        var attributeList = await SchrodingerContractStub.GetAttributeTypes.CallAsync(new StringValue
         {
             Value = _tick
         });
-        attributeList.FixedAttributes.Count.ShouldBe(2);
-        attributeList.RandomAttributes.Count.ShouldBe(4);
-        attributeList.FixedAttributes[1].Values.Data.Count.ShouldBe(3);
-        attributeList.FixedAttributes[1].Values.Data[0].Name.ShouldBe("Big");
-        attributeList.FixedAttributes[1].Values.Data[0].Weight.ShouldBe(5);
-        attributeList.FixedAttributes[1].Values.Data[1].Name.ShouldBe("Small");
-        attributeList.FixedAttributes[1].Values.Data[1].Weight.ShouldBe(10);
-        attributeList.FixedAttributes[1].Values.Data[2].Name.ShouldBe("Medium");
-        attributeList.FixedAttributes[1].Values.Data[2].Weight.ShouldBe(9);
+        attributeList.Data.Count.ShouldBe(6);
+        attributeList.Data[1].Name.ShouldBe("Eyes");
+        attributeList.Data[1].Weight.ShouldBe(100);
+        attributeList.Data[2].Name.ShouldBe("Hat");
+        attributeList.Data[2].Weight.ShouldBe(170);
+
 
         var log = GetLogEvent<FixedAttributeSet>(result.TransactionResult);
         log.RemovedAttribute.TraitType.Name.ShouldBe("Clothes");
@@ -300,19 +366,25 @@ public partial class SchrodingerContractTests
                 }
             }
         });
-        var attributeList = await SchrodingerContractStub.GetAttributes.CallAsync(new StringValue
+        var attributeList = await SchrodingerContractStub.GetAttributeTypes.CallAsync(new StringValue
         {
             Value = _tick
         });
-        attributeList.FixedAttributes.Count.ShouldBe(3);
-        attributeList.RandomAttributes.Count.ShouldBe(4);
-        attributeList.FixedAttributes[2].Values.Data.Count.ShouldBe(3);
-        attributeList.FixedAttributes[2].Values.Data[0].Name.ShouldBe("Alien");
-        attributeList.FixedAttributes[2].Values.Data[0].Weight.ShouldBe(760);
-        attributeList.FixedAttributes[2].Values.Data[1].Name.ShouldBe("Ape");
-        attributeList.FixedAttributes[2].Values.Data[1].Weight.ShouldBe(95);
-        attributeList.FixedAttributes[2].Values.Data[2].Name.ShouldBe("Zombie");
-        attributeList.FixedAttributes[2].Values.Data[2].Weight.ShouldBe(95);
+        attributeList.Data.Count.ShouldBe(7);
+        attributeList.Data[2].Name.ShouldBe("Clothes");
+        attributeList.Data[2].Weight.ShouldBe(200);
+        var values = await SchrodingerContractStub.GetAttributeValues.CallAsync(new GetAttributeValuesInput
+        {
+            Tick = _tick,
+            TraitType = attributeList.Data[2].Name
+        });
+        values.Data.Count.ShouldBe(3);
+        values.Data[0].Name.ShouldBe("Alien");
+        values.Data[0].Weight.ShouldBe(760);
+        values.Data[1].Name.ShouldBe("Ape");
+        values.Data[1].Weight.ShouldBe(95);
+        values.Data[2].Name.ShouldBe("Zombie");
+        values.Data[2].Weight.ShouldBe(95);
     }
 
     // [Fact]
