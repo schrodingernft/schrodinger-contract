@@ -14,6 +14,8 @@ public partial class BatchTransferContract : BatchTransferContractContainer.Batc
         State.TokenContract.Value =
             Context.GetContractAddressByName(SmartContractConstants.TokenContractSystemName);
         State.GenesisContract.Value = Context.GetZeroSmartContractAddress();
+        var author = State.GenesisContract.GetContractAuthor.Call(Context.Self);
+        Assert(Context.Sender == author, "No permission.");
         State.Manager.Value = input;
         State.Initialized.Value = true;
         return new Empty();

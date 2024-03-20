@@ -17,6 +17,13 @@ public class BatchTransferContractTests : BatchTransferContractTestBase
         var manager = await BatchTransferContractStub.GetManager.CallAsync(new Empty());
         manager.ShouldBe(DefaultAddress);
     }
+    
+    [Fact]
+    public async Task Initialize_Failed()
+    {
+        var executionResult = await BatchTransferContract1Stub.Initialize.SendWithExceptionAsync(DefaultAddress);
+        executionResult.TransactionResult.Error.ShouldContain("No permission.");
+    }
 
     [Fact]
     public async Task SetManager()
