@@ -1,0 +1,61 @@
+// the version of the language, use proto3 for contracts
+syntax = "proto3";
+
+import "aelf/core.proto";
+import "aelf/options.proto";
+import "acs12.proto";
+
+option csharp_namespace = "TestContract";
+
+service TestContract {
+  option (aelf.base) = "acs12.proto";
+  option (aelf.csharp_state) = "TestContractState";
+
+  rpc SetPointsProportionList (SetPointsProportionListInput) returns (google.protobuf.Empty) {}
+  rpc GetPointsProportion(google.protobuf.StringValue) returns (google.protobuf.Int64Value) {option (aelf.is_view) = true;}
+
+  rpc CreatePointList(CreatePointListInput) returns (google.protobuf.Empty) {}
+  rpc GetPoint(GetPointInput) returns (PointInfo){option (aelf.is_view) = true;}
+
+  rpc SetDappPointsRules(SetDappPointsRulesInput) returns (google.protobuf.Empty) {}
+  rpc GetDappPointsRules(aelf.Hash) returns (PointsRuleList) {option (aelf.is_view) = true;}
+}
+
+message SetPointsProportionListInput {
+  repeated PointsProportion data = 1;
+}
+message PointsProportion {
+  string action_name = 1;
+  int64 proportion = 2;
+}
+message CreatePointListInput {
+  aelf.Hash dapp_id = 1;
+  repeated PointInfo point_list = 2;
+}
+message PointInfo {
+  string token_name = 1;
+  int32 decimals = 2;
+}
+
+message SetDappPointsRulesInput {
+  aelf.Hash dapp_id = 1;
+  PointsRuleList dapp_points_rules = 2;
+}
+
+message PointsRuleList {
+  repeated PointsRule points_rules = 1;
+}
+
+message PointsRule {
+  string action_name = 1;
+  string point_name = 2;
+  int64 user_points = 3;
+  int64 kol_points_percent = 4;
+  int64 inviter_points_percent = 5;
+  bool enable_proportional_calculation = 6;
+}
+
+message GetPointInput {
+  aelf.Hash dapp_id = 1;
+  string points_name = 2;
+}

@@ -1,0 +1,41 @@
+<Project Sdk="Microsoft.NET.Sdk">
+    <PropertyGroup>
+        <TargetFramework>net6.0</TargetFramework>
+        <RootNamespace>BatchTransfer</RootNamespace>
+        <IsContract>true</IsContract>
+        <PackageId>BatchTransfer</PackageId>
+        <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+        <Description>BatchTransfer</Description>
+    </PropertyGroup>
+    <PropertyGroup Condition=" '$(Configuration)' == 'Debug' ">
+        <CheckForOverflowUnderflow>true</CheckForOverflowUnderflow>
+    </PropertyGroup>
+    <PropertyGroup Condition=" '$(Configuration)' == 'Release' ">
+        <CheckForOverflowUnderflow>true</CheckForOverflowUnderflow>
+    </PropertyGroup>
+    <ItemGroup>
+        <CommonMessage Include="..\..\protobuf\authority_info.proto">
+            <Link>Protobuf\Proto\authority_info.proto</Link>
+        </CommonMessage>
+    </ItemGroup>
+    <ItemGroup>
+        <ContractReference Include="..\..\protobuf\acs0.proto">
+            <Link>Protobuf\Proto\acs0.proto</Link>
+        </ContractReference>
+        <ContractReference Include="..\..\protobuf\token_contract.proto">
+            <Link>Protobuf\Proto\token_contract.proto</Link>
+        </ContractReference>
+    </ItemGroup>
+    <ItemGroup>
+        <ContractBase Include="..\..\protobuf\acs12.proto">
+            <Link>Protobuf\Proto\reference\acs12.proto</Link>
+        </ContractBase>
+    </ItemGroup>
+
+    <ItemGroup>
+        <ContractCode Include="..\..\protobuf\batch_transfer_contract.proto">
+            <Link>Protobuf\Proto\batch_transfer_contract.proto</Link>
+        </ContractCode>
+    </ItemGroup>
+
+</Project>

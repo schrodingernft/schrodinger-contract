@@ -1,0 +1,33 @@
+// the version of the language, use proto3 for contracts
+syntax = "proto3";
+
+import "aelf/core.proto";
+import "aelf/options.proto";
+import "acs12.proto";
+import "google/protobuf/empty.proto";
+import "google/protobuf/timestamp.proto";
+
+option csharp_namespace = "BatchTransfer";
+
+service BatchTransferContract {
+  option (aelf.base) = "acs12.proto";
+  option (aelf.csharp_state) = "BatchTransfer.BatchTransferContractState";
+  
+  rpc Initialize(aelf.Address) returns (google.protobuf.Empty){}
+  rpc SetManager(aelf.Address) returns (google.protobuf.Empty){}
+  rpc GetManager(google.protobuf.Empty) returns (aelf.Address){option (aelf.is_view) = true;}
+  rpc BatchTransfer(BatchTransferInput) returns (google.protobuf.Empty){}
+}
+
+message BatchTransferInput {
+  repeated TransferInfo value = 1;
+}
+
+message TransferInfo {
+  // The receiver of the token.
+  aelf.Address to = 1;
+  // The token symbol to transfer.
+  string symbol = 2;
+  // The amount to to transfer.
+  int64 amount = 3;
+}
