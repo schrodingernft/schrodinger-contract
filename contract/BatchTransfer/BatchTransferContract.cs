@@ -14,7 +14,7 @@ public partial class BatchTransferContract : BatchTransferContractContainer.Batc
         State.TokenContract.Value =
             Context.GetContractAddressByName(SmartContractConstants.TokenContractSystemName);
         State.GenesisContract.Value = Context.GetZeroSmartContractAddress();
-        State.Manager.Value = input ?? Context.Sender;
+        State.Manager.Value = input;
         State.Initialized.Value = true;
         return new Empty();
     }
