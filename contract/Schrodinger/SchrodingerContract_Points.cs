@@ -61,14 +61,12 @@ public partial class SchrodingerContract
 
         var points = new BigIntValue(amount).Mul(new BigIntValue(proportion));
         var userPointsValue = new BigIntValue(points).Div(new BigIntValue(10).Pow(inscriptionDecimal));
-        Assert(long.TryParse(userPointsValue.Value, out var userPoints), "Invalid points.");
-
         State.PointsContract.Settle.Send(new SettleInput
         {
             DappId = State.PointsContractDAppId.Value,
             ActionName = actionName,
             UserAddress = Context.Sender,
-            UserPoints = userPoints
+            UserPointsValue = userPointsValue
         });
     }
 
