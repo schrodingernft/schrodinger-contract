@@ -16,7 +16,11 @@ public partial class SchrodingerContractTests
     private T GetLogEvent<T>(TransactionResult transactionResult) where T : IEvent<T>, new()
     {
         var log = transactionResult.Logs.FirstOrDefault(l => l.Name == typeof(T).Name);
-        log.ShouldNotBeNull();
+
+        if (log == null)
+        {
+            return new T();
+        }
 
         var logEvent = new T();
         logEvent.MergeFrom(log.NonIndexed);

@@ -28,7 +28,7 @@ public partial class SchrodingerContractTests
         });
     }
 
-    private async Task Initialize()
+    private async Task InitializeSchrodinger()
     {
         await SchrodingerContractStub.Initialize.SendAsync(new InitializeInput
         {
@@ -92,7 +92,7 @@ public partial class SchrodingerContractTests
     public async Task DeployTest()
     {
         await DeployCollectionTest();
-        await Initialize();
+        await InitializeSchrodinger();
         var result = await SchrodingerContractStub.Deploy.SendAsync(new DeployInput()
         {
             Tick = _tick,
@@ -160,7 +160,7 @@ public partial class SchrodingerContractTests
         attributeValues.Data[1].Weight.ShouldBe(10);
         attributeValues.Data[2].Name.ShouldBe("Medium");
         attributeValues.Data[2].Weight.ShouldBe(9);
-        
+
         attributeList.Data[2].Name.ShouldBe("Clothes");
         attributeList.Data[2].Weight.ShouldBe(200);
         attributeValues = await SchrodingerContractStub.GetAttributeValues.CallAsync(new GetAttributeValuesInput
@@ -175,8 +175,8 @@ public partial class SchrodingerContractTests
         attributeValues.Data[1].Weight.ShouldBe(127);
         attributeValues.Data[2].Name.ShouldBe("Student");
         attributeValues.Data[2].Weight.ShouldBe(127);
-        
-        attributeList.Data[3].Name.ShouldBe("Hat"); 
+
+        attributeList.Data[3].Name.ShouldBe("Hat");
         attributeList.Data[3].Weight.ShouldBe(170);
         attributeValues = await SchrodingerContractStub.GetAttributeValues.CallAsync(new GetAttributeValuesInput
         {
@@ -190,7 +190,7 @@ public partial class SchrodingerContractTests
         attributeValues.Data[1].Weight.ShouldBe(38);
         attributeValues.Data[2].Name.ShouldBe("Crown");
         attributeValues.Data[2].Weight.ShouldBe(100);
-        
+
         attributeList.Data[4].Name.ShouldBe("Mouth");
         attributeList.Data[4].Weight.ShouldBe(200);
         attributeValues = await SchrodingerContractStub.GetAttributeValues.CallAsync(new GetAttributeValuesInput
@@ -220,7 +220,7 @@ public partial class SchrodingerContractTests
         attributeValues.Data[1].Weight.ShouldBe(10);
         attributeValues.Data[2].Name.ShouldBe("Star");
         attributeValues.Data[2].Weight.ShouldBe(199);
-        
+
         attributeList.Data[6].Name.ShouldBe("Face");
         attributeList.Data[6].Weight.ShouldBe(450);
         attributeValues = await SchrodingerContractStub.GetAttributeValues.CallAsync(new GetAttributeValuesInput
@@ -235,7 +235,6 @@ public partial class SchrodingerContractTests
         attributeValues.Data[1].Weight.ShouldBe(120);
         attributeValues.Data[2].Name.ShouldBe("Angry");
         attributeValues.Data[2].Weight.ShouldBe(66);
-        
     }
 
     [Fact]
@@ -267,7 +266,7 @@ public partial class SchrodingerContractTests
         values.Data[1].Weight.ShouldBe(95);
         values.Data[2].Name.ShouldBe("Zombie");
         values.Data[2].Weight.ShouldBe(95);
-        
+
 
         var log = GetLogEvent<FixedAttributeSet>(result.TransactionResult);
         log.AddedAttribute.TraitType.Name.ShouldBe("Breed");

@@ -11,7 +11,7 @@ public partial class SchrodingerContractTests
     public async Task SetPointsProportionTests()
     {
         await DeployCollectionTest();
-        await Initialize();
+        await InitializeSchrodinger();
         await SchrodingerContractStub.SetPointsProportionList.SendAsync(new SetPointsProportionListInput
         {
             Data =
@@ -41,4 +41,23 @@ public partial class SchrodingerContractTests
     }
 
     // [Fact] public async Task SetPointsSettle
+    private async Task SetPointsProportion()
+    {
+        await SchrodingerContractStub.SetPointsProportionList.SendAsync(new SetPointsProportionListInput
+        {
+            Data =
+            {
+                new PointsProportion
+                {
+                    ActionName = "Adopt",
+                    Proportion = 131400000000
+                },
+                new PointsProportion
+                {
+                    ActionName = "Reroll",
+                    Proportion = 191900000000
+                }
+            }
+        });
+    }
 }

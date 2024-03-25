@@ -391,7 +391,7 @@ public partial class SchrodingerContract
 
         var tick = GetTickFromSymbol(adoptInfo.Parent);
 
-        Assert(RecoverAddressFromSignature(input) == (State.SignatoryMap[tick]), "Not authorized.");
+        Assert(RecoverAddressFromSignature(input) == State.SignatoryMap[tick], "Not authorized.");
 
         var inscriptionInfo = State.InscriptionInfoMap[tick];
 
