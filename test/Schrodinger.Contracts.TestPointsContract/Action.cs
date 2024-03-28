@@ -13,4 +13,9 @@ public class TestPointsContract : TestPointsContractContainer.TestPointsContract
     {
         return new Empty();
     }
+
+    public override Empty AcceptReferral(AcceptReferralInput input)
+    {
+        return new Empty();
+    }
 }

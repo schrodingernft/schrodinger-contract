@@ -144,4 +144,29 @@ public partial class SchrodingerContract
     {
         return State.PointsSettleAdmin.Value;
     }
+
+    public override Empty AcceptReferral(AcceptReferralInput input)
+    {
+        CheckInitialized();
+        
+        Assert(input != null, "Invalid input.");
+        Assert(IsAddressValid(input.Referrer) && State.JoinRecord[input.Referrer], "Invalid referrer.");
+        Assert(!State.JoinRecord[Context.Sender], "Already joined.");
+        
+        State.JoinRecord[Context.Sender] = true;
+        
+        State.PointsContract.AcceptReferral.Send(new Points.Contracts.Point.AcceptReferralInput
+        {
+            DappId = State.PointsContractDAppId.Value,
+            Referrer = input.Referrer
+        });
+        
+        Context.Fire(new ReferralAccepted
+        {
+            Invitee = Context.Sender,
+            Referrer = input.Referrer
+        });
+        
+        return new Empty();
+    }
 }

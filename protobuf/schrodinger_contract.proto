@@ -59,6 +59,7 @@ service SchrodingerContract {
   rpc SetPointsSettleAdmin (aelf.Address) returns (google.protobuf.Empty) {}
   rpc BatchSettle (BatchSettleInput) returns (google.protobuf.Empty) {}
   rpc Join(JoinInput) returns (google.protobuf.Empty) {}
+  rpc AcceptReferral (AcceptReferralInput) returns (google.protobuf.Empty) {}
 
   rpc GetPointsContractDAppId (google.protobuf.Empty) returns (aelf.Hash){option (aelf.is_view) = true;}
   rpc GetPointsContract(google.protobuf.Empty) returns (aelf.Address) {option (aelf.is_view) = true;}
@@ -326,6 +327,10 @@ message SetSignatoryInput {
   aelf.Address signatory = 2;
 }
 
+message AcceptReferralInput {
+  aelf.Address referrer = 1;
+}
+
 // log event
 message Joined {
   option (aelf.is_event) = true;
@@ -503,4 +508,10 @@ message SignatorySet {
 message ImageUriMaxSizeSet {
   option (aelf.is_event) = true;
   int64 image_uri_max_size = 1;
+}
+
+message ReferralAccepted {
+  option (aelf.is_event) = true;
+  aelf.Address referrer = 1;
+  aelf.Address invitee = 2;
 }
